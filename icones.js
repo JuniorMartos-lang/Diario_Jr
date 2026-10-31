@@ -52,3 +52,47 @@ const ICONES = [
 const eBandeira = (i) => i.url.includes('credit-card-payment-icons');
 const ICONES_BANCOS = ICONES.filter((i) => !eBandeira(i));
 const ICONES_BANDEIRAS = ICONES.filter(eBandeira).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+// Icones de categoria: desenhados aqui, sem depender de internet nem de marcas de terceiros.
+const SIMBOLOS = {
+  etiqueta: ['Etiqueta', '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>'],
+  comida: ['Comida', '<path d="M7 3v8M4 3v5a3 3 0 0 0 6 0V3M7 11v10M17 3c-2 1-3 4-3 8h3M17 3v18"/>'],
+  mercado: ['Mercado', '<path d="M3 4h2l3 12h10l2-8H6"/><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/>'],
+  casa: ['Casa', '<path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/>'],
+  carro: ['Carro', '<path d="M4 16v-4l2-6h12l2 6v4M4 12h16M3 16h18v2H3z"/><circle cx="7.5" cy="14" r=".6"/><circle cx="16.5" cy="14" r=".6"/>'],
+  onibus: ['Ônibus', '<rect x="5" y="3" width="14" height="15" rx="2"/><path d="M5 11h14M8 18v3M16 18v3M8 14.5h.01M16 14.5h.01"/>'],
+  combustivel: ['Combustível', '<path d="M5 21V4a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v17M3 21h13M5 10h9M14 8l4 3v6a1.5 1.5 0 0 0 3 0v-6l-3-3"/>'],
+  saude: ['Saúde', '<path d="M12 21C6 16 3 13 3 8.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 9 2.5C21 13 18 16 12 21zM12 9v6M9 12h6"/>'],
+  academia: ['Academia', '<path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/>'],
+  lazer: ['Lazer', '<path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6zM14 6v2M14 11v2M14 16v2"/>'],
+  viagem: ['Viagem', '<path d="M21 3L3 10l7 3 3 7zM10 13l5-5"/>'],
+  educacao: ['Educação', '<path d="M2 9l10-5 10 5-10 5zM6 11.5V17c3 2 9 2 12 0v-5.5M22 9v6"/>'],
+  roupa: ['Roupa', '<path d="M8 3L3 6l2 5 3-1v11h8V10l3 1 2-5-5-3c-.5 2-1.8 3-4 3s-3.5-1-4-3z"/>'],
+  beleza: ['Beleza', '<path d="M12 3l1.8 5.200L19 10l-5.200 1.8L12 17l-1.8-5.200L5 10l5.200-1.8zM18.5 16l.8 2.200 2.200.8-2.200.8-.8 2.200-.8-2.200-2.200-.8 2.200-.8z"/>'],
+  pet: ['Pet', '<circle cx="6" cy="11" r="1.8"/><circle cx="10" cy="6.5" r="1.8"/><circle cx="14" cy="6.5" r="1.8"/><circle cx="18" cy="11" r="1.8"/><path d="M12 11c-3 0-5.5 3.5-5.5 6 0 3 3 3 5.5 2 2.5 1 5.5 1 5.5-2 0-2.5-2.5-6-5.5-6z"/>'],
+  presente: ['Presente', '<rect x="4" y="10" width="16" height="11" rx="1"/><path d="M3 7h18v3H3zM12 7v14M12 7C10 3 6 3 7 6c.3 1 2 1 5 1zM12 7c2-4 6-4 5-1-.3 1-2 1-5 1z"/>'],
+  luz: ['Energia', '<path d="M13 2L4 14h7l-1 8 10-13h-7z"/>'],
+  agua: ['Água', '<path d="M12 3c4 5 7 8 7 11.5a7 7 0 0 1-14 0C5 11 8 8 12 3z"/>'],
+  telefone: ['Telefone', '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18.5h2"/>'],
+  internet: ['Internet', '<path d="M2 9c6-5.5 14-5.5 20 0M5.5 13c4-3.5 9-3.5 13 0M9 16.5c2-1.5 4-1.5 6 0M12 20h.01"/>'],
+  assinatura: ['Assinatura', '<path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/>'],
+  imposto: ['Imposto', '<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>'],
+  carteira: ['Carteira', '<path d="M4 7h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12v3M16 13.5h.01"/>'],
+  grafico: ['Investimento', '<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>'],
+  moeda: ['Dinheiro', '<circle cx="12" cy="12" r="9"/><path d="M15 9c-.5-1-1.5-1.5-3-1.5-2 0-3 1-3 2.200 0 3 6 1.600 6 4.600 0 1.200-1 2.200-3 2.200-1.5 0-2.5-.5-3-1.5M12 5.5v13"/>'],
+  banco: ['Banco', '<path d="M3 10l9-6 9 6M4 10h16M6 10v8M10 10v8M14 10v8M18 10v8M3 20h18"/>'],
+  cartao: ['Cartão', '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18M7 15h4"/>'],
+  blocos: ['Blocos', '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/>'],
+  nuvem: ['Nuvem', '<path d="M7 18a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 10a4 4 0 0 1-.5 8"/><path d="M12 20v-8M9 15l3-3 3 3"/>'],
+  sol: ['Sol', '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/>'],
+  caixa: ['Caixa', '<rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/>'],
+  estrela: ['Outros','<path d="M12 3l2.8 5.8 6.200.9-4.5 4.400 1 6.300-5.5-3-5.5 3 1-6.300L3 9.700l6.200-.9z"/>'],
+};
+// Texto branco sobre estas cores tem contraste de pelo menos 3:1.
+const CORES_CATEGORIA = ['#1b76c9', '#0e7490', '#2f8486', '#2d7d46', '#a16207', '#c8641e', '#c0262d', '#b0327a', '#7a3e9d', '#4f5b93', '#6b5344', '#475569'];
+// Categorias que ja existem ou vem prontas comecam com uma aparencia coerente com o nome.
+const PADRAO_CATEGORIA = {
+  'Alimentação': ['comida', '#c8641e'], Moradia: ['casa', '#1b76c9'], Transporte: ['carro', '#4f5b93'], 'Saúde': ['saude', '#c0262d'],
+  Lazer: ['lazer', '#7a3e9d'], 'Educação': ['educacao', '#0e7490'], Outros: ['estrela', '#475569'],
+  'Salário': ['carteira', '#2d7d46'], Rendimentos: ['grafico', '#2f8486'], 'Outras receitas': ['moeda', '#a16207'],
+};

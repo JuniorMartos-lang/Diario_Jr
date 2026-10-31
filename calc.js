@@ -23,9 +23,25 @@ function mesFatura(data, cartao) {
   return cartao.vencimento > cartao.fechamento ? fecha : addMes(fecha, 1);
 }
 
+// Conta ou cartao arquivado aparece ate o mes do arquivamento e some dos meses seguintes.
+function ativoEm(item, ym) {
+  return !item.arquivadaEm || ym <= item.arquivadaEm.slice(0, 7);
+}
+
+// Lancamentos depois do mes do arquivamento ficam guardados, mas nao contam: voltam ao desarquivar.
+function lancsVisiveis(db) {
+  const todos = [...db.contasBanco, ...db.cartoes];
+  const ativo = (id, ym) => { const o = todos.find((x) => x.id === id); return !o || ativoEm(o, ym); };
+  return db.lancs.filter((l) => {
+    const cartao = db.cartoes.find((x) => x.id === l.meio);
+    const ym = cartao ? mesFatura(l.data, cartao) : l.data.slice(0, 7);
+    return ativo(l.meio, ym) && (!l.destino || ativo(l.destino, ym));
+  });
+}
+
 // Cada parcela e um lancamento proprio; a fatura vem da data dele.
 function todasParcelas(db, cartao) {
-  return db.lancs.filter((l) => l.meio === cartao.id).map((l) => ({ ym: mesFatura(l.data, cartao), valor: l.valor, n: l.parcela, de: l.de, lanc: l }));
+  return lancsVisiveis(db).filter((l) => l.meio === cartao.id).map((l) => ({ ym: mesFatura(l.data, cartao), valor: l.valor, n: l.parcela, de: l.de, lanc: l }));
 }
 
 function itensFatura(db, cartao, ym) {
@@ -71,7 +87,7 @@ function desfazerPagamentos(db, cartaoId, ym) {
 function saldosPorConta(db, hoje) {
   const t = {};
   for (const c of db.contasBanco) t[c.id] = c.saldoInicial;
-  for (const l of db.lancs) {
+  for (const l of lancsVisiveis(db)) {
     if (!l.pago || ehCartao(db, l.meio)) continue;
     if (l.tipo === 'T') { t[l.meio] -= l.valor; t[l.destino] += l.valor; }
     else t[l.meio] += l.tipo === 'E' ? l.valor : -l.valor;
@@ -81,7 +97,8 @@ function saldosPorConta(db, hoje) {
 }
 
 function saldo(db, hoje) {
-  return Object.values(saldosPorConta(db, hoje)).reduce((a, b) => a + b, 0);
+  const t = saldosPorConta(db, hoje);
+  return db.contasBanco.filter((c) => ativoEm(c, hoje.slice(0, 7))).reduce((s, c) => s + t[c.id], 0);
 }
 
 // Gastos do mes por categoria, pagos ou pendentes. Conta pela data; cartao pelo mes da fatura.
@@ -89,7 +106,7 @@ function saldo(db, hoje) {
 function gastosPorCategoria(db, ym) {
   const t = {};
   const soma = (cat, v) => { t[cat] = (t[cat] || 0) + v; };
-  for (const l of db.lancs) {
+  for (const l of lancsVisiveis(db)) {
     if (l.tipo === 'S' && !ehCartao(db, l.meio) && l.data.slice(0, 7) === ym) soma(l.cat, l.valor);
   }
   for (const c of db.cartoes) for (const p of itensFatura(db, c, ym)) soma(p.lanc.cat, p.valor);
@@ -109,7 +126,7 @@ function limitesDoMes(db, ym) {
 // Cartao: base 'fatura' poe cada parcela no mes da fatura; base 'compra', todas no mes da compra.
 function itensRelatorio(db, ini, fim, base, filtro) {
   const itens = [];
-  for (const l of db.lancs) {
+  for (const l of lancsVisiveis(db)) {
     if (l.tipo === 'T' || (filtro && l.meio !== filtro)) continue;
     const cartao = db.cartoes.find((c) => c.id === l.meio);
     const ym = !cartao ? l.data.slice(0, 7) : base === 'fatura' ? mesFatura(l.data, cartao) : (l.compra || l.data).slice(0, 7);
@@ -150,14 +167,15 @@ function relatorioBalanco(itens, ini, fim) {
 }
 
 function entradasDoMes(db, ym) {
-  return db.lancs
+  return lancsVisiveis(db)
     .filter((l) => l.tipo === 'E' && l.data.slice(0, 7) === ym)
     .reduce((s, l) => s + l.valor, 0);
 }
 
 function pendentes(db, tipo, ym) {
-  return db.lancs
-    .filter((l) => l.tipo === tipo && !ehCartao(db, l.meio) && !l.pago && l.data.slice(0, 7) <= ym)
+  const contaAtiva = (id) => { const c = db.contasBanco.find((x) => x.id === id); return !c || ativoEm(c, ym); };
+  return lancsVisiveis(db)
+    .filter((l) => l.tipo === tipo && !ehCartao(db, l.meio) && !l.pago && l.data.slice(0, 7) <= ym && contaAtiva(l.meio))
     .map((l) => ({ tipo: 'conta', id: l.id, desc: l.desc, venc: l.data, valor: l.valor }))
     .sort((a, b) => a.venc.localeCompare(b.venc));
 }
@@ -171,6 +189,7 @@ function aReceber(db, ym) {
 function aPagar(db, ym) {
   const itens = pendentes(db, 'S', ym);
   for (const cartao of db.cartoes) {
+    if (!ativoEm(cartao, ym)) continue;
     for (const m of mesesEmAberto(db, cartao)) {
       if (m > ym) continue;
       itens.push({
@@ -193,7 +212,7 @@ function faturasAte(db, ym) {
       if (m > ym) continue;
       const paga = db.faturasPagas[chaveFatura(c.id, m)];
       for (const p of parciaisDe(db, c.id, m)) itens.push({ cartao: c, ym: m, paga: true, valor: p.valor, conta: p.conta });
-      itens.push({ cartao: c, ym: m, paga: !!paga, valor: paga ? paga.valor : restanteFatura(db, c, m), conta: paga ? paga.conta : c.contaPag });
+      if (paga || ativoEm(c, ym)) itens.push({ cartao: c, ym: m, paga: !!paga, valor: paga ? paga.valor : restanteFatura(db, c, m), conta: paga ? paga.conta : c.contaPag });
     }
   }
   return itens;
@@ -241,7 +260,7 @@ function lancDoFiltro(l, filtro) {
 // 'todos': cada lancamento na sua data, com as compras do cartao e sem as faturas.
 function linhasFluxo(db, ini, modo, filtro, fim = ini) {
   const dentro = (m) => m >= ini && m <= fim;
-  const linhas = db.lancs
+  const linhas = lancsVisiveis(db)
     .filter((l) => dentro(l.data.slice(0, 7)) && lancDoFiltro(l, filtro) && (modo === 'todos' || !ehCartao(db, l.meio)))
     .map((l) => ({ lanc: l, data: l.data, desc: l.desc, valor: l.valor, sinal: sinalLanc(l, filtro), pago: l.pago }));
   if (modo === 'fluxo') {
@@ -265,11 +284,16 @@ function fluxoMes(db, ini, hoje, conta, fim = ini) {
     if (l.sinal > 0) { t.prevEntradas += l.valor; if (l.pago) t.entradas += l.valor; }
     if (l.sinal < 0) { t.prevSaidas += l.valor; if (l.pago) t.saidas += l.valor; }
   }
-  for (const c of db.contasBanco) if (!conta || c.id === conta) t.previsao += c.saldoInicial;
-  for (const l of db.lancs) {
+  // Geral: soma de cada conta ativa no fim do periodo; a arquivada sai por inteiro, com o saldo dela.
+  if (!conta) {
+    t.previsao = db.contasBanco.filter((c) => ativoEm(c, ym)).reduce((s, c) => s + fluxoMes(db, ini, hoje, c.id, fim).previsao, 0);
+    return t;
+  }
+  t.previsao = db.contasBanco.find((c) => c.id === conta).saldoInicial;
+  for (const l of lancsVisiveis(db)) {
     if (l.data.slice(0, 7) <= ym && !ehCartao(db, l.meio) && lancDoFiltro(l, conta)) t.previsao += sinalLanc(l, conta) * l.valor;
   }
-  for (const f of faturasAte(db, ym)) if (!conta || f.conta === conta) t.previsao -= f.valor;
+  for (const f of faturasAte(db, ym)) if (f.conta === conta) t.previsao -= f.valor;
   return t;
 }
 
@@ -449,19 +473,45 @@ function iconeValido(v) {
   return v === undefined || (typeof v === 'string' && v.length <= MAX_ICONE * 2 && /^data:image\/svg\+xml;base64,[A-Za-z0-9+/]+=*$/.test(v));
 }
 
+// Senha do app: guarda so o resultado do PBKDF2, nunca a senha. E trava de tela: os dados nao ficam cifrados.
+const b64 = (u8) => { let s = ''; for (const b of u8) s += String.fromCharCode(b); return btoa(s); };
+const deB64 = (s) => Uint8Array.from(atob(s), (x) => x.charCodeAt(0));
+const aleatorio = (n) => crypto.getRandomValues(new Uint8Array(n));
+async function hashSenha(senha, sal) {
+  const chave = await crypto.subtle.importKey('raw', new TextEncoder().encode(senha), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: deB64(sal), iterations: 150000 }, chave, 256);
+  return b64(new Uint8Array(bits));
+}
+async function protegerSenha(senha) { const sal = b64(aleatorio(16)); return { sal, hash: await hashSenha(senha, sal) }; }
+async function confereSenha(senha, g) { return !!g && await hashSenha(senha, g.sal) === g.hash; }
+// 12 letras e numeros, sem os que se confundem (0/O, 1/I/L). Ex.: 7K3P-9QXM-2B4T
+const LETRAS_CODIGO = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const gerarCodigo = () => [...aleatorio(12)].map((x) => LETRAS_CODIGO[x % LETRAS_CODIGO.length]).join('').replace(/(.{4})(?!$)/g, '$1-');
+const limpaCodigo = (t) => t.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+function perfilValido(p) {
+  if (p === undefined) return true;
+  const texto = (v) => v === undefined || (typeof v === 'string' && v.length <= 200);
+  return !!p && typeof p === 'object' && texto(p.nome) && texto(p.email)
+    && (p.nasc === undefined || /^\d{4}-\d{2}-\d{2}$/.test(p.nasc))
+    && (p.foto === undefined || (typeof p.foto === 'string' && p.foto.length <= 200000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(p.foto)));
+}
+
 // Barreira da restauracao: um arquivo fora deste formato nao pode substituir os dados.
 function backupValido(d) {
   const inteiro = (v) => Number.isInteger(v);
   const data = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
-  if (!d || typeof d !== 'object' || !Array.isArray(d.categorias) || !Array.isArray(d.cartoes) || !Array.isArray(d.parciais)
+  if (!d || typeof d !== 'object' || !perfilValido(d.perfil) || !Array.isArray(d.categorias) || !Array.isArray(d.cartoes) || !Array.isArray(d.parciais)
     || !Array.isArray(d.lancs) || !Array.isArray(d.contasBanco) || !d.contasBanco.length || !Array.isArray(d.series)
     || !d.faturasPagas || typeof d.faturasPagas !== 'object' || Array.isArray(d.faturasPagas)) return false;
   const conta = (id) => d.contasBanco.some((c) => c.id === id);
   const cartao = (id) => d.cartoes.some((c) => c.id === id);
-  return d.contasBanco.every((c) => c.id && typeof c.nome === 'string' && inteiro(c.saldoInicial) && iconeValido(c.icone))
+  const arquivo = (c) => c.arquivadaEm === undefined || data(c.arquivadaEm);
+  return d.contasBanco.every((c) => c.id && typeof c.nome === 'string' && inteiro(c.saldoInicial) && iconeValido(c.icone) && arquivo(c))
     && d.categorias.every((c) => c.id && typeof c.nome === 'string' && (c.tipo === 'S' || c.tipo === 'E')
-      && (c.limite === undefined || (inteiro(c.limite) && c.limite >= 0)))
-    && d.cartoes.every((c) => c.id && typeof c.nome === 'string' && inteiro(c.fechamento) && inteiro(c.vencimento) && conta(c.contaPag) && iconeValido(c.icone)
+      && (c.limite === undefined || (inteiro(c.limite) && c.limite >= 0))
+      && (c.simbolo === undefined || /^[a-z]+$/.test(c.simbolo)) && (c.cor === undefined || /^#[0-9a-f]{6}$/i.test(c.cor)))
+    && d.cartoes.every((c) => c.id && typeof c.nome === 'string' && inteiro(c.fechamento) && inteiro(c.vencimento) && conta(c.contaPag) && iconeValido(c.icone) && arquivo(c)
       && (c.limite === undefined || (inteiro(c.limite) && c.limite >= 0)))
     && d.lancs.every((l) => data(l.data) && inteiro(l.valor) && typeof l.pago === 'boolean'
       && (l.tipo === 'T' ? conta(l.meio) && conta(l.destino) && l.meio !== l.destino
@@ -476,6 +526,6 @@ function backupValido(d) {
 if (typeof module !== 'undefined') {
   module.exports = {
     ultimoDia, addMes, dataNoMes, mesFatura, itensFatura, totalFatura, chaveFatura,
-    svgParaIcone, iconeValido, restanteFatura, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }

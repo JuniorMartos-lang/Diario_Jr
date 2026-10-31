@@ -506,6 +506,56 @@ assert.ok(c.backupValido({ ...base(), cartoes: [{ ...nu, icone: ic }] }));
 assert.ok(!c.backupValido({ ...base(), cartoes: [{ ...nu, icone: 'https://x.com/a.svg' }] }));
 assert.ok(!c.backupValido({ ...base(), contasBanco: [{ id: 'conta', nome: 'x', saldoInicial: 0, icone: 'x' }] }));
 
+// Arquivar conta: ate o mes do arquivamento aparece; depois, lancamentos, saldo e previsao saem
+db = base();
+db.lancs.push({ id: 20, tipo: 'E', desc: 'Antes', data: '2026-10-15', valor: 1000, cat: 'a', meio: 'poup', pago: true });
+db.lancs.push({ id: 21, tipo: 'S', desc: 'Pendente out', data: '2026-10-16', valor: 300, cat: 'a', meio: 'poup', pago: false });
+db.lancs.push({ id: 22, tipo: 'S', desc: 'Depois', data: '2026-11-15', valor: 200, cat: 'a', meio: 'poup', pago: false });
+db.lancs.push({ id: 23, tipo: 'T', desc: 'Guardar', data: '2026-11-16', valor: 50, meio: 'conta', destino: 'poup', cat: null, pago: true });
+db.contasBanco[1].arquivadaEm = '2026-10-31';
+assert.ok(c.ativoEm(db.contasBanco[1], '2026-10'));
+assert.ok(c.ativoEm(db.contasBanco[1], '2026-09'));
+assert.ok(!c.ativoEm(db.contasBanco[1], '2026-11'));
+assert.ok(c.backupValido(db));
+assert.ok(!c.backupValido({ ...base(), contasBanco: [{ id: 'conta', nome: 'x', saldoInicial: 0, arquivadaEm: 'ontem' }] }));
+// Mes do arquivamento: tudo igual
+assert.strictEqual(c.saldo(db, '2026-10-31'), 430000 + 1000);
+assert.ok(c.aPagar(db, '2026-10').some((x) => x.desc === 'Pendente out'));
+assert.strictEqual(c.fluxoMes(db, '2026-10', '2026-10-31').previsao, 430000 + 1000 - 25000 - 300);
+// Mes seguinte: conta some, inclusive o saldo; transferencia para ela nao conta na outra
+assert.strictEqual(c.saldo(db, '2026-11-01'), 430000);
+assert.ok(!c.linhasFluxo(db, '2026-11', 'fluxo').some((x) => ['Depois', 'Guardar'].includes(x.desc)));
+assert.ok(!c.aPagar(db, '2026-11').some((x) => x.desc === 'Pendente out' || x.desc === 'Depois'), 'pendencia antiga tambem sai');
+assert.strictEqual(c.fluxoMes(db, '2026-11', '2026-11-01').previsao, 430000 - 25000 + 70000 - 8000 - 10000);
+assert.ok(!c.itensRelatorio(db, '2026-11', '2026-11', 'fatura').some((i) => i.lanc.meio === 'poup'));
+assert.ok(c.itensRelatorio(db, '2026-10', '2026-10', 'fatura').some((i) => i.lanc.id === 20), 'meses anteriores continuam');
+assert.strictEqual(db.lancs.length, base().lancs.length + 4, 'nada apagado');
+// Desarquivar devolve tudo
+delete db.contasBanco[1].arquivadaEm;
+assert.ok(c.linhasFluxo(db, '2026-11', 'fluxo').some((x) => x.desc === 'Depois'));
+assert.strictEqual(c.saldo(db, '2026-11-20'), 430000 + 1000 - 50 + 50);
+
+// Arquivar cartao: parcelas e fatura em aberto saem depois do mes; fatura paga continua contando na conta
+db = base();
+db.faturasPagas[c.chaveFatura('nu', '2026-11')] = { data: '2026-11-05', valor: 10000, conta: 'conta' };
+db.cartoes = [{ ...nu, arquivadaEm: '2026-11-20' }];
+const cArq = db.cartoes[0];
+assert.strictEqual(c.totalFatura(db, cArq, '2026-11'), 10000);
+assert.strictEqual(c.totalFatura(db, cArq, '2026-12'), 0, 'parcela seguinte sai');
+assert.ok(!c.aPagar(db, '2027-01').some((x) => x.tipo === 'fatura'));
+assert.deepStrictEqual(c.gastosPorCategoria(db, '2026-12'), {});
+assert.strictEqual(c.saldo(db, '2026-12-01'), 420000, 'o pagamento feito continua');
+assert.strictEqual(c.fluxoMes(db, '2026-12', '2026-12-01').previsao, 420000 - 25000 + 70000 - 8000);
+db.cartoes = [nu];
+db.faturasPagas = {};
+assert.strictEqual(c.totalFatura(db, nu, '2026-12'), 10000, 'desarquivado volta');
+
+// Categoria com icone e cor: formato conferido ao restaurar
+const comCat = (extra) => ({ ...base(), categorias: [{ id: 'a', nome: 'A', tipo: 'S', ...extra }] });
+assert.ok(c.backupValido(comCat({ simbolo: 'casa', cor: '#1b76c9' })));
+assert.ok(!c.backupValido(comCat({ cor: 'red;background:url(x)' })));
+assert.ok(!c.backupValido(comCat({ simbolo: '"><script>' })));
+
 // Restauracao
 assert.ok(c.backupValido(base()));
 assert.ok(!c.backupValido(null));
@@ -523,4 +573,26 @@ const invalidos = [
 ];
 for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }), JSON.stringify(l));
 
-console.log('calc.js: todos os testes passaram');
+// Senha: nunca guarda o texto; confere so a certa; sal diferente a cada vez
+(async () => {
+  const g = await c.protegerSenha('minha senha ç');
+  assert.ok(!JSON.stringify(g).includes('minha'));
+  assert.ok(await c.confereSenha('minha senha ç', g));
+  assert.ok(!await c.confereSenha('outra', g));
+  assert.ok(!await c.confereSenha('x', undefined));
+  assert.notStrictEqual((await c.protegerSenha('minha senha ç')).hash, g.hash);
+  const cod = c.gerarCodigo();
+  assert.ok(/^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(cod), cod);
+  assert.ok(!/[01OIL]/.test(cod));
+  assert.strictEqual(c.limpaCodigo(' ab12-cd 34 '), 'AB12CD34');
+  // Perfil
+  assert.ok(c.perfilValido(undefined));
+  assert.ok(c.perfilValido({ nome: 'A', email: 'a@b.c', nasc: '1979-04-08', foto: 'data:image/jpeg;base64,AAAA' }));
+  assert.ok(!c.perfilValido({ foto: 'https://x.com/a.jpg' }));
+  assert.ok(!c.perfilValido({ foto: 'data:image/jpeg;base64,"><script>' }));
+  assert.ok(!c.perfilValido({ nasc: 'ontem' }));
+  assert.ok(!c.perfilValido({ nome: 'x'.repeat(201) }));
+  assert.ok(c.backupValido({ ...base(), perfil: { nome: 'A' } }));
+  assert.ok(!c.backupValido({ ...base(), perfil: { foto: 'x' } }));
+  console.log('calc.js: todos os testes passaram');
+})().catch((e) => { console.error(e); process.exit(1); });

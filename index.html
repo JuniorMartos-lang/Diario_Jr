@@ -53,7 +53,7 @@
   .dois { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .dois > * { min-width: 0; }
   button { font: inherit; font-weight: 600; min-height: 44px; padding: 8px 16px; border: 0; border-radius: 999px; background: var(--pri); color: #fff; cursor: pointer; }
-  :root[data-theme=dark] button:not(.sec):not(.perigo):not(.linha):not(.cartaoRes):not(.colGraf):not(.mesBar button) { color: #06201d; }
+  :root[data-theme=dark] button:not(.sec):not(.perigo):not(.linha):not(.cartaoRes):not(.colGraf):not(.opcIco):not(.opcCor):not(.voltarTela):not(.olho):not(.linkTexto):not(.campoLink):not(.mesBar button) { color: #06201d; }
   button.sec { background: var(--campo); color: var(--txt); }
   button.perigo { background: transparent; color: var(--neg); border: 1px solid var(--neg); }
   button.mini { min-height: 44px; padding: 4px 14px; font-size: 13px; flex: none; }
@@ -101,6 +101,50 @@
   .ico.ini { padding: 0; border: 0; }
   .cartaoRes .tituloC { display: flex; align-items: center; gap: 8px; }
   h2 .ico { margin-right: 6px; }
+  main { overflow-x: clip; }
+  body.emAjustes #topo, body.emAjustes #avisoBackup { display: none; }
+  .perfilTopo { text-align: center; padding: 14px 0 18px; }
+  .fotoPerfil { display: block; width: 96px; height: 96px; margin: 0 auto 8px; border-radius: 50%; object-fit: cover; border: 3px solid var(--pri); background: var(--campo); }
+  .fotoVazia { display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: var(--mut); }
+  .perfilNome { font-size: 18px; font-weight: 700; margin-bottom: 8px; overflow-wrap: anywhere; }
+  .campoSenha { position: relative; }
+  .campoSenha input { padding-right: 52px; }
+  button.olho { position: absolute; right: 0; bottom: 0; width: 48px; height: 44px; min-height: 0; padding: 0; background: none; color: var(--mut); }
+  :root[data-theme=dark] button.olho, :root[data-theme=dark] button.linkTexto { color: var(--pri); }
+  button.olho svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; vertical-align: middle; }
+  button.linkTexto { background: none; color: var(--pri); padding: 4px 12px; }
+  button.campoLink { display: flex; width: 100%; justify-content: space-between; align-items: center; margin-top: 3px; padding: 8px 12px; background: var(--campo); color: var(--txt); border-radius: 12px; font-weight: 400; font-size: 16px; }
+  :root[data-theme=dark] button.campoLink { color: var(--txt); }
+  dialog#trava { width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; border-radius: 0; background: var(--navy); color: #fff; padding: 24px 16px; }
+  dialog#trava[open] { display: flex; align-items: center; justify-content: center; }
+  dialog#trava form { width: 100%; max-width: 360px; color: var(--txt); text-align: left; }
+  dialog#trava h2 { text-align: center; }
+  #tMsg { min-height: 20px; color: var(--neg); font-size: 14px; margin: 0 0 8px; }
+  .topoTela { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
+  /* Margem igual a largura da seta, para o titulo ficar no centro da tela. */
+  .topoTela h2 { flex: 1; margin: 0 52px 0 0; font-size: 18px; min-width: 0; overflow-wrap: anywhere; text-align: center; }
+  .infoTela { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 14px; color: var(--mut); font-size: 14px; line-height: 1.4; }
+  .infoTela svg { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  button.voltarTela { flex: none; width: 44px; height: 44px; padding: 0 0 4px; font-size: 30px; line-height: 1; font-weight: 400; background: var(--campo); color: var(--txt); }
+  :root[data-theme=dark] button.voltarTela { color: var(--txt); }
+  .tela.entra { animation: telaEntra .22s ease-out; }
+  .tela.volta { animation: telaVolta .22s ease-out; }
+  @keyframes telaEntra { from { transform: translateX(100%); } to { transform: none; } }
+  @keyframes telaVolta { from { transform: translateX(-100%); } to { transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .tela.entra, .tela.volta { animation: none; } }
+  .botoes2 { display: grid; grid-template-columns: 1fr 1fr; }
+  .botoes2 button[hidden] { display: none; }
+  .icoMenu { flex: none; width: 24px; height: 24px; fill: none; stroke: var(--pri); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .icoCat { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; }
+  .icoCat.peq { width: 24px; height: 24px; margin-right: 8px; vertical-align: middle; }
+  .icoCat svg, button.opcIco svg { width: 62%; height: 62%; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .gradeIco { display: grid; grid-template-columns: repeat(auto-fill, 46px); justify-content: space-between; gap: 6px; margin-top: 8px; }
+  button.opcIco, button.opcCor { width: 46px; height: 46px; min-height: 0; padding: 0; border-radius: 50%; background: var(--campo); }
+  button.opcIco svg { stroke: var(--txt); }
+  button.opcIco[aria-pressed=true] svg { stroke: #fff; }
+  button.opcIco[aria-pressed=true], button.opcCor[aria-pressed=true] { outline: 3px solid var(--txt); outline-offset: 1px; }
+  button.opcCor { color: #fff; font-size: 18px; }
+  .seta { flex: none; font-size: 22px; line-height: 1; color: var(--mut); }
   .gerenciar { width: 100%; margin-top: 10px; }
   .cartaoRes { display: block; width: 100%; padding: 10px 0; border-top: 1px solid var(--linha); border-radius: 0; background: none; color: inherit; font-weight: 400; text-align: left; }
   #rCartoes .cartaoRes:first-child { border-top: 0; }
@@ -139,15 +183,15 @@
   <div id="avisoBackup" class="aviso" hidden></div>
 
   <section id="s-resumo">
-    <div class="card"><h2>Minhas contas</h2><div id="rContas"></div><button type="button" class="sec gerenciar" data-aba="ajustes">Gerenciar contas</button></div>
+    <div class="card"><h2>Minhas contas</h2><div id="rContas"></div><button type="button" class="sec gerenciar" data-aba="ajustes" data-tela="tContas">Gerenciar contas</button></div>
     <div class="card" id="rFaturasBox">
       <small class="fraco">Faturas do mês</small>
       <div id="rFaturasTotal" class="valor neg" style="font-size:20px"></div>
       <h2 style="margin-top:10px">Meus cartões</h2>
       <div id="rCartoes"></div>
-      <button type="button" class="sec gerenciar" data-aba="ajustes">Gerenciar cartões</button>
+      <button type="button" class="sec gerenciar" data-aba="ajustes" data-tela="tCartoes">Gerenciar cartões</button>
     </div>
-    <div class="card"><h2>Limites de gastos</h2><div id="rLimites"></div><button type="button" class="sec gerenciar" data-aba="ajustes">Gerenciar limites</button></div>
+    <div class="card"><h2>Limites de gastos</h2><div id="rLimites"></div><button type="button" class="sec gerenciar" data-aba="ajustes" data-tela="tCats">Gerenciar limites</button></div>
     <div class="card"><h2>Fluxo de caixa</h2><div class="fluxo" id="rFluxo"></div></div>
     <div class="card">
       <h2>Mês</h2>
@@ -231,11 +275,105 @@
   <section id="s-cartoes" hidden><div id="fLista"></div></section>
 
   <section id="s-ajustes" hidden>
+    <datalist id="listaIcones"></datalist>
+    <datalist id="listaBandeiras"></datalist>
+    <div class="tela" id="tAjustes">
+      <div class="perfilTopo">
+        <div id="pFotoMenu"></div>
+        <div class="perfilNome" id="pNomeMenu"></div>
+        <button type="button" class="sec" id="pEditar" data-tela="tPerfil">Editar perfil</button>
+      </div>
+      <div class="card">
+        <h2>Ajustes</h2>
+        <button type="button" class="linha" data-tela="tContas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M4 10h16M6 10v8M10 10v8M14 10v8M18 10v8M3 20h18"/></svg><span class="q">Contas</span><span class="seta" aria-hidden="true">›</span></button>
+        <button type="button" class="linha" data-tela="tCartoes"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18M7 15h4"/></svg><span class="q">Cartões de crédito</span><span class="seta" aria-hidden="true">›</span></button>
+        <button type="button" class="linha" data-tela="tCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias e limites</span><span class="seta" aria-hidden="true">›</span></button>
+        <button type="button" class="linha" data-tela="tBackup"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 10a4 4 0 0 1-.5 8"/><path d="M12 20v-8M9 15l3-3 3 3"/></svg><span class="q">Backup</span><span class="seta" aria-hidden="true">›</span></button>
+        <button type="button" class="linha" data-tela="tAparencia"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg><span class="q">Aparência</span><span class="seta" aria-hidden="true">›</span></button>
+        <button type="button" class="linha" data-tela="tArquivadas" id="aMenuArq" hidden><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg><span class="q">Arquivadas</span><span class="seta" aria-hidden="true">›</span></button>
+      </div>
+      <p class="versao">Controle Diário · versão 1.15.2 · 31/10/2026</p>
+    </div>
+    <div class="tela" id="tContas" hidden>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
+      <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Aqui ficam suas contas correntes, poupanças e outras, cada uma com seu saldo inicial e o ícone do banco. Os saldos aparecem em Minhas contas, no Resumo. Toque em uma conta para corrigir. Conta com lançamentos não é excluída: ela é arquivada.</span></p>
+      <div class="card"><div id="aContas"></div>
+        <button type="button" class="sec gerenciar" data-novoform="fConta">+ Nova conta</button></div>
+    </div>
+    <div class="tela" id="tCartoes" hidden>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Cartões de crédito</h2></div>
+      <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Aqui ficam seus cartões, com os dias de fechamento e vencimento, o limite, a bandeira e a conta que paga a fatura. Esses dias definem em qual fatura cada compra cai. Toque em um cartão para corrigir. Cartão com lançamentos não é excluído: ele é arquivado.</span></p>
+      <div class="card"><div id="aCartoes"></div>
+        <button type="button" class="sec gerenciar" data-novoform="fCartao">+ Novo cartão</button></div>
+    </div>
+    <div class="tela" id="tCats" hidden>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Categorias e limites</h2></div>
+      <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>As categorias organizam seus lançamentos em despesas e receitas e formam os relatórios. Em uma categoria de despesa, você pode definir um limite por mês e acompanhar o quanto já gastou no Resumo. Categoria em uso não pode ser excluída.</span></p>
+      <div class="card"><div id="aCats"></div>
+        <button type="button" class="sec gerenciar" data-novoform="fCat">+ Nova categoria</button></div>
+    </div>
+    <div class="tela" id="tBackup" hidden>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Backup</h2></div>
+      <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Seus dados ficam só neste aparelho. Se ele for perdido ou o navegador for limpo, só o backup os recupera. Salve e escolha o OneDrive na tela de compartilhar. Restaurar substitui tudo o que está no app pelo conteúdo do arquivo.</span></p>
+      <div class="card">
+        <p id="aUltimo" class="fraco"></p>
+        <div class="botoes">
+          <button type="button" id="aBackup">Salvar backup</button>
+          <button type="button" class="sec" id="aRestaurar">Restaurar</button>
+        </div>
+        <input id="aArquivo" type="file" accept=".txt,.json,text/plain,application/json" hidden>
+      </div>
+    </div>
+    <div class="tela" id="tAparencia" hidden>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Aparência</h2></div>
+      <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Escolha como o app aparece na tela. No modo automático, ele segue o tema claro ou escuro que o aparelho estiver usando quando o app abre. As opções Claro e Escuro deixam o tema sempre igual. A escolha vale só neste aparelho e não vai no backup.</span></p>
+      <div class="card">
+        <label>Tema<select id="aTema"><option value="auto">Automático (igual ao aparelho)</option><option value="light">Claro</option><option value="dark">Escuro</option></select></label>
+      </div>
+    </div>
+    <div class="tela" id="tArquivadas" hidden>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Arquivadas</h2></div>
+      <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Contas e cartões arquivados continuam visíveis até o mês do arquivamento. Depois, eles e seus lançamentos saem das telas e da previsão, sem nada ser apagado, e não aceitam novos lançamentos. Ao desarquivar, tudo volta como estava.</span></p>
+      <div class="card">
+        <p id="aArqVazio" class="fraco" hidden>Nada arquivado.</p>
+        <div id="aArqContasBox"><h3 class="dia">Contas correntes</h3><div id="aArqContas"></div></div>
+        <div id="aArqCartoesBox"><h3 class="dia">Cartões</h3><div id="aArqCartoes"></div></div>
+      </div>
+    </div>
+    <div class="tela" id="tPerfil" hidden>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Editar perfil</h2></div>
+      <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Seus dados pessoais e a foto que aparece no topo de Ajustes. Eles ficam só neste aparelho e vão junto no backup. O e-mail é apenas informativo: o app não envia mensagens. Toque em Senha para criar ou alterar a senha do app.</span></p>
+      <form id="fPerfil" class="card" novalidate>
+        <div class="perfilTopo" style="padding-top:0">
+          <div id="pFotoEdit"></div>
+          <button type="button" class="linkTexto" id="pFotoTrocar">Alterar foto</button>
+          <button type="button" class="linkTexto" id="pFotoTirar" hidden>Remover foto</button>
+          <input id="pFotoArq" type="file" accept="image/*" hidden>
+        </div>
+        <label>Nome<input id="pNome" maxlength="60" autocomplete="name"></label>
+        <label>E-mail<input id="pEmail" type="email" inputmode="email" maxlength="120" autocomplete="email"></label>
+        <label>Senha<button type="button" class="campoLink" data-tela="tSenha"><span id="pSenhaTxt"></span><span class="seta" aria-hidden="true">›</span></button></label>
+        <label>Data de nascimento<input id="pNasc" type="date"></label>
+        <button type="submit" style="width:100%">Salvar alterações</button>
+      </form>
+    </div>
+    <div class="tela" id="tSenha" hidden>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="sTitulo">Alterar senha</h2></div>
+      <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>A senha protege a abertura do app neste aparelho. Use pelo menos 8 caracteres, com números e caracteres especiais. Ao criá-la, você recebe um código de recuperação para anotar. Ela é uma trava de tela: não embaralha os dados guardados.</span></p>
+      <form id="fSenha" class="card" novalidate>
+        <label class="campoSenha" id="sAtualBox">Senha atual<input id="sAtual" type="password" autocomplete="current-password"><button type="button" class="olho" data-olho="sAtual" aria-label="Mostrar senha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></label>
+        <label class="campoSenha" id="sNovaBox">Nova senha<input id="sNova" type="password" autocomplete="new-password"><button type="button" class="olho" data-olho="sNova" aria-label="Mostrar senha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></label>
+        <label class="campoSenha" id="sRepeteBox">Repetir a nova senha<input id="sRepete" type="password" autocomplete="new-password"><button type="button" class="olho" data-olho="sRepete" aria-label="Mostrar senha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></label>
+        <button type="submit" style="width:100%">Salvar alterações</button>
+        <label id="sBioBox" style="margin-top:14px"><input id="sBio" type="checkbox">Entrar com a biometria (digital ou rosto)</label>
+        <small class="fraco" id="sBioDica"></small>
+        <button type="button" class="perigo" id="sRemover" style="width:100%;margin-top:12px" hidden>Remover senha</button>
+      </form>
+    </div>
+    <div class="tela" id="tEditConta" hidden>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="aContaTitulo">Nova conta</h2></div>
     <form id="fConta" class="card" novalidate>
-      <h2>Contas</h2>
-      <small class="fraco">Toque em uma conta para corrigir ou excluir.</small>
-      <div id="aContas"></div>
-      <h2 id="aContaTitulo" style="margin-top:10px">Nova conta</h2>
+      
       <label>Nome<input id="aNome" maxlength="30" autocomplete="off"></label>
       <label>Ícone: banco<input id="aIcone" list="listaIcones" autocomplete="off" placeholder="Toque e escolha, ou deixe vazio"></label>
       <div class="dois">
@@ -243,17 +381,17 @@
         <label>Saldo inicial<input id="aSaldo" class="moeda" inputmode="numeric" autocomplete="off"></label>
       </div>
       <label><input id="aNegativo" type="checkbox">Saldo inicial negativo</label>
-      <div class="botoes">
-        <button type="submit">Salvar conta</button>
+      <div class="botoes botoes2">
+        <button type="submit">Salvar</button>
         <button type="button" class="sec" id="aContaLimpar">Limpar</button>
         <button type="button" class="perigo" id="aContaExcluir" hidden>Excluir</button>
       </div>
     </form>
+    </div>
+    <div class="tela" id="tEditCartao" hidden>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="aCTitulo">Novo cartão</h2></div>
     <form id="fCartao" class="card" novalidate>
-      <h2>Cartões</h2>
-      <small class="fraco">Toque em um cartão para corrigir ou excluir.</small>
-      <div id="aCartoes"></div>
-      <h2 id="aCTitulo" style="margin-top:10px">Novo cartão</h2>
+      
       <label>Nome<input id="aCNome" maxlength="30" autocomplete="off"></label>
       <label>Ícone: bandeira<input id="aCIcone" list="listaBandeiras" autocomplete="off" placeholder="Toque e escolha, ou deixe vazio"></label>
       <div class="dois">
@@ -264,45 +402,34 @@
         <label>Limite<input id="aCLim" class="moeda" inputmode="numeric" autocomplete="off"></label>
         <label>Conta que paga a fatura<select id="aCPag"></select></label>
       </div>
-      <div class="botoes">
-        <button type="submit">Salvar cartão</button>
+      <div class="botoes botoes2">
+        <button type="submit">Salvar</button>
         <button type="button" class="sec" id="aCLimpar">Limpar</button>
         <button type="button" class="perigo" id="aCExcluir" hidden>Excluir</button>
       </div>
     </form>
+    </div>
+    <div class="tela" id="tEditCat" hidden>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="aCatTitulo">Nova categoria</h2></div>
     <form id="fCat" class="card" novalidate>
-      <h2>Categorias e limites</h2>
-      <small class="fraco">Toque em uma categoria para corrigir, definir o limite ou excluir.</small>
-      <div id="aCats"></div>
-      <h2 id="aCatTitulo" style="margin-top:10px">Nova categoria</h2>
+      
       <label>Nome<input id="aCatNome" maxlength="30" autocomplete="off"></label>
       <div class="dois">
         <label>Tipo<select id="aCatTipo"><option value="S">Despesa</option><option value="E">Receita</option></select></label>
         <label id="aCatLimBox">Limite por mês<input id="aCatLim" class="moeda" inputmode="numeric" autocomplete="off"></label>
       </div>
-      <div class="botoes">
-        <button type="submit">Salvar categoria</button>
+      <h3 class="dia" id="aCatIcoTit">Ícone</h3>
+      <div class="gradeIco" id="aCatIcones" role="group" aria-labelledby="aCatIcoTit"></div>
+      <h3 class="dia" id="aCatCorTit">Cor</h3>
+      <div class="gradeIco" id="aCatCores" role="group" aria-labelledby="aCatCorTit"></div>
+      <div style="height:14px"></div>
+      <div class="botoes botoes2">
+        <button type="submit">Salvar</button>
         <button type="button" class="sec" id="aCatLimpar">Limpar</button>
         <button type="button" class="perigo" id="aCatExcluir" hidden>Excluir</button>
       </div>
     </form>
-    <div class="card">
-      <h2>Backup</h2>
-      <p id="aUltimo" class="fraco"></p>
-      <p class="fraco">Os dados ficam só neste aparelho. Salve o backup e escolha o OneDrive na tela de compartilhar.</p>
-      <div class="botoes">
-        <button type="button" id="aBackup">Salvar backup</button>
-        <button type="button" class="sec" id="aRestaurar">Restaurar</button>
-      </div>
-      <input id="aArquivo" type="file" accept=".txt,.json,text/plain,application/json" hidden>
     </div>
-    <div class="card">
-      <h2>Aparência</h2>
-      <label>Tema<select id="aTema"><option value="auto">Automático (igual ao aparelho)</option><option value="light">Claro</option><option value="dark">Escuro</option></select></label>
-    </div>
-    <datalist id="listaIcones"></datalist>
-    <datalist id="listaBandeiras"></datalist>
-    <p class="versao">Controle Diário · versão 1.9.1 · 31/10/2026</p>
   </section>
 </main>
 
@@ -317,6 +444,26 @@
   <button data-aba="ajustes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Ajustes</button>
 </nav>
 
+<dialog id="trava">
+  <form id="tForm" class="card" novalidate>
+    <h2>Controle Diário</h2>
+    <div id="tEntrar">
+      <label class="campoSenha" id="tSenhaCampoBox">Senha<input id="tSenhaCampo" type="password" autocomplete="current-password"><button type="button" class="olho" data-olho="tSenhaCampo" aria-label="Mostrar senha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></label>
+      <p id="tMsg" aria-live="polite"></p>
+      <button type="submit" style="width:100%">Entrar</button>
+      <button type="button" class="sec" id="tBio" style="width:100%;margin-top:8px" hidden>Entrar com a biometria</button>
+      <button type="button" class="linkTexto" id="tEsqueci" style="width:100%;margin-top:8px">Esqueci a senha</button>
+    </div>
+    <div id="tRecuperar" hidden>
+      <label>Código de recuperação<input id="tCodigo" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></label>
+      <label class="campoSenha" id="tNovaBox">Nova senha<input id="tNova" type="password" autocomplete="new-password"><button type="button" class="olho" data-olho="tNova" aria-label="Mostrar senha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></label>
+      <label class="campoSenha" id="tRepeteBox">Repetir a nova senha<input id="tRepete" type="password" autocomplete="new-password"><button type="button" class="olho" data-olho="tRepete" aria-label="Mostrar senha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></label>
+      <p id="tMsgR" style="color:var(--neg);font-size:14px;min-height:20px;margin:0 0 8px" aria-live="polite"></p>
+      <button type="submit" style="width:100%">Salvar e entrar</button>
+      <button type="button" class="linkTexto" id="tVoltar" style="width:100%;margin-top:8px">Voltar</button>
+    </div>
+  </form>
+</dialog>
 <dialog id="dlg"><h3 id="dTitulo"></h3><p id="dTexto"></p><div class="dois" id="dFatBox"><label>Valor pago<input id="dFatValor" class="moeda" inputmode="numeric" autocomplete="off"></label><label>Data<input id="dFatData" type="date"></label></div><label id="dContaBox">Sai da conta<select id="dConta"></select></label><label id="dEscopoBox">Aplicar a<select id="dEscopo"><option value="esta">Só esta</option><option value="proximas">Esta e as próximas</option><option value="todas">Todas, inclusive as anteriores</option></select></label><div class="botoes"><button id="dSim"></button><button id="dNao" class="sec"></button></div></dialog>
 
 <script src="calc.js"></script>
@@ -363,7 +510,9 @@ function salvar() {
   render();
 }
 
-const opcoesContas = (fora) => db.contasBanco.filter((c) => c.id !== fora).map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('');
+const nomeExib = (o) => o.nome + (o.arquivadaEm ? ' (Arquivada)' : '');
+const opcoesDe = (lista) => lista.map((c) => `<option value="${esc(c.id)}">${esc(nomeExib(c))}</option>`).join('');
+const opcoesContas = (fora) => opcoesDe(db.contasBanco.filter((c) => c.id !== fora && !c.arquivadaEm));
 
 // contaInicial mostra a escolha da conta ($('dConta')); escopo, a de ocorrencias da serie ($('dEscopo')).
 function modal(titulo, texto, sim, nao, contaInicial, escopo) {
@@ -373,7 +522,7 @@ function modal(titulo, texto, sim, nao, contaInicial, escopo) {
     $('dFatBox').hidden = !contaInicial;
     $('dEscopo').value = 'esta';
     $('dContaBox').hidden = !contaInicial;
-    if (contaInicial) { $('dConta').innerHTML = opcoesContas(); $('dConta').value = contaInicial; }
+    if (contaInicial) { encher($('dConta'), opcoesContas()); $('dConta').value = contaInicial; if ($('dConta').selectedIndex < 0) $('dConta').selectedIndex = 0; }
     $('dSim').textContent = sim; $('dNao').textContent = nao || ''; $('dNao').hidden = !nao;
     $('dSim').onclick = () => { $('dlg').close(); ok(true); };
     $('dNao').onclick = () => { $('dlg').close(); ok(false); };
@@ -392,7 +541,17 @@ document.querySelectorAll('.moeda').forEach((el) => {
 
 let mes = hoje().slice(0, 7), lancEditando = null, contaEditando = null, cartaoEditando = null, catEditando = null;
 const nomeCat = (id) => (db.categorias.find((c) => c.id === id) || { nome: 'Sem categoria' }).nome;
-const nomeMeio = (m) => ([...db.contasBanco, ...db.cartoes].find((c) => c.id === m) || { nome: '?' }).nome;
+// Categoria sem escolha, ou com icone desconhecido, usa o padrao do nome ou a etiqueta.
+function aparenciaCat(c) {
+  const p = PADRAO_CATEGORIA[c.nome] || ['etiqueta', '#475569'];
+  return { simbolo: SIMBOLOS[c.simbolo] ? c.simbolo : p[0], cor: c.cor || p[1] };
+}
+function iconeCat(c, classe = '') {
+  const a = aparenciaCat(c);
+  return `<span class="icoCat ${classe}" style="background:${esc(a.cor)}" aria-hidden="true"><svg viewBox="0 0 24 24">${SIMBOLOS[a.simbolo][1]}</svg></span>`;
+}
+const iconeCatId = (id) => iconeCat(db.categorias.find((c) => c.id === id) || { nome: '' }, 'peq');
+const nomeMeio = (m) => nomeExib([...db.contasBanco, ...db.cartoes].find((c) => c.id === m) || { nome: '?' });
 const TIPOS_CONTA = { corrente: 'Corrente', poupanca: 'Poupança', outra: 'Outra' };
 const CORES_ICONE = ['#1e3a5f', '#2f6f73', '#7a3e9d', '#a4442c', '#2d6a3e', '#8a5a00'];
 function iconeHtml(o) {
@@ -455,22 +614,22 @@ function renderResumo(cats, gastos, pagar, h) {
   $('rLimites').innerHTML = limitesDoMes(db, mes).map((l) => {
     const estado = l.pct > 100 ? 'estouro' : l.pct >= 80 ? 'perto' : '';
     return `<div class="linha" style="display:block">
-      <div style="display:flex;justify-content:space-between;gap:10px"><span class="q">${esc(l.cat.nome)}</span><span class="valor">${brl(l.gasto)} <small>de ${brl(l.limite)}</small></span></div>
+      <div style="display:flex;justify-content:space-between;gap:10px"><span class="q">${iconeCat(l.cat, 'peq')}${esc(l.cat.nome)}</span><span class="valor">${brl(l.gasto)} <small>de ${brl(l.limite)}</small></span></div>
       <div class="barra"><i class="${estado}" style="width:${Math.min(l.pct, 100)}%"></i></div>
       <small class="${l.resta < 0 ? 'neg' : ''}">${l.resta < 0 ? 'Passou ' + brl(-l.resta) : 'Restam ' + brl(l.resta)} · ${l.pct}%</small></div>`;
   }).join('') || '<small class="fraco">Nenhum limite definido.</small>';
   $('rFaturasBox').querySelector('small').textContent = 'Faturas de ' + new Date(mes + '-15T12:00').toLocaleDateString('pt-BR', { month: 'long' });
   $('rFaturasTotal').textContent = '− ' + brl(totalFaturasDoMes(db, mes));
-  $('rCartoes').innerHTML = db.cartoes.map((c) => {
+  $('rCartoes').innerHTML = db.cartoes.filter((c) => ativoEm(c, mes)).map((c) => {
     const f = faturaAtual(db, c, h), livre = limiteDisponivel(db, c);
-    return `<button type="button" class="cartaoRes" data-aba="cartoes" data-mes="${f.ym}"><span class="tituloC">${iconeHtml(c)}<b>${esc(c.nome)}</b></span>
+    return `<button type="button" class="cartaoRes" data-aba="cartoes" data-mes="${f.ym}"><span class="tituloC">${iconeHtml(c)}<b>${esc(nomeExib(c))}</b></span>
       <span class="pares" style="display:flex">
         <div><small>Disponível</small><b class="${livre < 0 ? 'neg' : ''}">${livre === null ? 'Sem limite' : brl(livre)}</b></div>
         <div><small class="${f.atrasada ? 'neg' : ''}">Fatura atual (${f.atrasada ? 'venceu ' : 'venc. '}${dataBR(f.venc).slice(0, 5)})</small><b class="${f.atrasada ? 'neg' : ''}">${brl(f.valor)}${f.paga ? ' · Paga' : ''}</b></div>
       </span></button>`;
-  }).join('') || '<p class="fraco">Nenhum cartão cadastrado.</p>';
+  }).join('') || '<p class="fraco">Nenhum cartão neste mês.</p>';
   const saldos = saldosPorConta(db, h);
-  $('rContas').innerHTML = db.contasBanco.map((c) => `<div class="linha">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>${TIPOS_CONTA[c.tipo] || ''}</small></span><span class="valor ${saldos[c.id] < 0 ? 'neg' : ''}">${brl(saldos[c.id])}</span></div>`).join('');
+  $('rContas').innerHTML = db.contasBanco.filter((c) => ativoEm(c, mes)).map((c) => `<div class="linha">${iconeHtml(c)}<span class="q">${esc(nomeExib(c))}<br><small>${TIPOS_CONTA[c.tipo] || ''}</small></span><span class="valor ${saldos[c.id] < 0 ? 'neg' : ''}">${brl(saldos[c.id])}</span></div>`).join('');
   const soma = (lista) => lista.reduce((a, i) => a + i.valor, 0);
   const prox = addMes(mes, 1), doProx = (lista) => lista.filter((i) => i.venc.slice(0, 7) === prox);
   const nomeProx = new Date(prox + '-15T12:00').toLocaleDateString('pt-BR', { month: 'long' });
@@ -485,7 +644,7 @@ function renderResumo(cats, gastos, pagar, h) {
       <span class="valor">${brl(i.valor)}</span></div>`).join('') || '<small class="fraco">Nada a pagar neste mês.</small>';
   const ordem = Object.entries(cats).sort((a, b) => b[1] - a[1]);
   $('rCats').innerHTML = ordem.map(([id, v]) => `<div class="linha" style="display:block">
-      <div style="display:flex;justify-content:space-between;gap:10px"><span class="q">${esc(nomeCat(id))}</span><span class="valor">${brl(v)} <small>${Math.round(v / gastos * 100)}%</small></span></div>
+      <div style="display:flex;justify-content:space-between;gap:10px"><span class="q">${iconeCatId(id)}${esc(nomeCat(id))}</span><span class="valor">${brl(v)} <small>${Math.round(v / gastos * 100)}%</small></span></div>
       <div class="barra"><i style="width:${v / gastos * 100}%"></i></div></div>`).join('') || '<small class="fraco">Nenhum gasto neste mês.</small>';
 }
 
@@ -507,8 +666,7 @@ function linhaFluxo(i, h) {
 
 function renderFluxo(h) {
   const modo = $('fModo').value;
-  encher($('fFiltro'), '<option value="">Todas</option>' + opcoesContas()
-    + (modo === 'todos' ? db.cartoes.map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('') : ''));
+  encher($('fFiltro'), '<option value="">Todas</option>' + opcoesDe(db.contasBanco) + (modo === 'todos' ? opcoesDe(db.cartoes) : ''));
   const filtro = $('fFiltro').value;
   const livre = $('fPer').value === 'livre';
   $('fDatas').hidden = !livre;
@@ -545,7 +703,7 @@ let balancoAtual = [];
 
 function htmlCategorias(titulo, r) {
   const grupos = r.lista.map((g) => `<details>
-      <summary><div style="display:flex;justify-content:space-between;gap:10px"><span class="q">${esc(nomeCat(g.cat))}</span><span class="valor">${brl(g.total)} <small>${Math.round(g.pct)}%</small></span></div>
+      <summary><div style="display:flex;justify-content:space-between;gap:10px"><span class="q">${iconeCatId(g.cat)}${esc(nomeCat(g.cat))}</span><span class="valor">${brl(g.total)} <small>${Math.round(g.pct)}%</small></span></div>
         <div class="barra"><i style="width:${g.pct}%"></i></div></summary>
       ${g.itens.map((i) => `<button type="button" class="linha" data-lanc="${esc(i.lanc.id)}"><span class="q">${esc(i.desc)}<br><small>${dataBR(i.lanc.data)} · ${esc(nomeMeio(i.lanc.meio))}${i.lanc.pago ? '' : ' · Pendente'}</small></span><span class="valor">${brl(i.valor)}</span></button>`).join('')}
     </details>`).join('');
@@ -578,7 +736,7 @@ function htmlBalanco(meses) {
 }
 
 function renderRelatorio() {
-  encher($('rFiltro'), '<option value="">Todos</option>' + opcoesContas() + db.cartoes.map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join(''));
+  encher($('rFiltro'), '<option value="">Todos</option>' + opcoesDe(db.contasBanco) + opcoesDe(db.cartoes));
   const ini = $('rIni').value, fim = $('rFim').value;
   if (!ini || !fim) { $('rSaida').innerHTML = '<div class="aviso">Escolha o mês inicial e o final.</div>'; return; }
   if (ini > fim) { $('rSaida').innerHTML = '<div class="aviso">O mês inicial não pode ser depois do final.</div>'; return; }
@@ -602,7 +760,7 @@ function renderContas(h) {
 }
 
 function renderCartoes(h) {
-  $('fLista').innerHTML = db.cartoes.map((c) => {
+  $('fLista').innerHTML = db.cartoes.filter((c) => ativoEm(c, mes)).map((c) => {
     const itens = itensFatura(db, c, mes), total = itens.reduce((a, p) => a + p.valor, 0);
     const paga = db.faturasPagas[chaveFatura(c.id, mes)], venc = dataNoMes(mes, c.vencimento);
     const fecha = dataNoMes(c.vencimento > c.fechamento ? mes : addMes(mes, -1), c.fechamento);
@@ -611,7 +769,7 @@ function renderCartoes(h) {
     const status = paga ? 'Paga em ' + dataBR(paga.data) : falta > 0 && venc < h ? 'Atrasada' : h >= fecha ? 'Fechada' : 'Em aberto';
     const livre = limiteDisponivel(db, c);
     return `<div class="card">
-      <h2>${iconeHtml(c)}${esc(c.nome)} <span class="selada ${status === 'Atrasada' ? 'neg' : ''}">${status}</span></h2>
+      <h2>${iconeHtml(c)}${esc(nomeExib(c))} <span class="selada ${status === 'Atrasada' ? 'neg' : ''}">${status}</span></h2>
       <small class="fraco">Fecha dia ${c.fechamento} · Vence ${dataBR(venc)}${livre === null ? '' : `<br>Limite ${brl(c.limite)} · Disponível <span class="${livre < 0 ? 'neg' : ''}">${brl(livre)}</span>`}</small>
       <div class="linha"><b>Total da fatura</b><span class="valor">${brl(total)}</span></div>
       ${parciais.length && !paga ? `<div class="linha"><span>Já pago</span><span class="valor">${brl(pago)}</span></div><div class="linha"><b>Falta pagar</b><span class="valor">${brl(falta)}</span></div>` : ''}
@@ -620,13 +778,29 @@ function renderCartoes(h) {
       <div class="botoes">${falta > 0 ? `<button type="button" data-pagafat="${esc(c.id)}">Pagar fatura</button>` : ''}${paga || parciais.length ? `<button type="button" class="sec" data-desfazfat="${esc(c.id)}">Desfazer pagamento</button>` : ''}</div>
       ${total || pago ? '' : '<small class="fraco">Sem compras nesta fatura.</small>'}
     </div>`;
-  }).join('') || '<div class="card"><p class="fraco" style="margin:0">Nenhum cartão cadastrado. Cadastre em Ajustes.</p></div>';
+  }).join('') || '<div class="card"><p class="fraco" style="margin:0">Nenhum cartão neste mês. Para cadastrar, vá em Ajustes.</p></div>';
 }
 
+function htmlFoto(foto, nome) {
+  if (foto) return `<img class="fotoPerfil" src="${esc(foto)}" alt="Foto do perfil">`;
+  const letras = (nome || '').split(/[^\p{L}\p{N}]+/u).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
+  return `<div class="fotoPerfil fotoVazia" aria-hidden="true">${esc(letras || '?')}</div>`;
+}
 function renderAjustes() {
-  $('aContas').innerHTML = db.contasBanco.map((c) => `<button type="button" class="linha" data-editconta="${esc(c.id)}">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>${TIPOS_CONTA[c.tipo] || ''}</small></span><span class="valor">${brl(c.saldoInicial)}</span></button>`).join('');
-  $('aCartoes').innerHTML = db.cartoes.map((c) => `<button type="button" class="linha" data-editcartao="${esc(c.id)}">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>Fecha dia ${c.fechamento} · Vence dia ${c.vencimento} · Paga por ${esc(nomeMeio(c.contaPag))}</small></span><span class="valor">${c.limite ? brl(c.limite) : ''}</span></button>`).join('');
-  const listaCats = (tipo, titulo) => `<h3 class="dia">${titulo}</h3>` + db.categorias.filter((c) => c.tipo === tipo).map((c) => `<button type="button" class="linha" data-editcat="${esc(c.id)}"><span class="q">${esc(c.nome)}</span><span class="valor">${c.limite ? brl(c.limite) + ' <small>por mês</small>' : ''}</span></button>`).join('');
+  const perfil = db.perfil || {};
+  $('pFotoMenu').innerHTML = htmlFoto(perfil.foto, perfil.nome);
+  $('pNomeMenu').textContent = perfil.nome || 'Seu nome';
+  $('aContas').innerHTML = db.contasBanco.filter((c) => !c.arquivadaEm).map((c) => `<button type="button" class="linha" data-editconta="${esc(c.id)}">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>${TIPOS_CONTA[c.tipo] || ''}</small></span><span class="valor">${brl(c.saldoInicial)}</span>${SETA}</button>`).join('');
+  const linhaArq = (c, tipo) => `<div class="linha">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>Arquivada em ${dataBR(c.arquivadaEm)}</small></span><button type="button" class="sec mini" data-desarquivar="${esc(c.id)}">Desarquivar</button></div>`;
+  const contasArq = db.contasBanco.filter((c) => c.arquivadaEm), cartoesArq = db.cartoes.filter((c) => c.arquivadaEm);
+  $('aArqContas').innerHTML = contasArq.map(linhaArq).join('');
+  $('aArqCartoes').innerHTML = cartoesArq.map(linhaArq).join('');
+  $('aArqContasBox').hidden = !contasArq.length;
+  $('aArqCartoesBox').hidden = !cartoesArq.length;
+  $('aMenuArq').hidden = !contasArq.length && !cartoesArq.length;
+  $('aArqVazio').hidden = !$('aMenuArq').hidden ? true : false;
+  $('aCartoes').innerHTML = db.cartoes.filter((c) => !c.arquivadaEm).map((c) => `<button type="button" class="linha" data-editcartao="${esc(c.id)}">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>Fecha dia ${c.fechamento} · Vence dia ${c.vencimento} · Paga por ${esc(nomeMeio(c.contaPag))}</small></span><span class="valor">${c.limite ? brl(c.limite) : ''}</span>${SETA}</button>`).join('');
+  const listaCats = (tipo, titulo) => `<h3 class="dia">${titulo}</h3>` + db.categorias.filter((c) => c.tipo === tipo).map((c) => `<button type="button" class="linha" data-editcat="${esc(c.id)}">${iconeCat(c)}<span class="q">${esc(c.nome)}</span><span class="valor">${c.limite ? brl(c.limite) + ' <small>por mês</small>' : ''}</span>${SETA}</button>`).join('');
   $('aCats').innerHTML = listaCats('S', 'Despesas') + listaCats('E', 'Receitas');
   $('aUltimo').textContent = db.ultimoBackupEm
     ? 'Último backup: ' + new Date(db.ultimoBackupEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
@@ -647,7 +821,7 @@ function encher(sel, html) {
 function formaLanc() {
   const tipo = $('lTipo').value;
   encher($('lCat'), '<option value="">Escolha</option>' + db.categorias.filter((c) => c.tipo === (tipo === 'E' ? 'E' : 'S')).map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join(''));
-  encher($('lMeio'), opcoesContas() + (tipo === 'S' ? db.cartoes.map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('') : ''));
+  encher($('lMeio'), opcoesContas() + (tipo === 'S' ? opcoesDe(db.cartoes.filter((c) => !c.arquivadaEm)) : ''));
   encher($('lDestino'), opcoesContas($('lMeio').value));
   const cartao = ehCartao(db, $('lMeio').value);
   $('lMeioTxt').textContent = { S: 'Pago com', E: 'Conta', T: 'De' }[tipo];
@@ -754,13 +928,67 @@ $('cNova').onclick = () => {
 };
 
 // Ajustes
+const SETA = '<span class="seta" aria-hidden="true">›</span>';
+// Ajustes navega em telas: cada uma fica no historico do navegador, e por isso a seta da tela
+// e o botao voltar do Android fazem o mesmo caminho.
+let pilhaTelas = [], rolagens = [];
+function mostrarTelas(nova) {
+  const avancou = nova.length > pilhaTelas.length;
+  if (avancou) rolagens.push(scrollY);
+  pilhaTelas = nova;
+  const topo = nova[nova.length - 1] || 'tAjustes', edita = topo.startsWith('tEdit');
+  if (!edita) { limparConta(); limparCartao(); limparCat(); }
+  if (topo !== 'tSenha') limparCamposSenha();
+  document.querySelectorAll('.tela').forEach((el) => {
+    el.hidden = el.id !== topo;
+    el.classList.remove('entra', 'volta');
+  });
+  if (!$('s-ajustes').hidden) void $(topo).offsetWidth;
+  $(topo).classList.add(avancou ? 'entra' : 'volta');
+  $('mais').hidden = edita || topo === 'tPerfil' || topo === 'tSenha' || !$('s-lancar').hidden;
+  const y = avancou ? 0 : rolagens[nova.length] || 0;
+  rolagens.length = nova.length;
+  if (!$('s-ajustes').hidden) scrollTo(0, y);
+}
+function abrirTela(id) {
+  const nova = [...pilhaTelas, id];
+  history.pushState({ pilha: nova }, '');
+  mostrarTelas(nova);
+}
+addEventListener('popstate', (e) => mostrarTelas((e.state && e.state.pilha) || []));
+function sairDasTelas() {
+  if (!pilhaTelas.length) return;
+  const n = pilhaTelas.length;
+  mostrarTelas([]);
+  history.go(-n);
+}
+const TELA_FORM = { fConta: 'tEditConta', fCartao: 'tEditCartao', fCat: 'tEditCat' };
+function abrirEditor(form) {
+  abrirTela(TELA_FORM[form.id]);
+}
+// Sai da tela de edicao, de volta para a lista.
+function fecharEditor() {
+  const topo = pilhaTelas[pilhaTelas.length - 1];
+  if (topo && topo.startsWith('tEdit')) history.back();
+}
 function limparConta() {
   contaEditando = null;
   $('fConta').reset();
   $('aContaTitulo').textContent = 'Nova conta';
   $('aContaExcluir').hidden = true;
 }
-$('aContaLimpar').onclick = limparConta;
+// Limpar apaga os campos e continua no mesmo item: Excluir e Salvar seguem valendo para ele.
+$('aContaLimpar').onclick = () => $('fConta').reset();
+$('aCLimpar').onclick = () => $('fCartao').reset();
+$('aCatLimpar').onclick = () => {
+  const tipo = $('aCatTipo').value;
+  $('fCat').reset();
+  // Categoria ja criada nao muda de tipo.
+  if (catEditando) $('aCatTipo').value = tipo;
+  catSimbolo = 'etiqueta'; catCor = CORES_CATEGORIA[0];
+  renderEscolhaCat();
+  $('aCatLimBox').hidden = $('aCatTipo').value === 'E';
+};
 $('fConta').onsubmit = async (e) => {
   e.preventDefault();
   const nome = $('aNome').value.trim();
@@ -775,21 +1003,44 @@ $('fConta').onsubmit = async (e) => {
   const dados = { nome, tipo: $('aTipo').value, saldoInicial: centavos($('aSaldo')) * ($('aNegativo').checked ? -1 : 1), ...ic.campos };
   if (id) Object.assign(db.contasBanco.find((c) => c.id === id), dados);
   else db.contasBanco.push({ id: novoId(), ...dados });
-  limparConta();
+  fecharEditor();
   salvar();
   avisoGravado(ic);
 };
-$('aContaExcluir').onclick = async () => {
-  const id = contaEditando;
-  const emUso = db.lancs.some((l) => l.meio === id || l.destino === id)
+// Com movimento, excluir afetaria saldos e faturas: nesse caso o botao vira Arquivar.
+function contaEmUso(id) {
+  return db.lancs.some((l) => l.meio === id || l.destino === id)
     || db.series.some((s) => !s.encerrada && (s.modelo.meio === id || s.modelo.destino === id))
     || db.cartoes.some((c) => c.contaPag === id)
     || [...Object.values(db.faturasPagas), ...db.parciais].some((f) => f.conta === id);
-  if (db.contasBanco.length === 1) return avisar('Não é possível excluir', 'O app precisa de pelo menos uma conta.');
-  if (emUso) return avisar('Não é possível excluir', 'Esta conta tem lançamentos, faturas ou cartões ligados a ela.');
+}
+function cartaoEmUso(id) {
+  return db.lancs.some((l) => l.meio === id) || db.series.some((s) => !s.encerrada && s.modelo.meio === id)
+    || db.parciais.some((p) => p.cartao === id) || Object.keys(db.faturasPagas).some((k) => k.startsWith(id + '|'));
+}
+const TEXTO_ARQUIVAR = 'Fica visível até o fim deste mês, com "(Arquivada)" no nome. A partir do mês seguinte, ela e os lançamentos dela somem do Resumo, das faturas e da previsão, e não dá para fazer novos lançamentos. Os meses anteriores continuam iguais, e nada é apagado: você pode desarquivar em Ajustes.';
+async function arquivar(item, aviso) {
+  if (!await modal(`Arquivar ${item.nome}?`, (aviso ? aviso + '\n\n' : '') + TEXTO_ARQUIVAR, 'Sim, arquivar', 'Cancelar')) return;
+  item.arquivadaEm = hoje();
+  fecharEditor();
+  salvar();
+  avisar('Arquivada com sucesso', 'Está em Ajustes, em Arquivadas.');
+}
+$('aContaExcluir').onclick = async () => {
+  const id = contaEditando;
+  const ativas = db.contasBanco.filter((c) => !c.arquivadaEm);
+  if (ativas.length === 1) return avisar('Não é possível', 'O app precisa de pelo menos uma conta ativa.');
+  if (contaEmUso(id)) {
+    const usadaPor = db.cartoes.filter((c) => !c.arquivadaEm && c.contaPag === id);
+    if (usadaPor.length) return avisar('Não é possível arquivar', `Esta conta paga a fatura de ${usadaPor.map((c) => c.nome).join(', ')}. Troque a conta nesse cartão antes de arquivar.`);
+    const s = saldosPorConta(db, hoje())[id];
+    const pendente = db.lancs.filter((l) => l.meio === id && !l.pago && l.tipo === 'S').reduce((a, l) => a + l.valor, 0);
+    const avisos = [s ? `O saldo de ${brl(s)} deixa de contar no Saldo geral a partir do mês seguinte.` : '', pendente ? `Há ${brl(pendente)} em contas não pagas, que também deixam de aparecer.` : ''];
+    return arquivar(db.contasBanco.find((c) => c.id === id), avisos.filter(Boolean).join('\n'));
+  }
   if (!await modal('Excluir conta?', $('aNome').value, 'Sim, excluir', 'Cancelar')) return;
   db.contasBanco = db.contasBanco.filter((c) => c.id !== id);
-  limparConta();
+  fecharEditor();
   salvar();
 };
 function limparCartao() {
@@ -798,7 +1049,6 @@ function limparCartao() {
   $('aCTitulo').textContent = 'Novo cartão';
   $('aCExcluir').hidden = true;
 }
-$('aCLimpar').onclick = limparCartao;
 $('fCartao').onsubmit = async (e) => {
   e.preventDefault();
   const nome = $('aCNome').value.trim(), fechamento = +$('aCFecha').value, vencimento = +$('aCVenc').value;
@@ -821,39 +1071,51 @@ $('fCartao').onsubmit = async (e) => {
   Object.assign(dados, ic.campos);
   if (atual) Object.assign(atual, dados);
   else db.cartoes.push({ id: novoId(), ...dados });
-  limparCartao();
+  fecharEditor();
   salvar();
   avisoGravado(ic);
 };
 $('aCExcluir').onclick = async () => {
   const id = cartaoEditando;
-  if (db.lancs.some((l) => l.meio === id) || db.series.some((s) => !s.encerrada && s.modelo.meio === id)) return avisar('Não é possível excluir', 'Este cartão tem lançamentos.');
+  if (cartaoEmUso(id)) {
+    const item = db.cartoes.find((c) => c.id === id);
+    // Lista tudo em aberto, mesmo o que ja vai sumir, porque a divida continua existindo fora do app.
+    const aberto = aPagar(db, '9999-12').filter((i) => i.tipo === 'fatura' && i.id === id).reduce((a, i) => a + i.valor, 0);
+    return arquivar(item, aberto ? `Atenção: há ${brl(aberto)} em aberto neste cartão, incluindo parcelas futuras. O que vencer depois deste mês deixa de aparecer, mesmo sem ter sido pago.` : '');
+  }
   if (await modal('Excluir cartão?', $('aCNome').value, 'Sim, excluir', 'Cancelar')) {
     db.cartoes = db.cartoes.filter((c) => c.id !== id);
-    limparCartao();
+    fecharEditor();
     salvar();
   }
 };
+let catSimbolo = 'etiqueta', catCor = CORES_CATEGORIA[0];
+function renderEscolhaCat() {
+  $('aCatIcones').innerHTML = Object.entries(SIMBOLOS).map(([k, [nome, desenho]]) => `<button type="button" class="opcIco" data-catsimbolo="${k}" aria-label="${nome}" title="${nome}" aria-pressed="${k === catSimbolo}"${k === catSimbolo ? ` style="background:${catCor}"` : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${desenho}</svg></button>`).join('');
+  const cores = CORES_CATEGORIA.includes(catCor) ? CORES_CATEGORIA : [...CORES_CATEGORIA, catCor];
+  $('aCatCores').innerHTML = cores.map((cor, n) => `<button type="button" class="opcCor" data-catcor="${esc(cor)}" aria-label="Cor ${n + 1}" aria-pressed="${cor === catCor}" style="background:${esc(cor)}">${cor === catCor ? '✓' : ''}</button>`).join('');
+}
 function limparCat() {
   catEditando = null;
   $('fCat').reset();
+  catSimbolo = 'etiqueta'; catCor = CORES_CATEGORIA[0];
+  renderEscolhaCat();
   $('aCatTipo').disabled = false;
   $('aCatTitulo').textContent = 'Nova categoria';
   $('aCatExcluir').hidden = true;
   $('aCatLimBox').hidden = false;
 }
-$('aCatLimpar').onclick = limparCat;
 $('aCatTipo').onchange = () => { $('aCatLimBox').hidden = $('aCatTipo').value === 'E'; };
 $('fCat').onsubmit = (e) => {
   e.preventDefault();
   const nome = $('aCatNome').value.trim(), tipo = $('aCatTipo').value;
   if (!nome) return avisar('Falta informação', 'Informe o nome da categoria.');
   if (db.categorias.some((c) => c.id !== catEditando && c.tipo === tipo && c.nome.toLowerCase() === nome.toLowerCase())) return avisar('Categoria repetida', 'Já existe uma categoria desse tipo com esse nome.');
-  const dados = { nome, tipo, limite: tipo === 'S' ? centavos($('aCatLim')) : 0 };
+  const dados = { nome, tipo, limite: tipo === 'S' ? centavos($('aCatLim')) : 0, simbolo: catSimbolo, cor: catCor };
   const atual = db.categorias.find((c) => c.id === catEditando);
   if (atual) Object.assign(atual, dados);
   else db.categorias.push({ id: novoId(), ...dados });
-  limparCat();
+  fecharEditor();
   salvar();
   avisar('Gravado com sucesso');
 };
@@ -862,7 +1124,7 @@ $('aCatExcluir').onclick = async () => {
   if (db.lancs.some((l) => l.cat === id) || db.series.some((s) => !s.encerrada && s.modelo.cat === id)) return avisar('Não é possível excluir', 'Esta categoria está em uso.');
   if (await modal('Excluir categoria?', $('aCatNome').value, 'Sim, excluir', 'Cancelar')) {
     db.categorias = db.categorias.filter((c) => c.id !== id);
-    limparCat();
+    fecharEditor();
     salvar();
   }
 };
@@ -915,6 +1177,8 @@ $('aArquivo').onchange = async () => {
 
 // Cliques das listas e do menu
 function abrirAba(aba) {
+  sairDasTelas();
+  document.body.classList.toggle('emAjustes', aba === 'ajustes');
   document.querySelectorAll('main > section').forEach((s) => { s.hidden = s.id !== 's-' + aba; });
   $('mais').hidden = aba === 'lancar';
   document.querySelectorAll('nav button').forEach((b) => {
@@ -929,14 +1193,41 @@ document.addEventListener('click', async (e) => {
   const b = e.target.closest('button');
   if (!b) return;
   const d = b.dataset;
-  if (d.balmes) {
+  if (d.catsimbolo || d.catcor) {
+    if (d.catsimbolo) catSimbolo = d.catsimbolo; else catCor = d.catcor;
+    renderEscolhaCat();
+    return;
+  }
+  if (d.novoform) abrirEditor($(d.novoform));
+  else if ('voltar' in d) history.back();
+  else if (d.olho) {
+    const campo = $(d.olho), mostrar = campo.type === 'password';
+    campo.type = mostrar ? 'text' : 'password';
+    b.setAttribute('aria-label', mostrar ? 'Esconder senha' : 'Mostrar senha');
+  } else if (d.tela && !d.aba) {
+    if (d.tela === 'tPerfil') carregarPerfil();
+    if (d.tela === 'tSenha') renderSenha();
+    abrirTela(d.tela);
+  }
+  else if (d.desarquivar) {
+    const item = [...db.contasBanco, ...db.cartoes].find((c) => c.id === d.desarquivar);
+    delete item.arquivadaEm;
+    // Cartao volta com conta ativa para pagar a fatura.
+    if (item.contaPag && db.contasBanco.find((c) => c.id === item.contaPag).arquivadaEm) item.contaPag = db.contasBanco.find((c) => !c.arquivadaEm).id;
+    salvar();
+    avisar('Desarquivada', `${item.nome} voltou a aceitar lançamentos.`);
+  }
+  else if (d.balmes) {
     document.querySelectorAll('.colGraf').forEach((c) => c.setAttribute('aria-pressed', c === b));
     $('rTip').innerHTML = textoMesBal(balancoAtual.find((m) => m.ym === d.balmes));
   } else if (d.aba) {
     if (d.mes) { mes = d.mes; render(); }
     abrirAba(d.aba);
+    if (d.tela) abrirTela(d.tela);
   } else if (d.lanc) {
     const l = db.lancs.find((x) => x.id === d.lanc);
+    const fechado = [...db.contasBanco, ...db.cartoes].find((c) => c.arquivadaEm && (c.id === l.meio || c.id === l.destino));
+    if (fechado) return avisar('Lançamento arquivado', `${fechado.nome} está arquivada. Para alterar este lançamento, desarquive em Ajustes.`);
     lancEditando = l.id;
     $('lTitulo').textContent = 'Corrigir lançamento';
     $('lTipo').value = l.tipo; $('lData').value = l.data; $('lDesc').value = l.desc;
@@ -952,11 +1243,12 @@ document.addEventListener('click', async (e) => {
   } else if (d.editconta) {
     const c = db.contasBanco.find((x) => x.id === d.editconta);
     contaEditando = c.id;
-    $('aContaTitulo').textContent = 'Corrigir conta';
+    $('aContaTitulo').textContent = c.nome;
     $('aNome').value = c.nome; $('aTipo').value = c.tipo; $('aIcone').value = c.iconeNome || '';
     porValor($('aSaldo'), Math.abs(c.saldoInicial)); $('aNegativo').checked = c.saldoInicial < 0;
     $('aContaExcluir').hidden = false;
-    $('aContaTitulo').scrollIntoView({ block: 'center' });
+    $('aContaExcluir').textContent = contaEmUso(c.id) ? 'Arquivar' : 'Excluir';
+    abrirEditor($('fConta'));
   } else if (d.pagar) {
     const l = db.lancs.find((x) => x.id === d.pagar), entrada = l.tipo === 'E';
     if (await modal(entrada ? 'Marcar como recebido?' : 'Marcar como pago?', `${l.desc} · ${brl(l.valor)}\n${entrada ? 'Entra em' : 'Sai de'} ${nomeMeio(l.meio)}.`, entrada ? 'Sim, recebido' : 'Sim, pago', 'Cancelar')) { l.pago = true; salvar(); }
@@ -979,25 +1271,207 @@ document.addEventListener('click', async (e) => {
   } else if (d.editcartao) {
     const c = db.cartoes.find((x) => x.id === d.editcartao);
     cartaoEditando = c.id;
-    $('aCTitulo').textContent = 'Corrigir cartão';
+    $('aCTitulo').textContent = c.nome;
     $('aCNome').value = c.nome; $('aCIcone').value = c.iconeNome || ''; $('aCFecha').value = c.fechamento; $('aCVenc').value = c.vencimento;
     porValor($('aCLim'), c.limite || 0); $('aCPag').value = c.contaPag;
     $('aCExcluir').hidden = false;
-    $('aCTitulo').scrollIntoView({ block: 'center' });
+    $('aCExcluir').textContent = cartaoEmUso(c.id) ? 'Arquivar' : 'Excluir';
+    abrirEditor($('fCartao'));
   } else if (d.editcat) {
     const c = db.categorias.find((x) => x.id === d.editcat);
     catEditando = c.id;
-    $('aCatTitulo').textContent = 'Corrigir categoria';
+    $('aCatTitulo').textContent = c.nome;
     $('aCatNome').value = c.nome; $('aCatTipo').value = c.tipo;
     // Trocar o tipo deixaria lancamentos com categoria do tipo errado.
     $('aCatTipo').disabled = true;
     porValor($('aCatLim'), c.limite || 0);
     $('aCatLimBox').hidden = c.tipo === 'E';
     $('aCatExcluir').hidden = false;
-    $('aCatTitulo').scrollIntoView({ block: 'center' });
+    ({ simbolo: catSimbolo, cor: catCor } = aparenciaCat(c));
+    renderEscolhaCat();
+    abrirEditor($('fCat'));
   }
 });
 
+// Perfil: a foto so vale ao salvar; sair sem salvar descarta.
+let fotoEdit;
+function mostrarFotoEdit() {
+  $('pFotoEdit').innerHTML = htmlFoto(fotoEdit, $('pNome').value);
+  $('pFotoTirar').hidden = !fotoEdit;
+}
+function carregarPerfil() {
+  const p = db.perfil || {};
+  $('pNome').value = p.nome || ''; $('pEmail').value = p.email || ''; $('pNasc').value = p.nasc || '';
+  fotoEdit = p.foto;
+  mostrarFotoEdit();
+  $('pSenhaTxt').textContent = temSenha() ? '••••••••' : 'Criar senha';
+}
+$('pFotoTrocar').onclick = () => $('pFotoArq').click();
+$('pFotoTirar').onclick = () => { fotoEdit = undefined; mostrarFotoEdit(); };
+$('pFotoArq').onchange = async () => {
+  const arq = $('pFotoArq').files[0];
+  $('pFotoArq').value = '';
+  if (!arq) return;
+  try {
+    const img = await createImageBitmap(arq);
+    const lado = Math.min(img.width, img.height), tela = document.createElement('canvas');
+    tela.width = tela.height = 240;
+    tela.getContext('2d').drawImage(img, (img.width - lado) / 2, (img.height - lado) / 2, lado, lado, 0, 0, 240, 240);
+    fotoEdit = tela.toDataURL('image/jpeg', 0.85);
+    mostrarFotoEdit();
+  } catch { avisar('Não foi possível usar essa imagem', 'Escolha outra foto.'); }
+};
+$('fPerfil').onsubmit = (e) => {
+  e.preventDefault();
+  const email = $('pEmail').value.trim(), nasc = $('pNasc').value;
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return avisar('E-mail inválido', 'Confira o e-mail ou deixe vazio.');
+  if (nasc && nasc > hoje()) return avisar('Data inválida', 'A data de nascimento não pode ser no futuro.');
+  const perfil = { nome: $('pNome').value.trim() || undefined, email: email || undefined, nasc: nasc || undefined, foto: fotoEdit };
+  if (!perfilValido(perfil)) return avisar('Não foi possível salvar', 'Tente outra foto.');
+  db.perfil = perfil;
+  salvar();
+  history.back();
+  avisar('Gravado com sucesso');
+};
+
+// Senha do app, guardada fora dos dados: nao vai no backup. Trava de tela: os dados nao ficam cifrados.
+const CHAVE_SENHA = 'controle-diario-senha';
+let trava;
+try { trava = JSON.parse(localStorage.getItem(CHAVE_SENHA)) || {}; } catch { trava = {}; }
+let bioDisponivel = false;
+const temSenha = () => !!trava.senha;
+function gravarTrava() {
+  try { localStorage.setItem(CHAVE_SENHA, JSON.stringify(trava)); return true; }
+  catch { avisar('Não foi possível gravar', 'O aparelho recusou a gravação. A senha não foi alterada.'); return false; }
+}
+function limparCamposSenha() {
+  for (const id of ['sAtual', 'sNova', 'sRepete']) { $(id).value = ''; $(id).type = 'password'; }
+}
+function renderSenha() {
+  const tem = temSenha();
+  $('sTitulo').textContent = tem ? 'Alterar senha' : 'Criar senha';
+  $('sAtualBox').hidden = !tem;
+  $('sRemover').hidden = !tem;
+  $('sBioBox').hidden = !bioDisponivel;
+  $('sBio').disabled = !tem;
+  $('sBio').checked = !!trava.bio;
+  $('sBioDica').textContent = !bioDisponivel ? 'Biometria não disponível neste aparelho ou navegador.' : tem ? '' : 'Crie a senha para poder habilitar a biometria.';
+}
+const problemaSenha = (nova, repete) => (nova.length < 8 ? 'A nova senha precisa ter pelo menos 8 caracteres.' : nova !== repete ? 'As duas senhas não são iguais.' : '');
+async function novoCodigo() {
+  const codigo = gerarCodigo();
+  trava.recup = await protegerSenha(limpaCodigo(codigo));
+  return codigo;
+}
+const mostrarCodigo = (codigo) => modal('Guarde este código', `${codigo}\n\nEle é a única forma de entrar se você esquecer a senha, e não será mostrado de novo. Anote em um lugar seguro, fora deste aparelho.`, 'Já anotei');
+$('fSenha').onsubmit = async (e) => {
+  e.preventDefault();
+  const tem = temSenha();
+  if (tem && !await confereSenha($('sAtual').value, trava.senha)) return avisar('Senha atual errada', 'Confira e tente de novo.');
+  const erro = problemaSenha($('sNova').value, $('sRepete').value);
+  if (erro) return avisar('Confira a nova senha', erro);
+  const anterior = JSON.stringify(trava);
+  trava.senha = await protegerSenha($('sNova').value);
+  const codigo = tem ? null : await novoCodigo();
+  if (!gravarTrava()) { trava = JSON.parse(anterior); return; }
+  if (codigo) await mostrarCodigo(codigo);
+  history.back();
+  avisar(tem ? 'Senha alterada' : 'Senha criada', 'O app vai pedir a senha ao abrir e ao voltar depois de 1 minuto fora dele.');
+};
+$('sRemover').onclick = async () => {
+  if (!await confereSenha($('sAtual').value, trava.senha)) return avisar('Senha atual errada', 'Para remover, digite a senha atual.');
+  if (!await modal('Remover a senha?', 'O app vai abrir sem pedir senha nem biometria.', 'Sim, remover', 'Cancelar')) return;
+  const anterior = trava;
+  trava = {};
+  if (!gravarTrava()) { trava = anterior; return; }
+  history.back();
+  avisar('Senha removida');
+};
+$('sBio').onchange = async (e) => {
+  if (!e.target.checked) {
+    delete trava.bio;
+    gravarTrava();
+    return;
+  }
+  try {
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)), rp: { name: 'Controle Diário' },
+      user: { id: crypto.getRandomValues(new Uint8Array(16)), name: 'controle-diario', displayName: 'Controle Diário' },
+      pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+      authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' }, timeout: 60000,
+    } });
+    trava.bio = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+    if (!gravarTrava()) { delete trava.bio; e.target.checked = false; }
+  } catch {
+    e.target.checked = false;
+    avisar('Biometria não habilitada', 'A confirmação não foi concluída neste aparelho.');
+  }
+};
+
+// Tela de bloqueio: dialog para ficar por cima de tudo, inclusive de outra janela aberta.
+function modoRecuperar(sim) {
+  $('tEntrar').hidden = sim; $('tRecuperar').hidden = !sim;
+  $('tMsg').textContent = ''; $('tMsgR').textContent = '';
+}
+function limparTrava() {
+  for (const id of ['tSenhaCampo', 'tCodigo', 'tNova', 'tRepete']) $(id).value = '';
+  $('tSenhaCampo').type = $('tNova').type = $('tRepete').type = 'password';
+}
+async function entrarBio() {
+  try {
+    await navigator.credentials.get({ publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)), userVerification: 'required', timeout: 60000,
+      allowCredentials: [{ type: 'public-key', id: Uint8Array.from(atob(trava.bio), (x) => x.charCodeAt(0)) }],
+    } });
+    liberar();
+  } catch { $('tMsg').textContent = 'Biometria não confirmada. Use a senha.'; }
+}
+function bloquear() {
+  if ($('trava').open) return;
+  limparTrava();
+  modoRecuperar(false);
+  $('tBio').hidden = !trava.bio;
+  $('trava').showModal();
+  if (trava.bio) entrarBio(); else $('tSenhaCampo').focus();
+}
+function liberar() {
+  limparTrava();
+  $('trava').close();
+}
+$('trava').oncancel = (e) => e.preventDefault();
+$('tBio').onclick = entrarBio;
+$('tEsqueci').onclick = () => modoRecuperar(true);
+$('tVoltar').onclick = () => modoRecuperar(false);
+$('tForm').onsubmit = async (e) => {
+  e.preventDefault();
+  if ($('tRecuperar').hidden) {
+    if (await confereSenha($('tSenhaCampo').value, trava.senha)) liberar();
+    else $('tMsg').textContent = 'Senha errada.';
+    return;
+  }
+  if (!await confereSenha(limpaCodigo($('tCodigo').value), trava.recup)) { $('tMsgR').textContent = 'Código errado.'; return; }
+  const erro = problemaSenha($('tNova').value, $('tRepete').value);
+  if (erro) { $('tMsgR').textContent = erro; return; }
+  const anterior = JSON.stringify(trava);
+  trava.senha = await protegerSenha($('tNova').value);
+  // O codigo usado deixa de valer: pode ter sido visto.
+  const codigo = await novoCodigo();
+  if (!gravarTrava()) { trava = JSON.parse(anterior); return; }
+  liberar();
+  await mostrarCodigo(codigo);
+};
+let saiuEm = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) saiuEm = Date.now();
+  else if (temSenha() && Date.now() - saiuEm > 60000) bloquear();
+});
+if (window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+  PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then((ok) => { bioDisponivel = ok; renderSenha(); }).catch(() => {});
+}
+renderSenha();
+if (temSenha()) bloquear();
+
+history.replaceState(null, '');
 limparLanc();
 if (completarSeries(db, addMes(hoje().slice(0, 7), MESES_FRENTE))) salvar(); else render();
 </script>
