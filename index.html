@@ -18,15 +18,17 @@
     --navy: #1e3a5f; --pri: #2f8486; --bg: #edf3f4; --card: #fff; --campo: #e6f0f1;
     --txt: #16242f; --mut: #5a6b76; --pos: #15803d; --neg: #c0262d; --linha: #dbe5e7;
     --aviso: #fdf1d8; --avisoTxt: #6d4a00; --sombra: 0 4px 16px rgba(30, 58, 95, .1);
+    --cRec: #1b76c9; --cDesp: #c8641e;
   }
   :root[data-theme=dark] {
     --navy: #0d1828; --pri: #6cc3c4; --bg: #101c2b; --card: #1a2a3e; --campo: #24374e;
     --txt: #e8eef2; --mut: #a2b2bd; --pos: #4ade80; --neg: #fb8589; --linha: #2c4058;
     --aviso: #3d3113; --avisoTxt: #fbdf9c; --sombra: none;
+    --cRec: #2f8fdc; --cDesp: #d9782a;
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
-  body { margin: 0; background: var(--bg); color: var(--txt); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  body { margin: 0; background: var(--bg); color: var(--txt); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding-bottom: calc(144px + env(safe-area-inset-bottom)); }
   [hidden] { display: none !important; }
   main, #topo > div { max-width: 640px; margin: 0 auto; }
   #topo { background: var(--navy); background-image: radial-gradient(rgba(255,255,255,.08) 1px, transparent 1px); background-size: 12px 12px; padding: 10px 16px 14px; border-radius: 0 0 28px 28px; color: #fff; }
@@ -51,7 +53,7 @@
   .dois { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .dois > * { min-width: 0; }
   button { font: inherit; font-weight: 600; min-height: 44px; padding: 8px 16px; border: 0; border-radius: 999px; background: var(--pri); color: #fff; cursor: pointer; }
-  :root[data-theme=dark] button:not(.sec):not(.perigo):not(.mesBar button) { color: #06201d; }
+  :root[data-theme=dark] button:not(.sec):not(.perigo):not(.linha):not(.cartaoRes):not(.colGraf):not(.mesBar button) { color: #06201d; }
   button.sec { background: var(--campo); color: var(--txt); }
   button.perigo { background: transparent; color: var(--neg); border: 1px solid var(--neg); }
   button.mini { min-height: 44px; padding: 4px 14px; font-size: 13px; flex: none; }
@@ -68,6 +70,43 @@
   .barra i { display: block; height: 100%; background: var(--pri); border-radius: 4px; }
   .aviso { background: var(--aviso); color: var(--avisoTxt); border-radius: 14px; padding: 10px 14px; margin-bottom: 14px; font-size: 14px; }
   .selada { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--campo); }
+  .fluxo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 8px; }
+  .fluxo div { min-width: 0; }
+  .fluxo b { display: block; font-size: 14px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .fluxo small { color: var(--mut); font-size: 12px; }
+  .dia { margin: 12px 0 0; font-size: 13px; font-weight: 700; color: var(--mut); }
+  .dia + .linha { border-top: 0; }
+  .lado { text-align: right; flex: none; }
+  .lado small { display: block; font-size: 12px; }
+  #mais { position: fixed; z-index: 11; right: 16px; bottom: calc(72px + env(safe-area-inset-bottom)); width: 56px; height: 56px; padding: 0; font-size: 30px; line-height: 1; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+  .barra i.perto { background: #d99a00; }
+  .barra i.estouro { background: var(--neg); }
+  #rIni, #rFim, #fIni, #fFim { padding-left: 8px; padding-right: 4px; font-size: 15px; }
+  summary { cursor: pointer; padding: 9px 0; border-top: 1px solid var(--linha); list-style-position: outside; margin-left: 16px; }
+  details > .linha { padding-left: 16px; }
+  .topoGraf { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--mut); margin: 12px 0 4px; }
+  .legenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 4px 0 10px; }
+  .grafico { display: flex; align-items: stretch; height: 150px; border-top: 1px dashed var(--linha); border-bottom: 1px solid var(--mut); }
+  button.colGraf { flex: 1; min-width: 0; min-height: 0; padding: 0; border-radius: 0; background: none; display: flex; align-items: flex-end; justify-content: center; gap: 2px; }
+  button.colGraf[aria-pressed=true] { background: var(--campo); }
+  .colGraf i { display: block; width: 32%; max-width: 12px; min-height: 0; border-radius: 4px 4px 0 0; }
+  .eixoGraf { display: flex; font-size: 11px; color: var(--mut); margin-top: 3px; }
+  .eixoGraf span { flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: visible; }
+  #rTip { min-height: 40px; margin: 8px 0; font-size: 13px; }
+  .tabBal { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .tabBal th, .tabBal td { padding: 7px 2px; text-align: right; border-top: 1px solid var(--linha); }
+  .tabBal th:first-child, .tabBal td:first-child { text-align: left; }
+  .tabBal thead th { border-top: 0; color: var(--mut); font-weight: 600; }
+  .ico { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #fff; border: 1px solid var(--linha); object-fit: contain; padding: 4px; vertical-align: middle; font-size: 12px; font-weight: 700; color: #fff; }
+  .ico.ini { padding: 0; border: 0; }
+  .cartaoRes .tituloC { display: flex; align-items: center; gap: 8px; }
+  h2 .ico { margin-right: 6px; }
+  .gerenciar { width: 100%; margin-top: 10px; }
+  .cartaoRes { display: block; width: 100%; padding: 10px 0; border-top: 1px solid var(--linha); border-radius: 0; background: none; color: inherit; font-weight: 400; text-align: left; }
+  #rCartoes .cartaoRes:first-child { border-top: 0; }
+  .cartaoRes .pares { border-top: 0; margin-top: 2px; padding-top: 0; }
+  .cartaoRes .pares > div:first-child { flex: 0 0 36%; }
+  .cartaoRes .pares > div:last-child { text-align: right; }
   .versao { text-align: center; color: var(--mut); font-size: 12px; }
   nav { position: fixed; z-index: 10; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; background: var(--card); border-top: 1px solid var(--linha); padding-bottom: env(safe-area-inset-bottom); }
   nav button { flex: 1; max-width: 128px; min-height: 60px; background: none; color: var(--mut) !important; border-radius: 0; padding: 6px 2px; font-size: 11px; font-weight: 500; }
@@ -87,7 +126,7 @@
     <button id="mesProx" class="sec" aria-label="Próximo mês">▶</button>
   </div>
   <div class="destaque">
-    <small>Saldo em conta hoje</small>
+    <small>Saldo geral hoje</small>
     <div id="hSaldo"></div>
     <div class="pares">
       <div><small>Gastos do mês</small><b id="hGastos"></b></div>
@@ -100,86 +139,152 @@
   <div id="avisoBackup" class="aviso" hidden></div>
 
   <section id="s-resumo">
+    <div class="card"><h2>Minhas contas</h2><div id="rContas"></div><button type="button" class="sec gerenciar" data-aba="ajustes">Gerenciar contas</button></div>
+    <div class="card" id="rFaturasBox">
+      <small class="fraco">Faturas do mês</small>
+      <div id="rFaturasTotal" class="valor neg" style="font-size:20px"></div>
+      <h2 style="margin-top:10px">Meus cartões</h2>
+      <div id="rCartoes"></div>
+      <button type="button" class="sec gerenciar" data-aba="ajustes">Gerenciar cartões</button>
+    </div>
+    <div class="card"><h2>Limites de gastos</h2><div id="rLimites"></div><button type="button" class="sec gerenciar" data-aba="ajustes">Gerenciar limites</button></div>
+    <div class="card"><h2>Fluxo de caixa</h2><div class="fluxo" id="rFluxo"></div></div>
     <div class="card">
       <h2>Mês</h2>
       <div class="linha"><span>Entradas</span><span id="rEntradas" class="valor pos"></span></div>
       <div class="linha"><span>Gastos</span><span id="rGastos" class="valor neg"></span></div>
       <div class="linha"><b>Sobra</b><span id="rSobra" class="valor"></span></div>
     </div>
+    <div class="card"><h2>A pagar e a receber</h2><div id="rProximo"></div></div>
     <div class="card"><h2>A pagar</h2><div id="rPagar"></div></div>
     <div class="card"><h2>Gastos por categoria</h2><div id="rCats"></div></div>
+  </section>
+
+  <section id="s-fluxo" hidden>
+    <div class="card">
+      <div class="dois">
+        <label>Ver<select id="fModo"><option value="fluxo">Fluxo de caixa</option><option value="todos">Todos os lançamentos</option></select></label>
+        <label>Filtrar por<select id="fFiltro"></select></label>
+      </div>
+      <label>Período<select id="fPer"><option value="mes">Mês do topo</option><option value="livre">Escolher meses</option></select></label>
+      <div class="dois" id="fDatas" hidden>
+        <label>De<input id="fIni" type="month"></label>
+        <label>Até<input id="fFim" type="month"></label>
+      </div>
+      <div class="fluxo" id="fFluxo"></div>
+    </div>
+    <div class="card"><small class="fraco" id="fDica"></small><div id="lLista"></div></div>
+  </section>
+
+  <section id="s-relatorios" hidden>
+    <div class="card">
+      <label>Relatório<select id="rTipo"><option value="categorias">Categorias</option><option value="balanco">Receitas x despesas</option></select></label>
+      <div class="dois">
+        <label>De<input id="rIni" type="month"></label>
+        <label>Até<input id="rFim" type="month"></label>
+      </div>
+      <div class="dois">
+        <label>Filtrar por<select id="rFiltro"></select></label>
+        <label>Compras do cartão<select id="rBase"><option value="fatura">Mês da fatura</option><option value="compra">Mês da compra</option></select></label>
+      </div>
+    </div>
+    <div id="rSaida"></div>
   </section>
 
   <section id="s-lancar" hidden>
     <form id="fLanc" class="card" novalidate>
       <h2 id="lTitulo">Novo lançamento</h2>
       <div class="dois">
-        <label>Tipo<select id="lTipo"><option value="S">Gasto</option><option value="E">Entrada</option></select></label>
+        <label>Tipo<select id="lTipo"><option value="S">Gasto</option><option value="E">Entrada</option><option value="T">Transferência</option></select></label>
         <label>Data<input id="lData" type="date" required></label>
       </div>
       <label>Descrição<input id="lDesc" maxlength="80" autocomplete="off"></label>
       <div class="dois">
-        <label>Valor<input id="lValor" class="moeda" inputmode="numeric" autocomplete="off"></label>
-        <label>Categoria<select id="lCat" class="selCat"></select></label>
+        <label><span id="lValorTxt">Valor</span><input id="lValor" class="moeda" inputmode="numeric" autocomplete="off"></label>
+        <label id="lCatBox">Categoria<select id="lCat" class="selCat"></select></label>
       </div>
-      <div class="dois" id="lPagoBox">
-        <label>Pago com<select id="lMeio"></select></label>
-        <label id="lParcBox">Parcelas<input id="lParc" type="number" inputmode="numeric" min="1" max="48" value="1"></label>
+      <div class="dois">
+        <label><span id="lMeioTxt">Pago com</span><select id="lMeio"></select></label>
+        <label id="lDestinoBox">Para<select id="lDestino"></select></label>
       </div>
+      <div class="dois" id="lRepBox">
+        <label>Repetir<select id="lRepTipo"><option value="">Não repete</option><option value="fixa">Fixa</option><option value="parc">Parcelada</option></select></label>
+        <label id="lPerBox">A cada<select id="lRep"><option value="mensal">Mês</option><option value="semanal">Semana</option><option value="quinzenal">2 semanas</option><option value="bimestral">2 meses</option><option value="trimestral">3 meses</option><option value="anual">Ano</option></select></label>
+      </div>
+      <label id="lParcBox">Parcelas<input id="lParc" type="number" inputmode="numeric" min="2" max="48" value="2"></label>
+      <p id="lSerieInfo" class="fraco" hidden></p>
+      <label id="lPagoCaixa"><input id="lPago" type="checkbox" checked><span id="lPagoTxt">Já foi pago</span></label>
       <div class="botoes">
         <button type="submit">Salvar</button>
         <button type="button" class="sec" id="lLimpar">Limpar</button>
         <button type="button" class="perigo" id="lExcluir" hidden>Excluir</button>
       </div>
     </form>
-    <div class="card"><h2>Lançamentos do mês</h2><small class="fraco">Toque em um lançamento para corrigir ou excluir.</small><div id="lLista"></div></div>
   </section>
 
   <section id="s-contas" hidden>
-    <form id="fConta" class="card" novalidate>
-      <h2 id="cTitulo">Nova conta a pagar</h2>
-      <label>Descrição<input id="cDesc" maxlength="80" autocomplete="off"></label>
-      <div class="dois">
-        <label>Vencimento<input id="cVenc" type="date"></label>
-        <label>Valor<input id="cValor" class="moeda" inputmode="numeric" autocomplete="off"></label>
-      </div>
-      <div class="dois">
-        <label>Categoria<select id="cCat" class="selCat"></select></label>
-        <label>Pago em (vazio = pendente)<input id="cPago" type="date"></label>
-      </div>
-      <div class="botoes">
-        <button type="submit">Salvar</button>
-        <button type="button" class="sec" id="cLimpar">Limpar</button>
-        <button type="button" class="perigo" id="cExcluir" hidden>Excluir</button>
-      </div>
-    </form>
-    <div class="card"><h2>Contas do mês</h2><small class="fraco">Inclui as atrasadas de meses anteriores. Toque na descrição para corrigir ou excluir.</small><div id="cLista"></div></div>
+    <div class="botoes" style="margin-bottom:14px"><button type="button" id="cNova">Nova conta a pagar</button></div>
+    <div class="card"><h2>A pagar</h2><small class="fraco">Até o fim do mês, com as atrasadas. Toque na descrição para corrigir ou excluir.</small><div id="cLista"></div></div>
+    <div class="card"><h2>A receber</h2><div id="cReceber"></div></div>
   </section>
 
   <section id="s-cartoes" hidden><div id="fLista"></div></section>
 
   <section id="s-ajustes" hidden>
-    <form id="fSaldo" class="card" novalidate>
-      <h2>Conta corrente</h2>
-      <label>Saldo inicial<input id="aSaldo" class="moeda" inputmode="numeric" autocomplete="off"></label>
+    <form id="fConta" class="card" novalidate>
+      <h2>Contas</h2>
+      <small class="fraco">Toque em uma conta para corrigir ou excluir.</small>
+      <div id="aContas"></div>
+      <h2 id="aContaTitulo" style="margin-top:10px">Nova conta</h2>
+      <label>Nome<input id="aNome" maxlength="30" autocomplete="off"></label>
+      <label>Ícone: banco<input id="aIcone" list="listaIcones" autocomplete="off" placeholder="Toque e escolha, ou deixe vazio"></label>
+      <div class="dois">
+        <label>Tipo<select id="aTipo"><option value="corrente">Corrente</option><option value="poupanca">Poupança</option><option value="outra">Outra</option></select></label>
+        <label>Saldo inicial<input id="aSaldo" class="moeda" inputmode="numeric" autocomplete="off"></label>
+      </div>
       <label><input id="aNegativo" type="checkbox">Saldo inicial negativo</label>
-      <button type="submit">Salvar saldo</button>
+      <div class="botoes">
+        <button type="submit">Salvar conta</button>
+        <button type="button" class="sec" id="aContaLimpar">Limpar</button>
+        <button type="button" class="perigo" id="aContaExcluir" hidden>Excluir</button>
+      </div>
     </form>
     <form id="fCartao" class="card" novalidate>
       <h2>Cartões</h2>
+      <small class="fraco">Toque em um cartão para corrigir ou excluir.</small>
       <div id="aCartoes"></div>
-      <label>Nome do novo cartão<input id="aCNome" maxlength="30" autocomplete="off"></label>
+      <h2 id="aCTitulo" style="margin-top:10px">Novo cartão</h2>
+      <label>Nome<input id="aCNome" maxlength="30" autocomplete="off"></label>
+      <label>Ícone: bandeira<input id="aCIcone" list="listaBandeiras" autocomplete="off" placeholder="Toque e escolha, ou deixe vazio"></label>
       <div class="dois">
         <label>Dia do fechamento<input id="aCFecha" type="number" inputmode="numeric" min="1" max="31"></label>
         <label>Dia do vencimento<input id="aCVenc" type="number" inputmode="numeric" min="1" max="31"></label>
       </div>
-      <button type="submit">Adicionar cartão</button>
+      <div class="dois">
+        <label>Limite<input id="aCLim" class="moeda" inputmode="numeric" autocomplete="off"></label>
+        <label>Conta que paga a fatura<select id="aCPag"></select></label>
+      </div>
+      <div class="botoes">
+        <button type="submit">Salvar cartão</button>
+        <button type="button" class="sec" id="aCLimpar">Limpar</button>
+        <button type="button" class="perigo" id="aCExcluir" hidden>Excluir</button>
+      </div>
     </form>
     <form id="fCat" class="card" novalidate>
-      <h2>Categorias</h2>
+      <h2>Categorias e limites</h2>
+      <small class="fraco">Toque em uma categoria para corrigir, definir o limite ou excluir.</small>
       <div id="aCats"></div>
-      <label>Nova categoria<input id="aCatNome" maxlength="30" autocomplete="off"></label>
-      <button type="submit">Adicionar categoria</button>
+      <h2 id="aCatTitulo" style="margin-top:10px">Nova categoria</h2>
+      <label>Nome<input id="aCatNome" maxlength="30" autocomplete="off"></label>
+      <div class="dois">
+        <label>Tipo<select id="aCatTipo"><option value="S">Despesa</option><option value="E">Receita</option></select></label>
+        <label id="aCatLimBox">Limite por mês<input id="aCatLim" class="moeda" inputmode="numeric" autocomplete="off"></label>
+      </div>
+      <div class="botoes">
+        <button type="submit">Salvar categoria</button>
+        <button type="button" class="sec" id="aCatLimpar">Limpar</button>
+        <button type="button" class="perigo" id="aCatExcluir" hidden>Excluir</button>
+      </div>
     </form>
     <div class="card">
       <h2>Backup</h2>
@@ -195,23 +300,29 @@
       <h2>Aparência</h2>
       <label>Tema<select id="aTema"><option value="auto">Automático (igual ao aparelho)</option><option value="light">Claro</option><option value="dark">Escuro</option></select></label>
     </div>
-    <p class="versao">Controle Diário · versão 1.0.0 · 31/10/2026</p>
+    <datalist id="listaIcones"></datalist>
+    <datalist id="listaBandeiras"></datalist>
+    <p class="versao">Controle Diário · versão 1.9.1 · 31/10/2026</p>
   </section>
 </main>
 
+<button id="mais" aria-label="Novo lançamento">+</button>
+
 <nav aria-label="Menu">
   <button data-aba="resumo" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Resumo</button>
-  <button data-aba="lancar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Lançar</button>
-  <button data-aba="contas"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg>Contas</button>
+  <button data-aba="fluxo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg>Fluxo</button>
+  <button data-aba="relatorios"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.5 6"/></svg>Relatórios</button>
+  <button data-aba="contas"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg>A pagar</button>
   <button data-aba="cartoes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18"/></svg>Cartões</button>
   <button data-aba="ajustes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Ajustes</button>
 </nav>
 
-<dialog id="dlg"><h3 id="dTitulo"></h3><p id="dTexto"></p><div class="botoes"><button id="dSim"></button><button id="dNao" class="sec"></button></div></dialog>
+<dialog id="dlg"><h3 id="dTitulo"></h3><p id="dTexto"></p><div class="dois" id="dFatBox"><label>Valor pago<input id="dFatValor" class="moeda" inputmode="numeric" autocomplete="off"></label><label>Data<input id="dFatData" type="date"></label></div><label id="dContaBox">Sai da conta<select id="dConta"></select></label><label id="dEscopoBox">Aplicar a<select id="dEscopo"><option value="esta">Só esta</option><option value="proximas">Esta e as próximas</option><option value="todas">Todas, inclusive as anteriores</option></select></label><div class="botoes"><button id="dSim"></button><button id="dNao" class="sec"></button></div></dialog>
 
 <script src="calc.js"></script>
+<script src="icones.js"></script>
 <script>
-const CHAVE = 'controle-diario', CHAVE_TEMA = 'controle-diario-tema', DIAS_BACKUP = 7;
+const CHAVE = 'controle-diario', CHAVE_TEMA = 'controle-diario-tema', DIAS_BACKUP = 7, MESES_FRENTE = 12;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const brl = (c) => (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -224,15 +335,18 @@ function hoje() {
 
 function dadosNovos() {
   return {
-    saldoInicial: 0,
-    categorias: ['Alimentação', 'Moradia', 'Transporte', 'Saúde', 'Lazer', 'Educação', 'Outros'].map((nome) => ({ id: novoId(), nome })),
-    cartoes: [], lancs: [], contas: [], faturasPagas: {}, ultimoBackupEm: null,
+    contasBanco: [{ id: 'conta', nome: 'Conta corrente', tipo: 'corrente', saldoInicial: 0 }],
+    categorias: [
+      ...['Alimentação', 'Moradia', 'Transporte', 'Saúde', 'Lazer', 'Educação', 'Outros'].map((nome) => ({ id: novoId(), nome, tipo: 'S' })),
+      ...['Salário', 'Rendimentos', 'Outras receitas'].map((nome) => ({ id: novoId(), nome, tipo: 'E' })),
+    ],
+    cartoes: [], lancs: [], series: [], faturasPagas: {}, parciais: [], ultimoBackupEm: null,
   };
 }
 function carregar() {
   const txt = localStorage.getItem(CHAVE);
   if (!txt) return dadosNovos();
-  const d = JSON.parse(txt);
+  const d = migrar(JSON.parse(txt), hoje());
   if (!backupValido(d)) throw new Error('dados inválidos');
   return d;
 }
@@ -249,9 +363,17 @@ function salvar() {
   render();
 }
 
-function modal(titulo, texto, sim, nao) {
+const opcoesContas = (fora) => db.contasBanco.filter((c) => c.id !== fora).map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('');
+
+// contaInicial mostra a escolha da conta ($('dConta')); escopo, a de ocorrencias da serie ($('dEscopo')).
+function modal(titulo, texto, sim, nao, contaInicial, escopo) {
   return new Promise((ok) => {
     $('dTitulo').textContent = titulo; $('dTexto').textContent = texto;
+    $('dEscopoBox').hidden = !escopo;
+    $('dFatBox').hidden = !contaInicial;
+    $('dEscopo').value = 'esta';
+    $('dContaBox').hidden = !contaInicial;
+    if (contaInicial) { $('dConta').innerHTML = opcoesContas(); $('dConta').value = contaInicial; }
     $('dSim').textContent = sim; $('dNao').textContent = nao || ''; $('dNao').hidden = !nao;
     $('dSim').onclick = () => { $('dlg').close(); ok(true); };
     $('dNao').onclick = () => { $('dlg').close(); ok(false); };
@@ -268,9 +390,39 @@ document.querySelectorAll('.moeda').forEach((el) => {
   el.addEventListener('input', () => porValor(el, Math.min(centavos(el), 99999999999)));
 });
 
-let mes = hoje().slice(0, 7), lancEditando = null, contaEditando = null;
+let mes = hoje().slice(0, 7), lancEditando = null, contaEditando = null, cartaoEditando = null, catEditando = null;
 const nomeCat = (id) => (db.categorias.find((c) => c.id === id) || { nome: 'Sem categoria' }).nome;
-const nomeMeio = (m) => (m === 'conta' ? 'Conta' : (db.cartoes.find((c) => c.id === m) || { nome: '?' }).nome);
+const nomeMeio = (m) => ([...db.contasBanco, ...db.cartoes].find((c) => c.id === m) || { nome: '?' }).nome;
+const TIPOS_CONTA = { corrente: 'Corrente', poupanca: 'Poupança', outra: 'Outra' };
+const CORES_ICONE = ['#1e3a5f', '#2f6f73', '#7a3e9d', '#a4442c', '#2d6a3e', '#8a5a00'];
+function iconeHtml(o) {
+  if (o.icone) return `<img class="ico" src="${esc(o.icone)}" alt="">`;
+  const letras = o.nome.split(/[^\p{L}\p{N}]+/u).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
+  const cor = CORES_ICONE[[...o.nome].reduce((s, l) => s + l.charCodeAt(0), 0) % CORES_ICONE.length];
+  return `<span class="ico ini" style="background:${cor}" aria-hidden="true">${esc(letras)}</span>`;
+}
+const iconeDoMeio = (m) => iconeHtml([...db.contasBanco, ...db.cartoes].find((c) => c.id === m) || { nome: '?' });
+
+// Baixa o logo so quando a escolha muda; depois disso o app nao consulta mais a internet para ele.
+// Devolve os campos a gravar, ou null se o nome nao esta na lista. falhou: sem logo agora, tentar depois.
+async function escolherIcone(campo, atual, lista) {
+  const nome = campo.value.trim();
+  if (!nome) return { campos: { icone: undefined, iconeNome: undefined } };
+  if (atual && atual.iconeNome === nome && atual.icone) return { campos: {} };
+  const item = lista.find((i) => i.nome.toLowerCase() === nome.toLowerCase());
+  if (!item) return null;
+  try {
+    const r = await fetch(item.url, { signal: AbortSignal.timeout(15000) });
+    const icone = r.ok ? svgParaIcone(await r.text()) : null;
+    if (!icone) throw new Error('arquivo recusado');
+    return { campos: { icone, iconeNome: item.nome } };
+  } catch {
+    return { campos: { icone: undefined, iconeNome: undefined }, falhou: item.nome };
+  }
+}
+const avisoGravado = (r) => (r.falhou
+  ? avisar('Gravado, sem o logo', `Não foi possível baixar o logo de ${r.falhou}. Ficou com as iniciais. Para tentar de novo, corrija e salve com internet.`)
+  : avisar('Gravado com sucesso'));
 
 function render() {
   const h = hoje();
@@ -283,8 +435,10 @@ function render() {
   const pagar = aPagar(db, mes);
   $('hGastos').textContent = brl(gastos);
   $('hPagar').textContent = brl(pagar.reduce((a, i) => a + i.valor, 0));
+  $('rFluxo').innerHTML = htmlFluxo(fluxoMes(db, mes, h));
   renderResumo(cats, gastos, pagar, h);
-  renderLancar();
+  renderFluxo(h);
+  renderRelatorio();
   renderContas(h);
   renderCartoes(h);
   renderAjustes();
@@ -298,6 +452,34 @@ function renderResumo(cats, gastos, pagar, h) {
   $('rGastos').textContent = brl(gastos);
   $('rSobra').textContent = brl(sobra);
   $('rSobra').className = 'valor ' + (sobra < 0 ? 'neg' : 'pos');
+  $('rLimites').innerHTML = limitesDoMes(db, mes).map((l) => {
+    const estado = l.pct > 100 ? 'estouro' : l.pct >= 80 ? 'perto' : '';
+    return `<div class="linha" style="display:block">
+      <div style="display:flex;justify-content:space-between;gap:10px"><span class="q">${esc(l.cat.nome)}</span><span class="valor">${brl(l.gasto)} <small>de ${brl(l.limite)}</small></span></div>
+      <div class="barra"><i class="${estado}" style="width:${Math.min(l.pct, 100)}%"></i></div>
+      <small class="${l.resta < 0 ? 'neg' : ''}">${l.resta < 0 ? 'Passou ' + brl(-l.resta) : 'Restam ' + brl(l.resta)} · ${l.pct}%</small></div>`;
+  }).join('') || '<small class="fraco">Nenhum limite definido.</small>';
+  $('rFaturasBox').querySelector('small').textContent = 'Faturas de ' + new Date(mes + '-15T12:00').toLocaleDateString('pt-BR', { month: 'long' });
+  $('rFaturasTotal').textContent = '− ' + brl(totalFaturasDoMes(db, mes));
+  $('rCartoes').innerHTML = db.cartoes.map((c) => {
+    const f = faturaAtual(db, c, h), livre = limiteDisponivel(db, c);
+    return `<button type="button" class="cartaoRes" data-aba="cartoes" data-mes="${f.ym}"><span class="tituloC">${iconeHtml(c)}<b>${esc(c.nome)}</b></span>
+      <span class="pares" style="display:flex">
+        <div><small>Disponível</small><b class="${livre < 0 ? 'neg' : ''}">${livre === null ? 'Sem limite' : brl(livre)}</b></div>
+        <div><small class="${f.atrasada ? 'neg' : ''}">Fatura atual (${f.atrasada ? 'venceu ' : 'venc. '}${dataBR(f.venc).slice(0, 5)})</small><b class="${f.atrasada ? 'neg' : ''}">${brl(f.valor)}${f.paga ? ' · Paga' : ''}</b></div>
+      </span></button>`;
+  }).join('') || '<p class="fraco">Nenhum cartão cadastrado.</p>';
+  const saldos = saldosPorConta(db, h);
+  $('rContas').innerHTML = db.contasBanco.map((c) => `<div class="linha">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>${TIPOS_CONTA[c.tipo] || ''}</small></span><span class="valor ${saldos[c.id] < 0 ? 'neg' : ''}">${brl(saldos[c.id])}</span></div>`).join('');
+  const soma = (lista) => lista.reduce((a, i) => a + i.valor, 0);
+  const prox = addMes(mes, 1), doProx = (lista) => lista.filter((i) => i.venc.slice(0, 7) === prox);
+  const nomeProx = new Date(prox + '-15T12:00').toLocaleDateString('pt-BR', { month: 'long' });
+  $('rProximo').innerHTML = [
+    ['A pagar até o fim do mês', soma(pagar)],
+    [`A pagar em ${nomeProx}`, soma(doProx(aPagar(db, prox)))],
+    ['A receber até o fim do mês', soma(aReceber(db, mes))],
+    [`A receber em ${nomeProx}`, soma(doProx(aReceber(db, prox)))],
+  ].map(([nome, v]) => `<div class="linha"><span class="q">${nome}</span><span class="valor">${brl(v)}</span></div>`).join('');
   $('rPagar').innerHTML = pagar.map((i) => `<div class="linha">
       <div class="q">${esc(i.desc)}<br><small class="${i.venc < h ? 'neg' : ''}">${i.venc < h ? 'Atrasada, venceu' : 'Vence'} ${dataBR(i.venc)}</small></div>
       <span class="valor">${brl(i.valor)}</span></div>`).join('') || '<small class="fraco">Nada a pagar neste mês.</small>';
@@ -307,22 +489,116 @@ function renderResumo(cats, gastos, pagar, h) {
       <div class="barra"><i style="width:${v / gastos * 100}%"></i></div></div>`).join('') || '<small class="fraco">Nenhum gasto neste mês.</small>';
 }
 
-function renderLancar() {
-  const lista = db.lancs.filter((l) => l.data.slice(0, 7) === mes).sort((a, b) => b.data.localeCompare(a.data));
-  $('lLista').innerHTML = lista.map((l) => `<button type="button" class="linha" data-lanc="${esc(l.id)}">
-      <span class="q">${esc(l.desc)}<br><small>${dataBR(l.data)} · ${esc(nomeCat(l.cat))} · ${esc(nomeMeio(l.meio))}${l.parcelas > 1 ? ' · ' + l.parcelas + 'x' : ''}</small></span>
-      <span class="valor ${l.tipo === 'E' ? 'pos' : 'neg'}">${l.tipo === 'E' ? '+' : '−'} ${brl(l.valor)}</span></button>`).join('') || '<p class="fraco">Nenhum lançamento neste mês.</p>';
+const celula = (v, nome, classe) => `<div><b class="${classe}">${v < 0 ? '−' : ''}${brl(Math.abs(v))}</b><small>${nome}</small></div>`;
+const corSaldo = (v) => (v < 0 ? 'neg' : '');
+function htmlFluxo(f) {
+  return celula(f.entradas, 'Entradas', 'pos') + celula(f.saidas, 'Saídas', 'neg') + celula(f.saldo, 'Saldo hoje', corSaldo(f.saldo))
+    + celula(f.prevEntradas, 'Entradas previstas', 'pos') + celula(f.prevSaidas, 'Saídas previstas', 'neg') + celula(f.previsao, 'Saldo previsto', corSaldo(f.previsao));
+}
+
+function linhaFluxo(i, h) {
+  const situacao = i.pago ? '' : i.data < h ? 'Atrasada' : i.sinal > 0 ? 'Não recebido' : i.sinal === 0 ? 'Pendente' : 'Não pago';
+  const lado = `<span class="lado"><span class="valor ${i.sinal > 0 ? 'pos' : i.sinal < 0 ? 'neg' : ''}">${i.sinal > 0 ? '+ ' : i.sinal < 0 ? '− ' : ''}${brl(i.valor)}</span><small class="${situacao === 'Atrasada' ? 'neg' : 'fraco'}">${situacao}</small></span>`;
+  if (i.fatura) return `<button type="button" class="linha" data-aba="cartoes" data-mes="${i.fatura.ym}">${iconeHtml(i.fatura.cartao)}<span class="q">${esc(i.desc)}<br><small>Cartão${i.pago ? ' · Paga por ' + esc(nomeMeio(i.fatura.conta)) : ''}</small></span>${lado}</button>`;
+  const l = i.lanc;
+  const onde = l.tipo === 'T' ? `${esc(nomeMeio(l.meio))} → ${esc(nomeMeio(l.destino))}` : `${esc(nomeCat(l.cat))} · ${esc(nomeMeio(l.meio))}`;
+  return `<button type="button" class="linha" data-lanc="${esc(l.id)}">${iconeDoMeio(l.meio)}<span class="q">${esc(l.desc)}<br><small>${onde}${l.de ? ` · Parcela ${l.parcela}/${l.de}` : l.serie ? ' · Fixa' : ''}</small></span>${lado}</button>`;
+}
+
+function renderFluxo(h) {
+  const modo = $('fModo').value;
+  encher($('fFiltro'), '<option value="">Todas</option>' + opcoesContas()
+    + (modo === 'todos' ? db.cartoes.map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('') : ''));
+  const filtro = $('fFiltro').value;
+  const livre = $('fPer').value === 'livre';
+  $('fDatas').hidden = !livre;
+  const ini = livre ? $('fIni').value : mes, fim = livre ? $('fFim').value : mes;
+  if (!ini || !fim || ini > fim) {
+    $('fFluxo').innerHTML = '';
+    $('fDica').textContent = '';
+    $('lLista').innerHTML = '<div class="aviso">Escolha o mês inicial e o final, nessa ordem.</div>';
+    return;
+  }
+  const linhas = linhasFluxo(db, ini, modo, filtro, fim);
+  if (modo === 'fluxo') $('fFluxo').innerHTML = htmlFluxo(fluxoMes(db, ini, h, filtro, fim));
+  else {
+    const soma = (s) => linhas.filter((i) => i.sinal === s).reduce((a, i) => a + i.valor, 0);
+    const entradas = soma(1), saidas = soma(-1);
+    $('fFluxo').innerHTML = celula(entradas, 'Entradas', 'pos') + celula(saidas, 'Saídas', 'neg') + celula(entradas - saidas, 'Resultado', corSaldo(entradas - saidas));
+  }
+  $('fDica').textContent = modo === 'fluxo'
+    ? 'Só o que mexe nas contas. As compras do cartão ficam dentro da fatura: toque nela para ver.'
+    : 'Cada lançamento na sua data, incluindo as compras e parcelas do cartão.';
+  let dia = '';
+  $('lLista').innerHTML = linhas.map((i) => {
+    const titulo = i.data === dia ? '' : `<h3 class="dia">${new Date(i.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</h3>`;
+    dia = i.data;
+    return titulo + linhaFluxo(i, h);
+  }).join('') || '<p class="fraco">Nada neste mês.</p>';
+}
+
+const num = (c) => (c / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const mesCurto = (ym) => new Date(ym + '-15T12:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+const mesAno = (ym) => new Date(ym + '-15T12:00').toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', '').replace(' de ', '/');
+const MAX_MESES = 36;
+let balancoAtual = [];
+
+function htmlCategorias(titulo, r) {
+  const grupos = r.lista.map((g) => `<details>
+      <summary><div style="display:flex;justify-content:space-between;gap:10px"><span class="q">${esc(nomeCat(g.cat))}</span><span class="valor">${brl(g.total)} <small>${Math.round(g.pct)}%</small></span></div>
+        <div class="barra"><i style="width:${g.pct}%"></i></div></summary>
+      ${g.itens.map((i) => `<button type="button" class="linha" data-lanc="${esc(i.lanc.id)}"><span class="q">${esc(i.desc)}<br><small>${dataBR(i.lanc.data)} · ${esc(nomeMeio(i.lanc.meio))}${i.lanc.pago ? '' : ' · Pendente'}</small></span><span class="valor">${brl(i.valor)}</span></button>`).join('')}
+    </details>`).join('');
+  return `<div class="card"><h2>${titulo}</h2><div class="valor" style="font-size:20px;margin-bottom:6px">${brl(r.total)}</div>${grupos || '<small class="fraco">Nada neste período.</small>'}</div>`;
+}
+
+function textoMesBal(m) {
+  return `<b>${mesAno(m.ym)}</b>: receitas ${brl(m.receitas)} · despesas ${brl(m.despesas)}<br>Saldo <span class="${corSaldo(m.saldo)}">${m.saldo < 0 ? '−' : ''}${brl(Math.abs(m.saldo))}</span>`;
+}
+
+function htmlBalanco(meses) {
+  balancoAtual = meses;
+  const soma = (k) => meses.reduce((s, m) => s + m[k], 0);
+  const rec = soma('receitas'), desp = soma('despesas');
+  const topo = Math.max(...meses.map((m) => Math.max(m.receitas, m.despesas)), 0);
+  const altura = (v) => (topo ? v / topo * 100 : 0);
+  const passo = Math.ceil(meses.length / 6);
+  const celulas = celula(rec, 'Receitas', '') + celula(desp, 'Despesas', '') + celula(rec - desp, 'Saldo', corSaldo(rec - desp));
+  const colunas = meses.map((m) => `<button type="button" class="colGraf" data-balmes="${m.ym}" aria-pressed="false" aria-label="${mesAno(m.ym)}: receitas ${brl(m.receitas)}, despesas ${brl(m.despesas)}">
+      <i style="height:${altura(m.receitas)}%;background:var(--cRec)"></i><i style="height:${altura(m.despesas)}%;background:var(--cDesp)"></i></button>`).join('');
+  const eixo = meses.map((m, i) => `<span>${i % passo === 0 ? mesCurto(m.ym) : ''}</span>`).join('');
+  const linhas = [...meses].reverse().map((m) => `<tr><td>${mesAno(m.ym)}</td><td>${num(m.receitas)}</td><td>${num(m.despesas)}</td><td class="${corSaldo(m.saldo)}">${m.saldo < 0 ? '−' : ''}${num(Math.abs(m.saldo))}</td></tr>`).join('');
+  return `<div class="card"><h2>Receitas x despesas</h2><div class="fluxo">${celulas}</div>
+      <div class="topoGraf"><span>${brl(topo)}</span><span class="legenda"><i style="background:var(--cRec)"></i>Receitas<i style="background:var(--cDesp)"></i>Despesas</span></div>
+      <div class="grafico">${colunas}</div><div class="eixoGraf">${eixo}</div>
+      <p id="rTip" class="fraco" aria-live="polite">Toque em um mês para ver os valores.</p></div>
+    <div class="card"><h2>Mês a mês</h2><table class="tabBal"><thead><tr><th scope="col">Mês</th><th scope="col">Receitas</th><th scope="col">Despesas</th><th scope="col">Saldo</th></tr></thead>
+      <tbody>${linhas}</tbody><tfoot><tr><th scope="row">Total</th><th>${num(rec)}</th><th>${num(desp)}</th><th class="${corSaldo(rec - desp)}">${rec - desp < 0 ? '−' : ''}${num(Math.abs(rec - desp))}</th></tr></tfoot></table>
+      <small class="fraco">Valores em R$.</small></div>`;
+}
+
+function renderRelatorio() {
+  encher($('rFiltro'), '<option value="">Todos</option>' + opcoesContas() + db.cartoes.map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join(''));
+  const ini = $('rIni').value, fim = $('rFim').value;
+  if (!ini || !fim) { $('rSaida').innerHTML = '<div class="aviso">Escolha o mês inicial e o final.</div>'; return; }
+  if (ini > fim) { $('rSaida').innerHTML = '<div class="aviso">O mês inicial não pode ser depois do final.</div>'; return; }
+  const meses = relatorioBalanco([], ini, fim).length;
+  if (meses > MAX_MESES) { $('rSaida').innerHTML = `<div class="aviso">Escolha um período de até ${MAX_MESES} meses.</div>`; return; }
+  const itens = itensRelatorio(db, ini, fim, $('rBase').value, $('rFiltro').value);
+  $('rSaida').innerHTML = $('rTipo').value === 'categorias'
+    ? htmlCategorias('Despesas', relatorioCategorias(itens, 'S')) + htmlCategorias('Receitas', relatorioCategorias(itens, 'E'))
+    : htmlBalanco(relatorioBalanco(itens, ini, fim));
 }
 
 function renderContas(h) {
-  const lista = db.contas
-    .filter((c) => (c.pagoEm ? c.venc.slice(0, 7) === mes : c.venc.slice(0, 7) <= mes))
-    .sort((a, b) => a.venc.localeCompare(b.venc));
-  $('cLista').innerHTML = lista.map((c) => `<div class="linha">
-      <button type="button" class="linha" style="border:0;flex:1;min-width:0" data-conta="${esc(c.id)}"><span class="q">${esc(c.desc)}<br>
-        <small class="${!c.pagoEm && c.venc < h ? 'neg' : ''}">${c.pagoEm ? 'Paga em ' + dataBR(c.pagoEm) : (c.venc < h ? 'Atrasada, venceu ' : 'Vence ') + dataBR(c.venc)} · ${esc(nomeCat(c.cat))}</small></span>
-        <span class="valor">${brl(c.valor)}</span></button>
-      ${c.pagoEm ? '' : `<button type="button" class="mini" data-pagar="${esc(c.id)}">Pagar</button>`}</div>`).join('') || '<p class="fraco">Nenhuma conta neste mês.</p>';
+  const linha = (i, texto, atraso, botao) => `<div class="linha">
+      <button type="button" class="linha" style="border:0;flex:1;min-width:0" ${i.tipo === 'conta' ? `data-lanc="${esc(i.id)}"` : `data-aba="cartoes" data-mes="${i.ym}"`}><span class="q">${esc(i.desc)}<br>
+        <small class="${i.venc < h ? 'neg' : ''}">${i.venc < h ? atraso : texto} ${dataBR(i.venc)}</small></span>
+        <span class="valor">${brl(i.valor)}</span></button>${botao}</div>`;
+  $('cLista').innerHTML = aPagar(db, mes).map((i) => linha(i, 'Vence', 'Atrasada, venceu', i.tipo === 'conta'
+    ? `<button type="button" class="mini" data-pagar="${esc(i.id)}">Pagar</button>`
+    : `<button type="button" class="mini" data-pagafat="${esc(i.id)}" data-ym="${i.ym}">Pagar</button>`)).join('') || '<p class="fraco">Nada a pagar até o fim deste mês.</p>';
+  $('cReceber').innerHTML = aReceber(db, mes).map((i) => linha(i, 'Previsto para', 'Atrasada, era para', `<button type="button" class="mini" data-pagar="${esc(i.id)}">Receber</button>`)).join('') || '<p class="fraco">Nada a receber até o fim deste mês.</p>';
 }
 
 function renderCartoes(h) {
@@ -330,50 +606,71 @@ function renderCartoes(h) {
     const itens = itensFatura(db, c, mes), total = itens.reduce((a, p) => a + p.valor, 0);
     const paga = db.faturasPagas[chaveFatura(c.id, mes)], venc = dataNoMes(mes, c.vencimento);
     const fecha = dataNoMes(c.vencimento > c.fechamento ? mes : addMes(mes, -1), c.fechamento);
-    const status = paga ? 'Paga em ' + dataBR(paga.data) : total && venc < h ? 'Atrasada' : h >= fecha ? 'Fechada' : 'Em aberto';
+    const parciais = db.parciais.filter((p) => p.cartao === c.id && p.ym === mes);
+    const pago = parciais.reduce((a, p) => a + p.valor, paga ? paga.valor : 0), falta = restanteFatura(db, c, mes);
+    const status = paga ? 'Paga em ' + dataBR(paga.data) : falta > 0 && venc < h ? 'Atrasada' : h >= fecha ? 'Fechada' : 'Em aberto';
+    const livre = limiteDisponivel(db, c);
     return `<div class="card">
-      <h2>${esc(c.nome)} <span class="selada ${status === 'Atrasada' ? 'neg' : ''}">${status}</span></h2>
-      <small class="fraco">Fecha dia ${c.fechamento} · Vence ${dataBR(venc)}</small>
+      <h2>${iconeHtml(c)}${esc(c.nome)} <span class="selada ${status === 'Atrasada' ? 'neg' : ''}">${status}</span></h2>
+      <small class="fraco">Fecha dia ${c.fechamento} · Vence ${dataBR(venc)}${livre === null ? '' : `<br>Limite ${brl(c.limite)} · Disponível <span class="${livre < 0 ? 'neg' : ''}">${brl(livre)}</span>`}</small>
       <div class="linha"><b>Total da fatura</b><span class="valor">${brl(total)}</span></div>
-      ${paga && paga.valor !== total ? `<div class="aviso">Foi pago ${brl(paga.valor)}, mas a fatura agora soma ${brl(total)}. Desfaça o pagamento e pague de novo para corrigir.</div>` : ''}
+      ${parciais.length && !paga ? `<div class="linha"><span>Já pago</span><span class="valor">${brl(pago)}</span></div><div class="linha"><b>Falta pagar</b><span class="valor">${brl(falta)}</span></div>` : ''}
+      ${(paga && pago !== total) || falta < 0 ? `<div class="aviso">Foi pago ${brl(pago)}, mas a fatura agora soma ${brl(total)}. Desfaça o pagamento e pague de novo para corrigir.</div>` : ''}
       ${itens.map((p) => `<div class="linha"><span class="q">${esc(p.lanc.desc)}${p.de > 1 ? ` (${p.n}/${p.de})` : ''}<br><small>${dataBR(p.lanc.data)} · ${esc(nomeCat(p.lanc.cat))}</small></span><span class="valor">${brl(p.valor)}</span></div>`).join('')}
-      ${paga ? `<button type="button" class="sec" data-desfazfat="${esc(c.id)}">Desfazer pagamento</button>`
-        : total ? `<button type="button" data-pagafat="${esc(c.id)}">Pagar fatura</button>` : '<small class="fraco">Sem compras nesta fatura.</small>'}
+      <div class="botoes">${falta > 0 ? `<button type="button" data-pagafat="${esc(c.id)}">Pagar fatura</button>` : ''}${paga || parciais.length ? `<button type="button" class="sec" data-desfazfat="${esc(c.id)}">Desfazer pagamento</button>` : ''}</div>
+      ${total || pago ? '' : '<small class="fraco">Sem compras nesta fatura.</small>'}
     </div>`;
   }).join('') || '<div class="card"><p class="fraco" style="margin:0">Nenhum cartão cadastrado. Cadastre em Ajustes.</p></div>';
 }
 
 function renderAjustes() {
-  if (document.activeElement !== $('aSaldo')) porValor($('aSaldo'), Math.abs(db.saldoInicial));
-  $('aNegativo').checked = db.saldoInicial < 0;
-  $('aCartoes').innerHTML = db.cartoes.map((c) => `<div class="linha"><span class="q">${esc(c.nome)}<br><small>Fecha dia ${c.fechamento} · Vence dia ${c.vencimento}</small></span><button type="button" class="perigo mini" data-tirarcartao="${esc(c.id)}">Excluir</button></div>`).join('');
-  $('aCats').innerHTML = db.categorias.map((c) => `<div class="linha"><span class="q">${esc(c.nome)}</span><button type="button" class="perigo mini" data-tirarcat="${esc(c.id)}">Excluir</button></div>`).join('');
+  $('aContas').innerHTML = db.contasBanco.map((c) => `<button type="button" class="linha" data-editconta="${esc(c.id)}">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>${TIPOS_CONTA[c.tipo] || ''}</small></span><span class="valor">${brl(c.saldoInicial)}</span></button>`).join('');
+  $('aCartoes').innerHTML = db.cartoes.map((c) => `<button type="button" class="linha" data-editcartao="${esc(c.id)}">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>Fecha dia ${c.fechamento} · Vence dia ${c.vencimento} · Paga por ${esc(nomeMeio(c.contaPag))}</small></span><span class="valor">${c.limite ? brl(c.limite) : ''}</span></button>`).join('');
+  const listaCats = (tipo, titulo) => `<h3 class="dia">${titulo}</h3>` + db.categorias.filter((c) => c.tipo === tipo).map((c) => `<button type="button" class="linha" data-editcat="${esc(c.id)}"><span class="q">${esc(c.nome)}</span><span class="valor">${c.limite ? brl(c.limite) + ' <small>por mês</small>' : ''}</span></button>`).join('');
+  $('aCats').innerHTML = listaCats('S', 'Despesas') + listaCats('E', 'Receitas');
   $('aUltimo').textContent = db.ultimoBackupEm
     ? 'Último backup: ' + new Date(db.ultimoBackupEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
     : 'Nenhum backup feito ainda.';
 }
 
 function renderSelects() {
-  document.querySelectorAll('.selCat').forEach((sel) => {
-    const v = sel.value;
-    sel.innerHTML = '<option value="">Escolha</option>' + db.categorias.map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('');
-    sel.value = v;
-  });
-  const v = $('lMeio').value || 'conta';
-  $('lMeio').innerHTML = '<option value="conta">Conta corrente</option>' + db.cartoes.map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('');
-  $('lMeio').value = v;
+  encher($('aCPag'), opcoesContas());
   formaLanc();
 }
+// Troca as opcoes mantendo a escolha, ou a primeira se ela saiu da lista.
+function encher(sel, html) {
+  const v = sel.value;
+  sel.innerHTML = html;
+  sel.value = v;
+  if (sel.selectedIndex < 0) sel.selectedIndex = 0;
+}
 function formaLanc() {
-  const entrada = $('lTipo').value === 'E';
-  $('lPagoBox').hidden = entrada;
-  $('lParcBox').hidden = $('lMeio').value === 'conta';
+  const tipo = $('lTipo').value;
+  encher($('lCat'), '<option value="">Escolha</option>' + db.categorias.filter((c) => c.tipo === (tipo === 'E' ? 'E' : 'S')).map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join(''));
+  encher($('lMeio'), opcoesContas() + (tipo === 'S' ? db.cartoes.map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('') : ''));
+  encher($('lDestino'), opcoesContas($('lMeio').value));
+  const cartao = ehCartao(db, $('lMeio').value);
+  $('lMeioTxt').textContent = { S: 'Pago com', E: 'Conta', T: 'De' }[tipo];
+  // Parcelar e repetir nao se misturam: conta fixa tem uma cobranca por vez.
+  const editando = lancEditando && db.lancs.find((l) => l.id === lancEditando);
+  const repete = editando ? '' : $('lRepTipo').value;
+  $('lRepBox').hidden = !!editando;
+  $('lPerBox').hidden = !repete;
+  $('lParcBox').hidden = repete !== 'parc';
+  $('lValorTxt').textContent = repete === 'parc' ? 'Valor total' : editando && editando.de ? 'Valor da parcela' : 'Valor';
+  $('lSerieInfo').hidden = !(editando && editando.serie);
+  $('lSerieInfo').textContent = `${editando && editando.de ? `Parcela ${editando.parcela} de ${editando.de}` : 'Conta fixa'}: ao salvar ou excluir, você escolhe se vale só para esta ou também para as outras.`;
+  $('lDestinoBox').hidden = tipo !== 'T';
+  $('lCatBox').hidden = tipo === 'T';
+  // Compra no cartao nao tem situacao propria: quem paga e a fatura.
+  $('lPagoCaixa').hidden = cartao;
+  $('lPagoTxt').textContent = { S: 'Já foi pago', E: 'Já foi recebido', T: 'Já foi feita' }[tipo];
 }
 
 function avisoBackup() {
   const u = db.ultimoBackupEm;
   const atrasado = !u || Date.now() - new Date(u).getTime() > DIAS_BACKUP * 864e5;
-  const temDados = db.lancs.length || db.contas.length;
+  const temDados = db.lancs.length;
   $('avisoBackup').hidden = !(atrasado && temDados);
   $('avisoBackup').textContent = u ? `Faz mais de ${DIAS_BACKUP} dias sem backup. Salve em Ajustes.` : 'Você ainda não fez backup. Salve em Ajustes.';
 }
@@ -387,86 +684,187 @@ function limparLanc() {
   $('lExcluir').hidden = true;
   formaLanc();
 }
-$('lTipo').onchange = $('lMeio').onchange = formaLanc;
+$('lTipo').onchange = $('lMeio').onchange = $('lRepTipo').onchange = formaLanc;
+// Data futura costuma ser conta ainda nao paga. So desmarca: conta atrasada nao pode virar paga sozinha.
+$('lData').onchange = () => { if ($('lData').value > hoje()) $('lPago').checked = false; };
 $('lLimpar').onclick = limparLanc;
-$('fLanc').onsubmit = (e) => {
+$('fLanc').onsubmit = async (e) => {
   e.preventDefault();
-  const tipo = $('lTipo').value, entrada = tipo === 'E', valor = centavos($('lValor'));
-  const meio = entrada ? 'conta' : $('lMeio').value;
-  const parcelas = meio === 'conta' ? 1 : +$('lParc').value;
-  const erro = !$('lData').value ? 'Informe a data.' : !$('lDesc').value.trim() ? 'Informe a descrição.'
-    : !valor ? 'Informe o valor.' : !$('lCat').value ? 'Escolha a categoria.'
-    : !Number.isInteger(parcelas) || parcelas < 1 || parcelas > 48 ? 'Parcelas: de 1 a 48.' : '';
+  const tipo = $('lTipo').value, transf = tipo === 'T', valor = centavos($('lValor'));
+  const meio = $('lMeio').value, cartao = ehCartao(db, meio);
+  const editando = lancEditando && db.lancs.find((l) => l.id === lancEditando);
+  const repete = editando ? '' : $('lRepTipo').value, parcelas = +$('lParc').value;
+  const erro = !$('lData').value ? 'Informe a data.'
+    : transf && !$('lDestino').value ? 'Cadastre outra conta em Ajustes para transferir.'
+    : !transf && !$('lDesc').value.trim() ? 'Informe a descrição.'
+    : !valor ? 'Informe o valor.' : !transf && !$('lCat').value ? 'Escolha a categoria.'
+    : repete === 'parc' && (!Number.isInteger(parcelas) || parcelas < 2 || parcelas > 48) ? 'Parcelas: de 2 a 48.'
+    : repete === 'parc' && valor < parcelas ? 'O valor total é menor que o número de parcelas.' : '';
   if (erro) return avisar('Falta informação', erro);
-  const dados = { tipo, data: $('lData').value, desc: $('lDesc').value.trim(), valor, cat: $('lCat').value, meio, parcelas };
-  if (lancEditando) Object.assign(db.lancs.find((l) => l.id === lancEditando), dados);
+  const dados = {
+    tipo, data: $('lData').value, valor, meio,
+    desc: $('lDesc').value.trim() || `Transferência para ${nomeMeio($('lDestino').value)}`,
+    cat: transf ? null : $('lCat').value,
+    destino: transf ? $('lDestino').value : undefined,
+    pago: cartao || $('lPago').checked,
+  };
+  if (editando) {
+    if (editando.serie && !await modal('Alterar também as outras?', 'A data e a situação mudam só nesta. Os outros dados valem para:', 'Salvar', 'Cancelar', null, true)) return;
+    aplicarEdicao(db, editando.id, dados, editando.serie ? $('dEscopo').value : 'esta');
+  } else if (repete === 'fixa') criarSerie(db, novoId(), dados, $('lRep').value, hoje());
+  else if (repete === 'parc') criarParcelada(db, novoId(), dados, $('lRep').value, parcelas, hoje());
   else db.lancs.push({ id: novoId(), ...dados });
   mes = dados.data.slice(0, 7);
   limparLanc();
   salvar();
+  abrirAba('fluxo');
   avisar('Gravado com sucesso');
 };
 $('lExcluir').onclick = async () => {
-  if (!await modal('Excluir lançamento?', $('lDesc').value + ' · ' + $('lValor').value, 'Sim, excluir', 'Cancelar')) return;
-  db.lancs = db.lancs.filter((l) => l.id !== lancEditando);
+  const fixa = !!db.lancs.find((l) => l.id === lancEditando).serie;
+  if (!await modal('Excluir lançamento?', $('lDesc').value + ' · ' + $('lValor').value, 'Sim, excluir', 'Cancelar', null, fixa)) return;
+  excluirLanc(db, lancEditando, fixa ? $('dEscopo').value : 'esta');
   limparLanc();
   salvar();
+  abrirAba('fluxo');
 };
 
-// Contas a pagar
-function limparConta() {
-  contaEditando = null;
-  $('fConta').reset();
-  $('cTitulo').textContent = 'Nova conta a pagar';
-  $('cExcluir').hidden = true;
-}
-$('cLimpar').onclick = limparConta;
-$('fConta').onsubmit = (e) => {
-  e.preventDefault();
-  const valor = centavos($('cValor'));
-  const erro = !$('cDesc').value.trim() ? 'Informe a descrição.' : !$('cVenc').value ? 'Informe o vencimento.'
-    : !valor ? 'Informe o valor.' : !$('cCat').value ? 'Escolha a categoria.' : '';
-  if (erro) return avisar('Falta informação', erro);
-  const dados = { desc: $('cDesc').value.trim(), venc: $('cVenc').value, valor, cat: $('cCat').value, pagoEm: $('cPago').value || null };
-  if (contaEditando) Object.assign(db.contas.find((c) => c.id === contaEditando), dados);
-  else db.contas.push({ id: novoId(), ...dados });
-  mes = dados.venc.slice(0, 7);
-  limparConta();
-  salvar();
-  avisar('Gravado com sucesso');
+$('mais').onclick = () => {
+  limparLanc();
+  abrirAba('lancar');
+  $('lValor').focus();
 };
-$('cExcluir').onclick = async () => {
-  if (!await modal('Excluir conta?', $('cDesc').value + ' · ' + $('cValor').value, 'Sim, excluir', 'Cancelar')) return;
-  db.contas = db.contas.filter((c) => c.id !== contaEditando);
-  limparConta();
-  salvar();
+$('fIni').value = addMes(hoje().slice(0, 7), -2);
+$('fFim').value = hoje().slice(0, 7);
+['fModo', 'fFiltro', 'fPer', 'fIni', 'fFim'].forEach((id) => { $(id).onchange = () => renderFluxo(hoje()); });
+const opcoesIcone = (lista) => lista.map((i) => `<option value="${esc(i.nome)}"></option>`).join('');
+$('listaIcones').innerHTML = opcoesIcone(ICONES_BANCOS);
+$('listaBandeiras').innerHTML = opcoesIcone(ICONES_BANDEIRAS);
+$('rIni').value = addMes(hoje().slice(0, 7), -5);
+$('rFim').value = hoje().slice(0, 7);
+['rTipo', 'rIni', 'rFim', 'rFiltro', 'rBase'].forEach((id) => { $(id).onchange = renderRelatorio; });
+
+// A pagar: conta nova e so um gasto pendente.
+$('cNova').onclick = () => {
+  limparLanc();
+  $('lPago').checked = false;
+  $('lTitulo').textContent = 'Nova conta a pagar';
+  abrirAba('lancar');
+  $('lDesc').focus();
 };
 
 // Ajustes
-$('fSaldo').onsubmit = (e) => {
+function limparConta() {
+  contaEditando = null;
+  $('fConta').reset();
+  $('aContaTitulo').textContent = 'Nova conta';
+  $('aContaExcluir').hidden = true;
+}
+$('aContaLimpar').onclick = limparConta;
+$('fConta').onsubmit = async (e) => {
   e.preventDefault();
-  db.saldoInicial = centavos($('aSaldo')) * ($('aNegativo').checked ? -1 : 1);
+  const nome = $('aNome').value.trim();
+  if (!nome) return avisar('Falta informação', 'Informe o nome da conta.');
+  if (db.contasBanco.some((c) => c.id !== contaEditando && c.nome.toLowerCase() === nome.toLowerCase())) return avisar('Conta repetida', 'Já existe uma conta com esse nome.');
+  const botao = e.target.querySelector('[type=submit]');
+  botao.disabled = true;
+  const id = contaEditando;
+  const ic = await escolherIcone($('aIcone'), db.contasBanco.find((c) => c.id === id), ICONES_BANCOS);
+  botao.disabled = false;
+  if (!ic) return avisar('Ícone não encontrado', 'Escolha um nome da lista ou deixe vazio para usar as iniciais.');
+  const dados = { nome, tipo: $('aTipo').value, saldoInicial: centavos($('aSaldo')) * ($('aNegativo').checked ? -1 : 1), ...ic.campos };
+  if (id) Object.assign(db.contasBanco.find((c) => c.id === id), dados);
+  else db.contasBanco.push({ id: novoId(), ...dados });
+  limparConta();
   salvar();
-  avisar('Gravado com sucesso');
+  avisoGravado(ic);
 };
-$('fCartao').onsubmit = (e) => {
+$('aContaExcluir').onclick = async () => {
+  const id = contaEditando;
+  const emUso = db.lancs.some((l) => l.meio === id || l.destino === id)
+    || db.series.some((s) => !s.encerrada && (s.modelo.meio === id || s.modelo.destino === id))
+    || db.cartoes.some((c) => c.contaPag === id)
+    || [...Object.values(db.faturasPagas), ...db.parciais].some((f) => f.conta === id);
+  if (db.contasBanco.length === 1) return avisar('Não é possível excluir', 'O app precisa de pelo menos uma conta.');
+  if (emUso) return avisar('Não é possível excluir', 'Esta conta tem lançamentos, faturas ou cartões ligados a ela.');
+  if (!await modal('Excluir conta?', $('aNome').value, 'Sim, excluir', 'Cancelar')) return;
+  db.contasBanco = db.contasBanco.filter((c) => c.id !== id);
+  limparConta();
+  salvar();
+};
+function limparCartao() {
+  cartaoEditando = null;
+  $('fCartao').reset();
+  $('aCTitulo').textContent = 'Novo cartão';
+  $('aCExcluir').hidden = true;
+}
+$('aCLimpar').onclick = limparCartao;
+$('fCartao').onsubmit = async (e) => {
   e.preventDefault();
   const nome = $('aCNome').value.trim(), fechamento = +$('aCFecha').value, vencimento = +$('aCVenc').value;
   const dia = (d) => Number.isInteger(d) && d >= 1 && d <= 31;
   if (!nome) return avisar('Falta informação', 'Informe o nome do cartão.');
   if (!dia(fechamento) || !dia(vencimento)) return avisar('Dia inválido', 'Fechamento e vencimento: de 1 a 31.');
-  db.cartoes.push({ id: novoId(), nome, fechamento, vencimento });
-  $('fCartao').reset();
+  const dados = { nome, fechamento, vencimento, limite: centavos($('aCLim')), contaPag: $('aCPag').value };
+  const atual = db.cartoes.find((c) => c.id === cartaoEditando);
+  if (atual) {
+    // As faturas sao calculadas a partir destes dias: mudar um deles redistribui as compras antigas tambem.
+    const mudouDia = atual.fechamento !== fechamento || atual.vencimento !== vencimento;
+    if (mudouDia && db.lancs.some((l) => l.meio === atual.id)
+      && !await modal('Mudar os dias do cartão?', 'Todas as faturas são recalculadas, inclusive as antigas. Compras podem mudar de fatura, e faturas já pagas podem ficar diferentes do valor pago.', 'Sim, mudar', 'Cancelar')) return;
+  }
+  const botao = e.target.querySelector('[type=submit]');
+  botao.disabled = true;
+  const ic = await escolherIcone($('aCIcone'), atual, ICONES_BANDEIRAS);
+  botao.disabled = false;
+  if (!ic) return avisar('Ícone não encontrado', 'Escolha um nome da lista ou deixe vazio para usar as iniciais.');
+  Object.assign(dados, ic.campos);
+  if (atual) Object.assign(atual, dados);
+  else db.cartoes.push({ id: novoId(), ...dados });
+  limparCartao();
   salvar();
+  avisoGravado(ic);
 };
+$('aCExcluir').onclick = async () => {
+  const id = cartaoEditando;
+  if (db.lancs.some((l) => l.meio === id) || db.series.some((s) => !s.encerrada && s.modelo.meio === id)) return avisar('Não é possível excluir', 'Este cartão tem lançamentos.');
+  if (await modal('Excluir cartão?', $('aCNome').value, 'Sim, excluir', 'Cancelar')) {
+    db.cartoes = db.cartoes.filter((c) => c.id !== id);
+    limparCartao();
+    salvar();
+  }
+};
+function limparCat() {
+  catEditando = null;
+  $('fCat').reset();
+  $('aCatTipo').disabled = false;
+  $('aCatTitulo').textContent = 'Nova categoria';
+  $('aCatExcluir').hidden = true;
+  $('aCatLimBox').hidden = false;
+}
+$('aCatLimpar').onclick = limparCat;
+$('aCatTipo').onchange = () => { $('aCatLimBox').hidden = $('aCatTipo').value === 'E'; };
 $('fCat').onsubmit = (e) => {
   e.preventDefault();
-  const nome = $('aCatNome').value.trim();
+  const nome = $('aCatNome').value.trim(), tipo = $('aCatTipo').value;
   if (!nome) return avisar('Falta informação', 'Informe o nome da categoria.');
-  if (db.categorias.some((c) => c.nome.toLowerCase() === nome.toLowerCase())) return avisar('Categoria repetida', 'Já existe uma categoria com esse nome.');
-  db.categorias.push({ id: novoId(), nome });
-  $('fCat').reset();
+  if (db.categorias.some((c) => c.id !== catEditando && c.tipo === tipo && c.nome.toLowerCase() === nome.toLowerCase())) return avisar('Categoria repetida', 'Já existe uma categoria desse tipo com esse nome.');
+  const dados = { nome, tipo, limite: tipo === 'S' ? centavos($('aCatLim')) : 0 };
+  const atual = db.categorias.find((c) => c.id === catEditando);
+  if (atual) Object.assign(atual, dados);
+  else db.categorias.push({ id: novoId(), ...dados });
+  limparCat();
   salvar();
+  avisar('Gravado com sucesso');
+};
+$('aCatExcluir').onclick = async () => {
+  const id = catEditando;
+  if (db.lancs.some((l) => l.cat === id) || db.series.some((s) => !s.encerrada && s.modelo.cat === id)) return avisar('Não é possível excluir', 'Esta categoria está em uso.');
+  if (await modal('Excluir categoria?', $('aCatNome').value, 'Sim, excluir', 'Cancelar')) {
+    db.categorias = db.categorias.filter((c) => c.id !== id);
+    limparCat();
+    salvar();
+  }
 };
 $('aTema').onchange = () => {
   try { localStorage.setItem(CHAVE_TEMA, $('aTema').value); } catch {}
@@ -504,12 +902,13 @@ $('aArquivo').onchange = async () => {
   $('aArquivo').value = '';
   if (!f) return;
   let d;
-  try { d = JSON.parse(await f.text()); } catch { d = null; }
+  try { d = migrar(JSON.parse(await f.text()), hoje()); } catch { d = null; }
   if (!backupValido(d)) return avisar('Arquivo inválido', 'Este não é um backup válido do Controle Diário. Nada foi alterado.\n' + f.name);
-  const ok = await modal('Substituir os dados?', `${f.name}\n${d.lancs.length} lançamentos\n${d.contas.length} contas a pagar\n${d.cartoes.length} cartões`, 'Sim, restaurar', 'Cancelar');
+  const ok = await modal('Substituir os dados?', `${f.name}\n${d.lancs.length} lançamentos\n${d.cartoes.length} cartões`, 'Sim, restaurar', 'Cancelar');
   if (!ok) return;
   db = d;
-  limparLanc(); limparConta();
+  completarSeries(db, addMes(hoje().slice(0, 7), MESES_FRENTE));
+  limparLanc(); limparConta(); limparCartao(); limparCat();
   salvar();
   avisar('Backup restaurado com sucesso');
 };
@@ -517,60 +916,90 @@ $('aArquivo').onchange = async () => {
 // Cliques das listas e do menu
 function abrirAba(aba) {
   document.querySelectorAll('main > section').forEach((s) => { s.hidden = s.id !== 's-' + aba; });
+  $('mais').hidden = aba === 'lancar';
   document.querySelectorAll('nav button').forEach((b) => {
     if (b.dataset.aba === aba) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
   scrollTo(0, 0);
 }
 $('mesAnt').onclick = () => { mes = addMes(mes, -1); render(); };
-$('mesProx').onclick = () => { mes = addMes(mes, 1); render(); };
+// Quem navega alem do horizonte tambem ve as contas fixas daquele mes.
+$('mesProx').onclick = () => { mes = addMes(mes, 1); if (completarSeries(db, mes)) salvar(); else render(); };
 document.addEventListener('click', async (e) => {
   const b = e.target.closest('button');
   if (!b) return;
   const d = b.dataset;
-  if (d.aba) abrirAba(d.aba);
-  else if (d.lanc) {
+  if (d.balmes) {
+    document.querySelectorAll('.colGraf').forEach((c) => c.setAttribute('aria-pressed', c === b));
+    $('rTip').innerHTML = textoMesBal(balancoAtual.find((m) => m.ym === d.balmes));
+  } else if (d.aba) {
+    if (d.mes) { mes = d.mes; render(); }
+    abrirAba(d.aba);
+  } else if (d.lanc) {
     const l = db.lancs.find((x) => x.id === d.lanc);
     lancEditando = l.id;
     $('lTitulo').textContent = 'Corrigir lançamento';
     $('lTipo').value = l.tipo; $('lData').value = l.data; $('lDesc').value = l.desc;
-    porValor($('lValor'), l.valor); $('lCat').value = l.cat; $('lMeio').value = l.meio; $('lParc').value = l.parcelas || 1;
+    porValor($('lValor'), l.valor);
+    $('lPago').checked = l.pago;
     $('lExcluir').hidden = false;
     formaLanc();
-    scrollTo(0, 0);
-  } else if (d.conta) {
-    const c = db.contas.find((x) => x.id === d.conta);
+    $('lMeio').value = l.meio;
+    formaLanc();
+    if (l.destino) $('lDestino').value = l.destino;
+    $('lCat').value = l.cat || '';
+    abrirAba('lancar');
+  } else if (d.editconta) {
+    const c = db.contasBanco.find((x) => x.id === d.editconta);
     contaEditando = c.id;
-    $('cTitulo').textContent = 'Corrigir conta';
-    $('cDesc').value = c.desc; $('cVenc').value = c.venc; porValor($('cValor'), c.valor);
-    $('cCat').value = c.cat; $('cPago').value = c.pagoEm || '';
-    $('cExcluir').hidden = false;
-    scrollTo(0, 0);
+    $('aContaTitulo').textContent = 'Corrigir conta';
+    $('aNome').value = c.nome; $('aTipo').value = c.tipo; $('aIcone').value = c.iconeNome || '';
+    porValor($('aSaldo'), Math.abs(c.saldoInicial)); $('aNegativo').checked = c.saldoInicial < 0;
+    $('aContaExcluir').hidden = false;
+    $('aContaTitulo').scrollIntoView({ block: 'center' });
   } else if (d.pagar) {
-    const c = db.contas.find((x) => x.id === d.pagar);
-    if (await modal('Pagar conta?', `${c.desc} · ${brl(c.valor)}\nSai da conta corrente com a data de hoje.`, 'Sim, pagar', 'Cancelar')) { c.pagoEm = hoje(); salvar(); }
+    const l = db.lancs.find((x) => x.id === d.pagar), entrada = l.tipo === 'E';
+    if (await modal(entrada ? 'Marcar como recebido?' : 'Marcar como pago?', `${l.desc} · ${brl(l.valor)}\n${entrada ? 'Entra em' : 'Sai de'} ${nomeMeio(l.meio)}.`, entrada ? 'Sim, recebido' : 'Sim, pago', 'Cancelar')) { l.pago = true; salvar(); }
   } else if (d.pagafat) {
-    const c = db.cartoes.find((x) => x.id === d.pagafat), valor = totalFatura(db, c, mes);
-    if (await modal('Pagar fatura?', `${c.nome} · ${brl(valor)}\nSai da conta corrente com a data de hoje.`, 'Sim, pagar', 'Cancelar')) {
-      db.faturasPagas[chaveFatura(c.id, mes)] = { data: hoje(), valor };
+    const ym = d.ym || mes, c = db.cartoes.find((x) => x.id === d.pagafat), falta = restanteFatura(db, c, ym);
+    porValor($('dFatValor'), falta);
+    $('dFatData').value = hoje();
+    if (await modal('Pagar fatura?', `${c.nome} · falta ${brl(falta)}\nUm valor menor deixa o restante em aberto nesta fatura.`, 'Sim, pagar', 'Cancelar', c.contaPag)) {
+      const valor = centavos($('dFatValor')), data = $('dFatData').value;
+      if (!valor || valor > falta) return avisar('Valor inválido', `Informe um valor de até ${brl(falta)}.`);
+      if (!data) return avisar('Falta informação', 'Informe a data do pagamento.');
+      pagarFatura(db, c, ym, { data, valor, conta: $('dConta').value });
       salvar();
     }
   } else if (d.desfazfat) {
-    if (await modal('Desfazer pagamento?', 'O valor volta para a conta corrente.', 'Sim, desfazer', 'Cancelar')) {
-      delete db.faturasPagas[chaveFatura(d.desfazfat, mes)];
+    if (await modal('Desfazer pagamento?', 'Todos os pagamentos desta fatura são desfeitos, e os valores voltam para as contas.', 'Sim, desfazer', 'Cancelar')) {
+      desfazerPagamentos(db, d.desfazfat, mes);
       salvar();
     }
-  } else if (d.tirarcartao) {
-    if (db.lancs.some((l) => l.meio === d.tirarcartao)) return avisar('Não é possível excluir', 'Este cartão tem lançamentos.');
-    if (await modal('Excluir cartão?', '', 'Sim, excluir', 'Cancelar')) { db.cartoes = db.cartoes.filter((c) => c.id !== d.tirarcartao); salvar(); }
-  } else if (d.tirarcat) {
-    if (db.lancs.some((l) => l.cat === d.tirarcat) || db.contas.some((c) => c.cat === d.tirarcat)) return avisar('Não é possível excluir', 'Esta categoria está em uso.');
-    if (await modal('Excluir categoria?', '', 'Sim, excluir', 'Cancelar')) { db.categorias = db.categorias.filter((c) => c.id !== d.tirarcat); salvar(); }
+  } else if (d.editcartao) {
+    const c = db.cartoes.find((x) => x.id === d.editcartao);
+    cartaoEditando = c.id;
+    $('aCTitulo').textContent = 'Corrigir cartão';
+    $('aCNome').value = c.nome; $('aCIcone').value = c.iconeNome || ''; $('aCFecha').value = c.fechamento; $('aCVenc').value = c.vencimento;
+    porValor($('aCLim'), c.limite || 0); $('aCPag').value = c.contaPag;
+    $('aCExcluir').hidden = false;
+    $('aCTitulo').scrollIntoView({ block: 'center' });
+  } else if (d.editcat) {
+    const c = db.categorias.find((x) => x.id === d.editcat);
+    catEditando = c.id;
+    $('aCatTitulo').textContent = 'Corrigir categoria';
+    $('aCatNome').value = c.nome; $('aCatTipo').value = c.tipo;
+    // Trocar o tipo deixaria lancamentos com categoria do tipo errado.
+    $('aCatTipo').disabled = true;
+    porValor($('aCatLim'), c.limite || 0);
+    $('aCatLimBox').hidden = c.tipo === 'E';
+    $('aCatExcluir').hidden = false;
+    $('aCatTitulo').scrollIntoView({ block: 'center' });
   }
 });
 
 limparLanc();
-render();
+if (completarSeries(db, addMes(hoje().slice(0, 7), MESES_FRENTE))) salvar(); else render();
 </script>
 </body>
 </html>
