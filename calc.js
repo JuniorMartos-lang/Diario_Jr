@@ -243,6 +243,12 @@ function mesesEmAberto(db, cartao) {
   return [...meses].sort();
 }
 
+function statusFatura(db, cartao, ym, hoje) {
+  if (db.faturasPagas[chaveFatura(cartao.id, ym)]) return 'Paga';
+  if (restanteFatura(db, cartao, ym) > 0 && dataNoMes(ym, cartao.vencimento) < hoje) return 'Em atraso';
+  return hoje >= fechamentoFatura(cartao, ym) ? 'Fechada' : 'Em aberto';
+}
+
 // Faturas vencidas com algo a pagar, de qualquer mes; vencer hoje ainda nao e atraso.
 function faturasAtrasadas(db, hoje) {
   return db.cartoes.filter((c) => ativoEm(c, hoje.slice(0, 7))).flatMap((c) => mesesEmAberto(db, c)
@@ -292,7 +298,8 @@ function linhasFluxo(db, ini, modo, filtro, fim = ini) {
   const dentro = (m) => m >= ini && m <= fim;
   const linhas = lancsVisiveis(db)
     .filter((l) => dentro(l.data.slice(0, 7)) && lancDoFiltro(l, filtro) && (modo === 'todos' || !ehCartao(db, l.meio)))
-    .map((l) => ({ lanc: l, data: l.data, desc: l.desc, valor: l.valor, sinal: sinalLanc(l, filtro), pago: l.pago }));
+    // Estorno no cartao tem valor negativo: aparece como entrada, pelo valor positivo.
+    .map((l) => ({ lanc: l, data: l.data, desc: l.desc, valor: Math.abs(l.valor), sinal: l.valor < 0 ? -sinalLanc(l, filtro) : sinalLanc(l, filtro), pago: l.pago }));
   if (modo === 'fluxo') {
     for (const f of faturasAte(db, fim)) {
       if (!dentro(f.ym) || !f.valor || (filtro && f.conta !== filtro)) continue;
@@ -556,6 +563,6 @@ function backupValido(d) {
 if (typeof module !== 'undefined') {
   module.exports = {
     ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }

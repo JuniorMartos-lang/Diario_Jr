@@ -643,5 +643,23 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.strictEqual(c.faturasAtrasadas(dbAtr, '2026-10-29').length, 3);
   c.pagarFatura(dbAtr, cartaoAtr, '2026-08', { data: '2026-10-29', valor: 3000, conta: 'conta' });
   assert.deepStrictEqual(c.faturasAtrasadas(dbAtr, '2026-10-29').map((f) => f.ym), ['2026-09', '2026-10']);
+  // Os 4 status da fatura (fecha dia 25, vence dia 28)
+  assert.strictEqual(c.statusFatura(dbAtr, cartaoAtr, '2026-11', '2026-11-01'), 'Em aberto');
+  assert.strictEqual(c.statusFatura(dbAtr, cartaoAtr, '2026-10', '2026-10-25'), 'Fechada');
+  assert.strictEqual(c.statusFatura(dbAtr, cartaoAtr, '2026-10', '2026-10-28'), 'Fechada');
+  assert.strictEqual(c.statusFatura(dbAtr, cartaoAtr, '2026-10', '2026-10-29'), 'Em atraso');
+  assert.strictEqual(c.statusFatura(dbAtr, cartaoAtr, '2026-09', '2026-10-29'), 'Em atraso', 'parcial continua em atraso');
+  assert.strictEqual(c.statusFatura(dbAtr, cartaoAtr, '2026-08', '2026-10-29'), 'Paga');
+  // Estorno no cartao: valor negativo diminui a fatura e o gasto; no Fluxo aparece como entrada
+  const cartaoEst = { id: 'e', nome: 'E', fechamento: 18, vencimento: 30, contaPag: 'conta' };
+  const dbEst = {
+    contasBanco: [{ id: 'conta', nome: 'C', saldoInicial: 0 }], cartoes: [cartaoEst], faturasPagas: {}, parciais: [], series: [],
+    lancs: [{ id: 'g', tipo: 'S', data: '2026-03-05', valor: 10000, meio: 'e', cat: 'k', pago: true }, { id: 'v', tipo: 'S', data: '2026-03-06', valor: -2500, meio: 'e', cat: 'k', pago: true }],
+  };
+  assert.strictEqual(c.totalFatura(dbEst, cartaoEst, '2026-03'), 7500);
+  assert.strictEqual(c.restanteFatura(dbEst, cartaoEst, '2026-03'), 7500);
+  assert.deepStrictEqual(c.gastosPorCategoria(dbEst, '2026-03'), { k: 7500 });
+  const estFluxo = c.linhasFluxo(dbEst, '2026-03', 'todos', '').find((i) => i.lanc && i.lanc.id === 'v');
+  assert.deepStrictEqual([estFluxo.valor, estFluxo.sinal], [2500, 1]);
   console.log('calc.js: todos os testes passaram');
 })().catch((e) => { console.error(e); process.exit(1); });
