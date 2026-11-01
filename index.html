@@ -353,7 +353,8 @@
         <label>Repetir<select id="lRepTipo"><option value="">Não repete</option><option value="fixa">Fixa</option><option value="parc">Parcelada</option></select></label>
         <label id="lPerBox">A cada<select id="lRep"><option value="mensal">Mês</option><option value="semanal">Semana</option><option value="quinzenal">2 semanas</option><option value="bimestral">2 meses</option><option value="trimestral">3 meses</option><option value="anual">Ano</option></select></label>
       </div>
-      <label id="lParcBox">Parcelas<input id="lParc" type="number" inputmode="numeric" min="2" max="48" value="2"></label>
+      <label id="lParceladoBox">Parcelado<select id="lParcelado"><option value="">À vista</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="7">7x</option><option value="8">8x</option><option value="9">9x</option><option value="10">10x</option><option value="mais">Mais...</option></select></label>
+      <label id="lParcBox">Parcelas<input id="lParc" type="number" inputmode="numeric" min="2" value="2"></label>
       <p id="lSerieInfo" class="fraco" hidden></p>
       <label id="lPagoCaixa"><input id="lPago" type="checkbox" checked><span id="lPagoTxt">Já foi pago</span></label>
       <div class="botoes">
@@ -370,7 +371,7 @@
     <div class="card"><h2>A receber</h2><div id="cReceber"></div></div>
   </section>
 
-  <section id="s-cartoes" hidden><div id="fLista"></div></section>
+  <section id="s-cartoes" hidden><label style="margin:0 0 12px"><input id="fResumido" type="checkbox">Resumido</label><div id="fLista"></div><div id="fAtrasadas"></div></section>
 
   <section id="s-ajustes" hidden>
     <datalist id="listaIcones"></datalist>
@@ -390,7 +391,7 @@
         <button type="button" class="linha" data-tela="tAparencia"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg><span class="q">Aparência</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tArquivadas" id="aMenuArq" hidden><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg><span class="q">Arquivadas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.19.1 · 31/10/2026</p>
+      <p class="versao">Controle Diário · versão 1.22.0 · 01/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1030,14 +1031,47 @@ $('dLimSalvar').onclick = () => {
   salvar();
 };
 $('limBusca').oninput = renderLimite;
+function statusFatura(c, h) {
+  const paga = db.faturasPagas[chaveFatura(c.id, mes)];
+  return paga ? 'Paga em ' + dataBR(paga.data)
+    : restanteFatura(db, c, mes) > 0 && dataNoMes(mes, c.vencimento) < h ? 'Atrasada'
+    : h >= fechamentoFatura(c, mes) ? 'Fechada' : 'Em aberto';
+}
+function htmlCartoesResumido(cartoes, h) {
+  const dados = cartoes.map((c) => {
+    const falta = Math.max(restanteFatura(db, c, mes), 0), paga = db.faturasPagas[chaveFatura(c.id, mes)];
+    const pago = db.parciais.filter((p) => p.cartao === c.id && p.ym === mes).reduce((a, p) => a + p.valor, paga ? paga.valor : 0);
+    return { c, total: totalFatura(db, c, mes), falta, pago, aPagar: dataNoMes(mes, c.vencimento) >= h ? falta : 0, status: statusFatura(c, h) };
+  });
+  const soma = (campo) => dados.reduce((a, d) => a + d[campo], 0);
+  return `<div class="card">
+    ${dados.map((d) => `<div class="linha">${iconeHtml(d.c)}<span class="q">${esc(nomeExib(d.c))} <span class="selada ${d.status === 'Atrasada' ? 'neg' : ''}">${d.status}</span></span><span class="valor">${brl(d.total)}</span></div>`).join('')}
+    <div class="linha"><b>Total das faturas</b><span class="valor">${brl(soma('total'))}</span></div>
+    <div class="linha"><span>Falta pagar</span><span class="valor">${brl(soma('falta'))}</span></div>
+    <div class="linha"><span>Já pago</span><span class="valor">${brl(soma('pago'))}</span></div>
+    <div class="linha"><span>A pagar <small>(vencimento de hoje em diante)</small></span><span class="valor">${brl(soma('aPagar'))}</span></div>
+  </div>`;
+}
+$('fResumido').onchange = () => renderCartoes(hoje());
+function htmlAtrasadas(h) {
+  const lista = faturasAtrasadas(db, h);
+  if (!lista.length) return '';
+  return `<div class="card"><h2>Faturas atrasadas</h2>
+    ${lista.map((f) => `<div class="linha">${iconeHtml(f.cartao)}<span class="q">${esc(nomeExib(f.cartao))} <span class="selada neg">Atrasada</span></span><span class="lado"><small class="fraco">Venceu ${dataBR(f.venc)}</small><span class="valor">${brl(f.valor)}</span></span></div>`).join('')}
+    <div class="linha"><b>Total atrasado</b><span class="valor">${brl(lista.reduce((a, f) => a + f.valor, 0))}</span></div>
+  </div>`;
+}
 function renderCartoes(h) {
-  $('fLista').innerHTML = db.cartoes.filter((c) => ativoEm(c, mes)).map((c) => {
+  $('fAtrasadas').innerHTML = htmlAtrasadas(h);
+  const cartoes = db.cartoes.filter((c) => ativoEm(c, mes));
+  if ($('fResumido').checked && cartoes.length) { $('fLista').innerHTML = htmlCartoesResumido(cartoes, h); return; }
+  $('fLista').innerHTML = cartoes.map((c) => {
     const itens = itensFatura(db, c, mes), total = itens.reduce((a, p) => a + p.valor, 0);
     const paga = db.faturasPagas[chaveFatura(c.id, mes)], venc = dataNoMes(mes, c.vencimento);
     const fecha = fechamentoFatura(c, mes);
     const parciais = db.parciais.filter((p) => p.cartao === c.id && p.ym === mes);
     const pago = parciais.reduce((a, p) => a + p.valor, paga ? paga.valor : 0), falta = restanteFatura(db, c, mes);
-    const status = paga ? 'Paga em ' + dataBR(paga.data) : falta > 0 && venc < h ? 'Atrasada' : h >= fecha ? 'Fechada' : 'Em aberto';
+    const status = statusFatura(c, h);
     const livre = limiteDisponivel(db, c);
     return `<div class="card">
       <h2>${iconeHtml(c)}${esc(nomeExib(c))} <span class="selada ${status === 'Atrasada' ? 'neg' : ''}">${status}</span></h2>
@@ -1089,19 +1123,24 @@ function encher(sel, html) {
   sel.value = v;
   if (sel.selectedIndex < 0) sel.selectedIndex = 0;
 }
+const tipoRepeticao = (editando) => (editando ? '' : fatCartao ? ($('lParcelado').value && 'parc') : $('lRepTipo').value);
 function formaLanc() {
+  // Dentro da fatura o lancamento e sempre compra em cartao.
+  $('lTipo').disabled = !!fatCartao;
+  if (fatCartao) $('lTipo').value = 'S';
   const tipo = $('lTipo').value;
   encher($('lCat'), '<option value="">Escolha</option>' + db.categorias.filter((c) => c.tipo === (tipo === 'E' ? 'E' : 'S')).map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join(''));
-  encher($('lMeio'), opcoesContas() + (tipo === 'S' ? opcoesDe(db.cartoes.filter((c) => !c.arquivadaEm)) : ''));
+  encher($('lMeio'), (fatCartao ? '' : opcoesContas()) + (tipo === 'S' ? opcoesDe(db.cartoes.filter((c) => !c.arquivadaEm)) : ''));
   encher($('lDestino'), opcoesContas($('lMeio').value));
   const cartao = ehCartao(db, $('lMeio').value);
   $('lMeioTxt').textContent = { S: 'Pago com', E: 'Conta', T: 'De' }[tipo];
   // Parcelar e repetir nao se misturam: conta fixa tem uma cobranca por vez.
   const editando = lancEditando && db.lancs.find((l) => l.id === lancEditando);
-  const repete = editando ? '' : $('lRepTipo').value;
-  $('lRepBox').hidden = !!editando;
+  const repete = tipoRepeticao(editando);
+  $('lRepBox').hidden = !!editando || !!fatCartao;
+  $('lParceladoBox').hidden = !!editando || !fatCartao;
   $('lPerBox').hidden = !repete;
-  $('lParcBox').hidden = repete !== 'parc';
+  $('lParcBox').hidden = repete !== 'parc' || (!!fatCartao && $('lParcelado').value !== 'mais');
   $('lValorTxt').textContent = repete === 'parc' ? 'Valor total' : editando && editando.de ? 'Valor da parcela' : 'Valor';
   $('lSerieInfo').hidden = !(editando && editando.serie);
   $('lSerieInfo').textContent = `${editando && editando.de ? `Parcela ${editando.parcela} de ${editando.de}` : 'Conta fixa'}: ao salvar ou excluir, você escolhe se vale só para esta ou também para as outras.`;
@@ -1139,7 +1178,12 @@ function limparLanc() {
   $('lTitulo').textContent = 'Novo lançamento';
   $('lExcluir').hidden = true;
   formaLanc();
+  if (fatCartao) { $('lMeio').value = fatCartao; formaLanc(); }
 }
+$('lParcelado').onchange = () => {
+  formaLanc();
+  if ($('lParcelado').value === 'mais') { $('lParc').value = ''; $('lParc').focus(); }
+};
 $('lTipo').onchange = $('lMeio').onchange = $('lRepTipo').onchange = formaLanc;
 // Data futura costuma ser conta ainda nao paga. So desmarca: conta atrasada nao pode virar paga sozinha.
 $('lData').onchange = () => { if ($('lData').value > hoje()) $('lPago').checked = false; };
@@ -1149,12 +1193,15 @@ $('fLanc').onsubmit = async (e) => {
   const tipo = $('lTipo').value, transf = tipo === 'T', valor = centavos($('lValor'));
   const meio = $('lMeio').value, cartao = ehCartao(db, meio);
   const editando = lancEditando && db.lancs.find((l) => l.id === lancEditando);
-  const repete = editando ? '' : $('lRepTipo').value, parcelas = +$('lParc').value;
+  const repete = tipoRepeticao(editando), noMenu = fatCartao && $('lParcelado').value !== 'mais';
+  const parcelas = noMenu ? +$('lParcelado').value : +$('lParc').value;
   const erro = !$('lData').value ? 'Informe a data.'
+    : !meio ? 'Nenhum cartão ativo para lançar.'
     : transf && !$('lDestino').value ? 'Cadastre outra conta em Ajustes para transferir.'
     : !transf && !$('lDesc').value.trim() ? 'Informe a descrição.'
     : !valor ? 'Informe o valor.' : !transf && !$('lCat').value ? 'Escolha a categoria.'
-    : repete === 'parc' && (!Number.isInteger(parcelas) || parcelas < 2 || parcelas > 48) ? 'Parcelas: de 2 a 48.'
+    : repete === 'parc' && (!Number.isInteger(parcelas) || parcelas < 2) ? 'Informe 2 parcelas ou mais.'
+    : repete === 'parc' && !fatCartao && parcelas > 48 ? 'Parcelas: de 2 a 48.'
     : repete === 'parc' && valor < parcelas ? 'O valor total é menor que o número de parcelas.' : '';
   if (erro) return avisar('Falta informação', erro);
   const dados = {
@@ -1189,7 +1236,6 @@ $('lExcluir').onclick = async () => {
 
 $('mais').onclick = () => {
   limparLanc();
-  if (fatCartao) { $('lMeio').value = fatCartao; formaLanc(); }
   irParaLancar();
   $('lValor').focus();
 };
@@ -1367,6 +1413,14 @@ function limparCartao() {
   $('aCTitulo').textContent = 'Novo cartão';
   $('aCExcluir').hidden = true;
 }
+// Dia do cartao: o digito que passaria de 31 nem entra no campo.
+['aCFecha', 'aCVenc'].forEach((id) => {
+  $(id).addEventListener('input', () => {
+    let v = $(id).value.replace(/\D/g, '');
+    while (+v > 31) v = v.slice(0, -1);
+    $(id).value = +v ? v : '';
+  });
+});
 $('fCartao').onsubmit = async (e) => {
   e.preventDefault();
   const nome = $('aCNome').value.trim(), fechamento = +$('aCFecha').value, vencimento = +$('aCVenc').value;

@@ -632,5 +632,16 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.ok(!c.perfilValido({ nome: 'x'.repeat(201) }));
   assert.ok(c.backupValido({ ...base(), perfil: { nome: 'A' } }));
   assert.ok(!c.backupValido({ ...base(), perfil: { foto: 'x' } }));
+  // Faturas atrasadas: de qualquer mes, com o restante; somem ao pagar e vencer hoje nao conta
+  const cartaoAtr = { id: 'x', nome: 'X', fechamento: 25, vencimento: 28, contaPag: 'conta' };
+  const dbAtr = {
+    contasBanco: [{ id: 'conta', nome: 'C' }], cartoes: [cartaoAtr], faturasPagas: {}, parciais: [],
+    lancs: [['a', '2026-08-20', 3000], ['b', '2026-09-20', 5000], ['d', '2026-10-20', 7000]].map(([id, data, valor]) => ({ id, tipo: 'S', data, valor, meio: 'x', cat: 't', pago: true })),
+  };
+  c.pagarFatura(dbAtr, cartaoAtr, '2026-09', { data: '2026-10-01', valor: 2000, conta: 'conta' });
+  assert.deepStrictEqual(c.faturasAtrasadas(dbAtr, '2026-10-28').map((f) => [f.ym, f.venc, f.valor]), [['2026-08', '2026-08-28', 3000], ['2026-09', '2026-09-28', 3000]]);
+  assert.strictEqual(c.faturasAtrasadas(dbAtr, '2026-10-29').length, 3);
+  c.pagarFatura(dbAtr, cartaoAtr, '2026-08', { data: '2026-10-29', valor: 3000, conta: 'conta' });
+  assert.deepStrictEqual(c.faturasAtrasadas(dbAtr, '2026-10-29').map((f) => f.ym), ['2026-09', '2026-10']);
   console.log('calc.js: todos os testes passaram');
 })().catch((e) => { console.error(e); process.exit(1); });

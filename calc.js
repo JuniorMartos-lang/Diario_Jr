@@ -243,6 +243,13 @@ function mesesEmAberto(db, cartao) {
   return [...meses].sort();
 }
 
+// Faturas vencidas com algo a pagar, de qualquer mes; vencer hoje ainda nao e atraso.
+function faturasAtrasadas(db, hoje) {
+  return db.cartoes.filter((c) => ativoEm(c, hoje.slice(0, 7))).flatMap((c) => mesesEmAberto(db, c)
+    .map((ym) => ({ cartao: c, ym, venc: dataNoMes(ym, c.vencimento), valor: restanteFatura(db, c, ym) }))
+    .filter((f) => f.venc < hoje)).sort((a, b) => a.venc.localeCompare(b.venc));
+}
+
 // Limite menos tudo o que falta pagar no cartao, inclusive parcelas futuras. Sem limite cadastrado: null.
 function limiteDisponivel(db, cartao) {
   if (!cartao.limite) return null;
@@ -549,6 +556,6 @@ function backupValido(d) {
 if (typeof module !== 'undefined') {
   module.exports = {
     ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }
