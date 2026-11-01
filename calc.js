@@ -52,6 +52,16 @@ function totalFatura(db, cartao, ym) {
   return itensFatura(db, cartao, ym).reduce((s, p) => s + p.valor, 0);
 }
 
+// Data em que a fatura com vencimento no mes ym fecha.
+function fechamentoFatura(cartao, ym) {
+  return dataNoMes(cartao.vencimento > cartao.fechamento ? ym : addMes(ym, -1), cartao.fechamento);
+}
+
+// O pagamento fica liberado a partir do fechamento, quando o valor da fatura ja esta definido.
+function faturaPagavel(cartao, ym, hoje) {
+  return hoje >= fechamentoFatura(cartao, ym);
+}
+
 function chaveFatura(cartaoId, ym) {
   return cartaoId + '|' + ym;
 }
@@ -101,25 +111,35 @@ function saldo(db, hoje) {
   return db.contasBanco.filter((c) => ativoEm(c, hoje.slice(0, 7))).reduce((s, c) => s + t[c.id], 0);
 }
 
-// Gastos do mes por categoria, pagos ou pendentes. Conta pela data; cartao pelo mes da fatura.
+// Gastos do mes por categoria, pagos ou pendentes, pela data do lancamento, inclusive no cartao
+// (cada parcela e um lancamento, com a data do seu mes).
 // Pagamento de fatura e transferencia nao entram: o dinheiro so muda de lugar.
 function gastosPorCategoria(db, ym) {
   const t = {};
-  const soma = (cat, v) => { t[cat] = (t[cat] || 0) + v; };
   for (const l of lancsVisiveis(db)) {
-    if (l.tipo === 'S' && !ehCartao(db, l.meio) && l.data.slice(0, 7) === ym) soma(l.cat, l.valor);
+    if (l.tipo === 'S' && l.data.slice(0, 7) === ym) t[l.cat] = (t[l.cat] || 0) + l.valor;
   }
-  for (const c of db.cartoes) for (const p of itensFatura(db, c, ym)) soma(p.lanc.cat, p.valor);
   return t;
 }
 
-// Limites de gastos do mes, do mais perto de estourar para o mais longe.
+// Limites de gastos do mes, por nome. variacao: % sobre o gasto do mes anterior; null se nao houve gasto nele.
 function limitesDoMes(db, ym) {
-  const gastos = gastosPorCategoria(db, ym);
+  const gastos = gastosPorCategoria(db, ym), anteriores = gastosPorCategoria(db, addMes(ym, -1));
   return db.categorias
     .filter((c) => c.tipo === 'S' && c.limite)
-    .map((c) => ({ cat: c, limite: c.limite, gasto: gastos[c.id] || 0, resta: c.limite - (gastos[c.id] || 0), pct: Math.round((gastos[c.id] || 0) / c.limite * 100) }))
-    .sort((a, b) => b.pct - a.pct);
+    .map((c) => {
+      const gasto = gastos[c.id] || 0, anterior = anteriores[c.id] || 0;
+      return { cat: c, limite: c.limite, gasto, resta: c.limite - gasto, pct: Math.round(gasto / c.limite * 100), variacao: anterior ? (gasto / anterior - 1) * 100 : null };
+    })
+    .sort((a, b) => a.cat.nome.localeCompare(b.cat.nome, 'pt-BR'));
+}
+
+// Os lancamentos que formam o gasto de uma categoria no mes, do mais novo para o mais antigo.
+function lancsDoLimite(db, cat, ym) {
+  return lancsVisiveis(db)
+    .filter((l) => l.tipo === 'S' && l.cat === cat && l.data.slice(0, 7) === ym)
+    .map((l) => ({ lanc: l, valor: l.valor, n: l.parcela, de: l.de }))
+    .sort((a, b) => b.lanc.data.localeCompare(a.lanc.data));
 }
 
 // Receitas e despesas do periodo, pagas ou pendentes; transferencia fica fora, pois nao e ganho nem gasto.
@@ -229,14 +249,17 @@ function limiteDisponivel(db, cartao) {
   return mesesEmAberto(db, cartao).reduce((s, m) => s - restanteFatura(db, cartao, m), cartao.limite);
 }
 
-// A fatura mais antiga ainda em aberto; sem nenhuma, a do ciclo de hoje.
+// A fatura mais antiga ainda em aberto; sem nenhuma, a do ciclo de hoje. Paga, da lugar a do mes seguinte.
 function faturaAtual(db, cartao, hoje) {
   const ciclo = mesFatura(hoje, cartao);
-  const aberta = mesesEmAberto(db, cartao).filter((m) => m <= ciclo)[0];
-  const ym = aberta || ciclo;
-  const paga = db.faturasPagas[chaveFatura(cartao.id, ym)];
-  const venc = dataNoMes(ym, cartao.vencimento);
-  return { ym, venc, paga: !!paga, valor: paga ? paga.valor : restanteFatura(db, cartao, ym), atrasada: !!aberta && venc < hoje };
+  let ym = mesesEmAberto(db, cartao).filter((m) => m <= ciclo)[0] || ciclo;
+  while (db.faturasPagas[chaveFatura(cartao.id, ym)]) ym = addMes(ym, 1);
+  const venc = dataNoMes(ym, cartao.vencimento), valor = restanteFatura(db, cartao, ym);
+  return { ym, venc, valor, atrasada: valor > 0 && venc < hoje };
+}
+
+function saudacao(hora) {
+  return hora >= 5 && hora < 12 ? 'Bom dia' : hora >= 12 && hora < 18 ? 'Boa tarde' : 'Boa noite';
 }
 
 function totalFaturasDoMes(db, ym) {
@@ -525,7 +548,7 @@ function backupValido(d) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    ultimoDia, addMes, dataNoMes, mesFatura, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
+    protegerSenha, confereSenha, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }

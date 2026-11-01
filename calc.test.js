@@ -44,6 +44,17 @@ const base = () => c.migrar({
   faturasPagas: {},
 }, '2026-10-31');
 
+// Fechamento e liberacao do pagamento
+assert.strictEqual(c.fechamentoFatura(nu, '2026-11'), '2026-10-25', 'vence no mes seguinte ao fechamento');
+assert.strictEqual(c.fechamentoFatura(it, '2026-11'), '2026-11-01', 'vence no mesmo mes');
+assert.strictEqual(c.fechamentoFatura(nu, '2027-01'), '2026-12-25', 'virada de ano');
+assert.strictEqual(c.fechamentoFatura(fim, '2026-04'), '2026-03-31');
+assert.strictEqual(c.fechamentoFatura(fim, '2026-03'), '2026-02-28');
+assert.ok(!c.faturaPagavel(nu, '2026-11', '2026-10-24'), 'antes de fechar');
+assert.ok(c.faturaPagavel(nu, '2026-11', '2026-10-25'), 'no fechamento');
+assert.ok(c.faturaPagavel(nu, '2026-11', '2026-11-20'), 'atrasada');
+assert.ok(!c.faturaPagavel(nu, '2026-12', '2026-10-31'), 'fatura seguinte');
+
 // Parcelas no cartao: soma exata, centavos nas primeiras, uma por fatura (ja convertidas de um lancamento so)
 const parcelar = (dados, per, total, cart = nu) => {
   const d = { contasBanco: [{ id: 'conta', nome: 'C', saldoInicial: 0 }], cartoes: [cart], series: [], parciais: [], lancs: [], faturasPagas: {}, categorias: [] };
@@ -153,8 +164,8 @@ db.lancs.push({ id: 11, tipo: 'S', desc: 'Taxa', data: '2026-10-15', valor: 500,
 assert.deepStrictEqual(c.aPagar(db, '2026-10').map((x) => x.desc), ['Taxa', 'Luz']);
 db = base();
 
-// Categorias: parcela conta no mes da fatura; pagar a fatura nao conta de novo
-assert.deepStrictEqual(c.gastosPorCategoria(db, '2026-10'), { a: 20000, m: 175000 });
+// Categorias: compra no cartao conta no mes da compra, cada parcela no seu; pagar a fatura nao conta de novo
+assert.deepStrictEqual(c.gastosPorCategoria(db, '2026-10'), { a: 30000, m: 175000 });
 assert.deepStrictEqual(c.gastosPorCategoria(db, '2026-11'), { a: 10000, m: 8000 });
 assert.strictEqual(c.entradasDoMes(db, '2026-10'), 500000);
 assert.strictEqual(c.entradasDoMes(db, '2026-11'), 70000, 'receita pendente entra no mes');
@@ -256,7 +267,7 @@ assert.ok(!c.backupValido({ ...base(), cartoes: [{ ...nu, limite: '10' }] }));
 // Fatura atual: a mais antiga em aberto, atrasada depois do vencimento
 db = base();
 let fa = c.faturaAtual(db, nu, '2026-10-31');
-assert.deepStrictEqual([fa.ym, fa.venc, fa.valor, fa.atrasada, fa.paga], ['2026-11', '2026-11-05', 10000, false, false]);
+assert.deepStrictEqual([fa.ym, fa.venc, fa.valor, fa.atrasada], ['2026-11', '2026-11-05', 10000, false]);
 fa = c.faturaAtual(db, nu, '2026-11-20');
 assert.deepStrictEqual([fa.ym, fa.valor, fa.atrasada], ['2026-11', 10000, true], 'nao paga continua aparecendo');
 db.faturasPagas[c.chaveFatura('nu', '2026-11')] = { data: '2026-11-05', valor: 10000, conta: 'conta' };
@@ -269,7 +280,29 @@ assert.deepStrictEqual([fa.ym, fa.valor, fa.atrasada], ['2026-12', 0, false], 'j
 db = { ...base(), lancs: [{ id: 16, tipo: 'S', data: '2026-10-01', valor: 700, meio: 'nu', cat: 'a', parcelas: 1, pago: true }] };
 db.faturasPagas[c.chaveFatura('nu', '2026-11')] = { data: '2026-10-20', valor: 700, conta: 'conta' };
 fa = c.faturaAtual(db, nu, '2026-10-22');
-assert.deepStrictEqual([fa.ym, fa.valor, fa.paga, fa.atrasada], ['2026-11', 700, true, false]);
+assert.deepStrictEqual([fa.ym, fa.valor, fa.atrasada], ['2026-12', 0, false], 'paga antes do vencimento: passa para a seguinte');
+// Exemplo do usuario: fecha 22, vence 30; compra em 31/10 ja aparece na fatura de 30/11
+const black = { id: 'bk', nome: 'Black', fechamento: 22, vencimento: 30, contaPag: 'conta' };
+db = { ...base(), cartoes: [black], lancs: [{ id: 30, tipo: 'S', data: '2026-10-31', valor: 12500, meio: 'bk', cat: 'a', pago: true }] };
+fa = c.faturaAtual(db, black, '2026-10-31');
+assert.deepStrictEqual([fa.ym, fa.venc, fa.valor, fa.atrasada], ['2026-11', '2026-11-30', 12500, false]);
+// Vence no meio do mes: mostra essa fatura ate pagar; depois, a do mes seguinte
+const meio = { id: 'mm', nome: 'Meio', fechamento: 5, vencimento: 15, contaPag: 'conta' };
+db = { ...base(), cartoes: [meio], lancs: [
+  { id: 31, tipo: 'S', data: '2026-11-01', valor: 1000, meio: 'mm', cat: 'a', pago: true },
+  { id: 32, tipo: 'S', data: '2026-11-08', valor: 2000, meio: 'mm', cat: 'a', pago: true },
+] };
+fa = c.faturaAtual(db, meio, '2026-11-10');
+assert.deepStrictEqual([fa.ym, fa.venc, fa.valor], ['2026-11', '2026-11-15', 1000]);
+db.faturasPagas[c.chaveFatura('mm', '2026-11')] = { data: '2026-11-10', valor: 1000, conta: 'conta' };
+fa = c.faturaAtual(db, meio, '2026-11-10');
+assert.deepStrictEqual([fa.ym, fa.venc, fa.valor], ['2026-12', '2026-12-15', 2000]);
+// Parcial: continua na mesma fatura, com o que falta
+db.faturasPagas = {};
+c.pagarFatura(db, meio, '2026-11', { data: '2026-11-10', valor: 400, conta: 'conta' });
+assert.deepStrictEqual([c.faturaAtual(db, meio, '2026-11-10').ym, c.faturaAtual(db, meio, '2026-11-10').valor], ['2026-11', 600]);
+// Saudacao
+assert.deepStrictEqual([4, 5, 11, 12, 17, 18, 23, 0].map(c.saudacao), ['Boa noite', 'Bom dia', 'Bom dia', 'Boa tarde', 'Boa tarde', 'Boa noite', 'Boa noite', 'Boa noite']);
 
 // Total das faturas do mes: soma os cartoes; paga vale o que foi pago
 db = base();
@@ -280,15 +313,23 @@ db.faturasPagas[c.chaveFatura('b', '2026-11')] = { data: '2026-11-01', valor: 30
 assert.strictEqual(c.totalFaturasDoMes(db, '2026-11'), 13000);
 assert.strictEqual(c.totalFaturasDoMes(db, '2025-01'), 0);
 
-// Limites do mes: conta pendente e parcela do cartao; o mais perto de estourar vem primeiro
+// Limites do mes: conta pendente e parcela do cartao; em ordem de nome
 db = base();
 db.categorias[0].limite = 40000;
 db.categorias[1].limite = 100000;
 db.categorias.push({ id: 'e', nome: 'Salário', tipo: 'E', limite: 500 }, { id: 'x', nome: 'Sem limite', tipo: 'S' });
-let lim = c.limitesDoMes(db, '2026-10');
-assert.deepStrictEqual(lim.map((x) => [x.cat.id, x.gasto, x.resta, x.pct]), [['m', 175000, -75000, 175], ['a', 20000, 20000, 50]], 'receita e categoria sem limite ficam fora');
-lim = c.limitesDoMes(db, '2026-11');
-assert.deepStrictEqual(lim.map((x) => [x.cat.id, x.gasto]), [['a', 10000], ['m', 8000]], 'parcela do cartao conta no mes da fatura');
+const porId = (a, b) => a.cat.id.localeCompare(b.cat.id);
+let lim = c.limitesDoMes(db, '2026-10').sort(porId);
+assert.deepStrictEqual(lim.map((x) => [x.cat.id, x.gasto, x.resta, x.pct]), [['a', 30000, 10000, 75], ['m', 175000, -75000, 175]], 'receita e categoria sem limite ficam fora');
+lim = c.limitesDoMes(db, '2026-11').sort(porId);
+assert.deepStrictEqual(lim.map((x) => [x.cat.id, x.gasto]), [['a', 10000], ['m', 8000]], 'parcela do cartao conta no mes dela');
+assert.deepStrictEqual(lim.map((x) => x.variacao), [(10000 / 30000 - 1) * 100, (8000 / 175000 - 1) * 100], 'comparado ao mes anterior');
+assert.strictEqual(c.limitesDoMes(db, '2026-10').find((x) => x.cat.id === 'a').variacao, null, 'sem gasto no mes anterior');
+assert.deepStrictEqual(c.limitesDoMes({ ...db, categorias: [{ id: 'z', nome: 'Zebra', tipo: 'S', limite: 1 }, { id: 'y', nome: 'Água', tipo: 'S', limite: 1 }] }, '2026-10').map((x) => x.cat.nome), ['Água', 'Zebra']);
+// Os lancamentos do limite somam exatamente o gasto mostrado
+for (const ym of ['2026-10', '2026-11']) for (const l of c.limitesDoMes(db, ym)) {
+  assert.strictEqual(c.lancsDoLimite(db, l.cat.id, ym).reduce((s, i) => s + i.valor, 0), l.gasto);
+}
 assert.strictEqual(c.limitesDoMes(db, '2025-01')[0].pct, 0);
 assert.ok(c.backupValido(db));
 assert.ok(!c.backupValido({ ...base(), categorias: [{ id: 'a', nome: 'A', tipo: 'S', limite: -1 }] }));
@@ -340,9 +381,6 @@ assert.ok(Math.abs(rc.lista.reduce((s, g) => s + g.pct, 0) - 100) < 1e-9);
 for (const g of rc.lista) assert.strictEqual(g.itens.reduce((s, i) => s + i.valor, 0), g.total);
 assert.deepStrictEqual(c.relatorioCategorias(its, 'E').lista.map((g) => g.total), [570000]);
 assert.deepStrictEqual(c.relatorioCategorias([], 'S'), { total: 0, lista: [] });
-// Bate com Gastos por categoria do mes
-const uni = c.relatorioCategorias(c.itensRelatorio(db, '2026-10', '2026-10', 'fatura'), 'S').lista;
-assert.deepStrictEqual(Object.fromEntries(uni.map((g) => [g.cat, g.total])), c.gastosPorCategoria(db, '2026-10'));
 
 // Balanco: um registro por mes, inclusive vazio e na virada de ano
 const bal = c.relatorioBalanco(c.itensRelatorio(db, '2026-11', '2027-02', 'fatura'), '2026-11', '2027-02');
