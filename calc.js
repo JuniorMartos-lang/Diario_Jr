@@ -541,11 +541,22 @@ async function cifrarBackup(dados, senha) {
   const cifrado = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, chave, new TextEncoder().encode(JSON.stringify(dados)));
   return { formato: FORMATO_CIFRADO, versao: 1, iteracoes: ITERACOES_BACKUP, sal: b64(sal), iv: b64(iv), dados: b64(new Uint8Array(cifrado)) };
 }
+// Com senha no app: a chave vem do hash ja guardado, entao salvar nao pede senha; restaurar pede a senha do app.
+async function chaveDoHash(hash) {
+  const base = await crypto.subtle.importKey('raw', deB64(hash), 'HKDF', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'HKDF', hash: 'SHA-256', salt: new Uint8Array(0), info: new TextEncoder().encode('controle-diario-backup') }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function cifrarBackupSenhaApp(dados, g) {
+  const iv = aleatorio(12), chave = await chaveDoHash(g.hash);
+  const cifrado = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, chave, new TextEncoder().encode(JSON.stringify(dados)));
+  return { formato: FORMATO_CIFRADO, versao: 2, sal: g.sal, iv: b64(iv), dados: b64(new Uint8Array(cifrado)) };
+}
 const ehBackupCifrado = (o) => !!o && o.formato === FORMATO_CIFRADO;
+const usaSenhaDoApp = (o) => o.versao === 2;
 // Senha errada ou arquivo alterado: o AES-GCM recusa e a promessa falha.
 async function decifrarBackup(o, senha) {
-  if (o.versao !== 1 || !Number.isInteger(o.iteracoes) || o.iteracoes < 100000 || o.iteracoes > 5000000) throw new Error('formato');
-  const chave = await chaveBackup(senha, deB64(o.sal), o.iteracoes);
+  if (!usaSenhaDoApp(o) && (o.versao !== 1 || !Number.isInteger(o.iteracoes) || o.iteracoes < 100000 || o.iteracoes > 5000000)) throw new Error('formato');
+  const chave = usaSenhaDoApp(o) ? await chaveDoHash(await hashSenha(senha, o.sal)) : await chaveBackup(senha, deB64(o.sal), o.iteracoes);
   const claro = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: deB64(o.iv) }, chave, deB64(o.dados));
   return JSON.parse(new TextDecoder().decode(claro));
 }
@@ -591,6 +602,6 @@ function backupValido(d) {
 if (typeof module !== 'undefined') {
   module.exports = {
     ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, cifrarBackup, decifrarBackup, ehBackupCifrado, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }

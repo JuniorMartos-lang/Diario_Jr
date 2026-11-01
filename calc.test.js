@@ -690,5 +690,18 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   await assert.rejects(c.decifrarBackup({ ...bk, dados: dadosBk.toString('base64') }, 'senha-certa-1'));
   await assert.rejects(c.decifrarBackup({ ...bk, iteracoes: 1 }, 'senha-certa-1'));
   assert.notStrictEqual((await c.cifrarBackup(claroBk, 'senha-certa-1')).dados, bk.dados);
+  // Backup com a senha do app: salva so com o hash guardado; abre com a senha, nao com o hash
+  const gApp = await c.protegerSenha('senha-do-app-1');
+  const bkApp = await c.cifrarBackupSenhaApp(claroBk, gApp);
+  const textoApp = JSON.stringify(bkApp);
+  assert.ok(c.usaSenhaDoApp(bkApp) && !c.usaSenhaDoApp(bk));
+  for (const t of ['Compra', 'Fulano', 'lancs', gApp.hash]) assert.ok(!textoApp.includes(t), t);
+  assert.deepStrictEqual(await c.decifrarBackup(JSON.parse(textoApp), 'senha-do-app-1'), claroBk);
+  await assert.rejects(c.decifrarBackup(bkApp, 'senha-errada-1'));
+  await assert.rejects(c.decifrarBackup(bkApp, gApp.hash));
+  // Backup antigo continua abrindo com a senha antiga depois que a senha do app muda
+  const gNova = await c.protegerSenha('senha-nova-22');
+  await assert.rejects(c.decifrarBackup(bkApp, 'senha-nova-22'));
+  assert.ok(c.usaSenhaDoApp(await c.cifrarBackupSenhaApp(claroBk, gNova)));
   console.log('calc.js: todos os testes passaram');
 })().catch((e) => { console.error(e); process.exit(1); });
