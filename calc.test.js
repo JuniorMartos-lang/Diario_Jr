@@ -661,5 +661,34 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.deepStrictEqual(c.gastosPorCategoria(dbEst, '2026-03'), { k: 7500 });
   const estFluxo = c.linhasFluxo(dbEst, '2026-03', 'todos', '').find((i) => i.lanc && i.lanc.id === 'v');
   assert.deepStrictEqual([estFluxo.valor, estFluxo.sinal], [2500, 1]);
+  // Fatura paga: a parcela nela nao muda nem sai quando a alteracao vale para as outras
+  const cartaoPg = { id: 'q', nome: 'Q', fechamento: 18, vencimento: 30, contaPag: 'conta' };
+  const dbPg = () => {
+    const d = { contasBanco: [{ id: 'conta', nome: 'C', saldoInicial: 0 }], cartoes: [cartaoPg], lancs: [], series: [], parciais: [], faturasPagas: {} };
+    c.criarParcelada(d, 's', { tipo: 'S', desc: 'A', valor: 30000, cat: 'k', meio: 'q', data: '2026-01-05', pago: true }, 'mensal', 3, '2026-01-05');
+    d.faturasPagas['q|2026-01'] = { data: '2026-01-30', valor: 10000, conta: 'conta' };
+    return d;
+  };
+  const dPg = dbPg();
+  assert.ok(c.faturaPagaDoLanc(dPg, dPg.lancs[0]));
+  assert.ok(!c.faturaPagaDoLanc(dPg, dPg.lancs[1]));
+  c.aplicarEdicao(dPg, dPg.lancs[1].id, { ...dPg.lancs[1], desc: 'B' }, 'todas');
+  assert.deepStrictEqual(dPg.lancs.map((l) => l.desc), ['A', 'B', 'B']);
+  const dEx = dbPg();
+  c.excluirLanc(dEx, dEx.lancs[1].id, 'todas');
+  assert.deepStrictEqual(dEx.lancs.map((l) => l.parcela), [1]);
+  assert.ok(dEx.series[0].encerrada);
+  // Backup cifrado: nada legivel no arquivo; so abre com a senha certa e sem alteracao
+  const claroBk = { lancs: [{ desc: 'Compra secreta', valor: 12345 }], perfil: { nome: 'Fulano' } };
+  const bk = await c.cifrarBackup(claroBk, 'senha-certa-1');
+  const textoBk = JSON.stringify(bk);
+  assert.ok(c.ehBackupCifrado(JSON.parse(textoBk)) && !c.ehBackupCifrado(claroBk));
+  for (const t of ['Compra', 'secreta', 'Fulano', 'lancs', '12345']) assert.ok(!textoBk.includes(t), t);
+  assert.deepStrictEqual(await c.decifrarBackup(JSON.parse(textoBk), 'senha-certa-1'), claroBk);
+  await assert.rejects(c.decifrarBackup(bk, 'senha-errada-1'));
+  const dadosBk = Buffer.from(bk.dados, 'base64'); dadosBk[0] ^= 1;
+  await assert.rejects(c.decifrarBackup({ ...bk, dados: dadosBk.toString('base64') }, 'senha-certa-1'));
+  await assert.rejects(c.decifrarBackup({ ...bk, iteracoes: 1 }, 'senha-certa-1'));
+  assert.notStrictEqual((await c.cifrarBackup(claroBk, 'senha-certa-1')).dados, bk.dados);
   console.log('calc.js: todos os testes passaram');
 })().catch((e) => { console.error(e); process.exit(1); });

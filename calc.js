@@ -80,6 +80,12 @@ function restanteFatura(db, cartao, ym) {
   return parciaisDe(db, cartao.id, ym).reduce((s, p) => s - p.valor, totalFatura(db, cartao, ym));
 }
 
+// Compra de cartao em fatura ja paga por inteiro nao muda mais: so depois de desfazer o pagamento.
+function faturaPagaDoLanc(db, l) {
+  const cartao = db.cartoes.find((c) => c.id === l.meio);
+  return !!cartao && !!db.faturasPagas[chaveFatura(cartao.id, mesFatura(l.data, cartao))];
+}
+
 // Quem paga menos que o restante deixa a diferenca em aberto na mesma fatura.
 function pagarFatura(db, cartao, ym, pagamento) {
   const falta = restanteFatura(db, cartao, ym);
@@ -408,7 +414,7 @@ function aplicarEdicao(db, id, dados, escopo) {
   // Valor sem mudanca nao se espalha: as parcelas podem diferir em centavos.
   if (dados.valor === l.valor) delete campos.valor;
   for (const o of db.lancs) {
-    if (o.serie !== l.serie || o === l || (escopo === 'proximas' && o.data < desde)) continue;
+    if (o.serie !== l.serie || o === l || (escopo === 'proximas' && o.data < desde) || faturaPagaDoLanc(db, o)) continue;
     // Compra no cartao fica sempre "paga"; ao sair do cartao, a ocorrencia volta a ficar pendente.
     o.pago = noCartao || (ehCartao(db, o.meio) ? false : o.pago);
     Object.assign(o, campos);
@@ -421,12 +427,14 @@ function aplicarEdicao(db, id, dados, escopo) {
 function excluirLanc(db, id, escopo) {
   const l = db.lancs.find((x) => x.id === id);
   if (!l.serie || escopo === 'esta') { db.lancs = db.lancs.filter((x) => x !== l); return; }
+  const fica = (x) => x !== l && faturaPagaDoLanc(db, x);
   if (escopo === 'proximas') {
-    db.lancs = db.lancs.filter((x) => x.serie !== l.serie || x.data < l.data);
+    db.lancs = db.lancs.filter((x) => x.serie !== l.serie || x.data < l.data || fica(x));
     db.series.find((s) => s.id === l.serie).encerrada = true;
   } else {
-    db.lancs = db.lancs.filter((x) => x.serie !== l.serie);
-    db.series = db.series.filter((s) => s.id !== l.serie);
+    db.lancs = db.lancs.filter((x) => x.serie !== l.serie || fica(x));
+    if (db.lancs.some((x) => x.serie === l.serie)) db.series.find((s) => s.id === l.serie).encerrada = true;
+    else db.series = db.series.filter((s) => s.id !== l.serie);
   }
 }
 
@@ -521,6 +529,26 @@ async function hashSenha(senha, sal) {
 }
 async function protegerSenha(senha) { const sal = b64(aleatorio(16)); return { sal, hash: await hashSenha(senha, sal) }; }
 async function confereSenha(senha, g) { return !!g && await hashSenha(senha, g.sal) === g.hash; }
+// Backup cifrado: AES-GCM com chave derivada da senha. A senha nao fica guardada; sem ela o arquivo nao abre.
+const FORMATO_CIFRADO = 'controle-diario-cifrado', ITERACOES_BACKUP = 600000;
+async function chaveBackup(senha, sal, iteracoes) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(senha), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt: sal, iterations: iteracoes }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function cifrarBackup(dados, senha) {
+  const sal = aleatorio(16), iv = aleatorio(12);
+  const chave = await chaveBackup(senha, sal, ITERACOES_BACKUP);
+  const cifrado = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, chave, new TextEncoder().encode(JSON.stringify(dados)));
+  return { formato: FORMATO_CIFRADO, versao: 1, iteracoes: ITERACOES_BACKUP, sal: b64(sal), iv: b64(iv), dados: b64(new Uint8Array(cifrado)) };
+}
+const ehBackupCifrado = (o) => !!o && o.formato === FORMATO_CIFRADO;
+// Senha errada ou arquivo alterado: o AES-GCM recusa e a promessa falha.
+async function decifrarBackup(o, senha) {
+  if (o.versao !== 1 || !Number.isInteger(o.iteracoes) || o.iteracoes < 100000 || o.iteracoes > 5000000) throw new Error('formato');
+  const chave = await chaveBackup(senha, deB64(o.sal), o.iteracoes);
+  const claro = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: deB64(o.iv) }, chave, deB64(o.dados));
+  return JSON.parse(new TextDecoder().decode(claro));
+}
 // 12 letras e numeros, sem os que se confundem (0/O, 1/I/L). Ex.: 7K3P-9QXM-2B4T
 const LETRAS_CODIGO = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const gerarCodigo = () => [...aleatorio(12)].map((x) => LETRAS_CODIGO[x % LETRAS_CODIGO.length]).join('').replace(/(.{4})(?!$)/g, '$1-');
@@ -563,6 +591,6 @@ function backupValido(d) {
 if (typeof module !== 'undefined') {
   module.exports = {
     ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, cifrarBackup, decifrarBackup, ehBackupCifrado, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }
