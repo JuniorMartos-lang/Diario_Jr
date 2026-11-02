@@ -222,6 +222,20 @@ function entradasDoMes(db, ym) {
     .reduce((s, l) => s + l.valor, 0);
 }
 
+// Gastos do mes por conta ou cartao, pela data do lancamento: contas primeiro, depois do maior para o menor.
+function gastosPorMeio(db, ym) {
+  const grupos = new Map();
+  for (const l of lancsVisiveis(db)) {
+    if (l.tipo !== 'S' || l.data.slice(0, 7) !== ym) continue;
+    if (!grupos.has(l.meio)) grupos.set(l.meio, { meio: l.meio, cartao: ehCartao(db, l.meio), total: 0, itens: [] });
+    const g = grupos.get(l.meio);
+    g.total += l.valor;
+    g.itens.push(l);
+  }
+  for (const g of grupos.values()) g.itens.sort((a, b) => b.valor - a.valor);
+  return [...grupos.values()].sort((a, b) => a.cartao - b.cartao || b.total - a.total);
+}
+
 function pendentes(db, tipo, ym) {
   const contaAtiva = (id) => { const c = db.contasBanco.find((x) => x.id === id); return !c || ativoEm(c, ym); };
   return lancsVisiveis(db)
@@ -626,6 +640,6 @@ function backupValido(d) {
 if (typeof module !== 'undefined') {
   module.exports = {
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, gastosPorMeio, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }

@@ -713,5 +713,14 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   });
   dbAtr.lancs.push({ id: 'n', tipo: 'S', data: '2026-10-20', valor: 100, meio: 'x', cat: 't', pago: true });
   assert.strictEqual(c.totalFatura(dbAtr, cartaoAtr, '2026-10'), semCache[0] + 100);
+  // Gastos por conta ou cartao: conta primeiro, depois cartoes pelo maior total; soma igual a Gastos do mes
+  const dbMeio = {
+    contasBanco: [{ id: 'cc', nome: 'C', saldoInicial: 0 }], cartoes: [{ id: 'p', nome: 'P', fechamento: 18, vencimento: 30, contaPag: 'cc' }, { id: 'g', nome: 'G', fechamento: 18, vencimento: 30, contaPag: 'cc' }], faturasPagas: {}, parciais: [], series: [],
+    lancs: [['a', 'cc', 100], ['b', 'cc', 300], ['d', 'p', 50], ['e', 'g', 900], ['f', 'g', -100]].map(([id, meio, valor]) => ({ id, tipo: 'S', data: '2026-11-05', valor, meio, cat: 'k', pago: true })).concat({ id: 'z', tipo: 'E', data: '2026-11-05', valor: 7, meio: 'cc', cat: 'r', pago: true }),
+  };
+  const meios = c.gastosPorMeio(dbMeio, '2026-11');
+  assert.deepStrictEqual(meios.map((g) => [g.meio, g.total]), [['cc', 400], ['g', 800], ['p', 50]]);
+  assert.deepStrictEqual(meios[0].itens.map((l) => l.id), ['b', 'a']);
+  assert.strictEqual(meios.reduce((s, g) => s + g.total, 0), c.gastosPorCategoria(dbMeio, '2026-11').k);
   console.log('calc.js: todos os testes passaram');
 })().catch((e) => { console.error(e); process.exit(1); });
