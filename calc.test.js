@@ -736,11 +736,13 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
       { id: 'e1', tipo: 'E', data: '2026-11-01', valor: 999, meio: 'cc', cat: 'r', pago: true },
     ],
   };
-  const fR = (x) => ({ ini: '2026-11', fim: '2026-11', cat: '', meio: '', base: 'compra', origem: 'tudo', ...x });
+  const fR = (x) => ({ ini: '2026-11', fim: '2026-11', cat: '', meios: [], base: 'compra', origem: 'tudo', ...x });
   const ids = (l) => l.map((x) => x.id);
   assert.deepStrictEqual(ids(c.resumoConta(dbR, fR())), ['c2', 'c3']);
   assert.deepStrictEqual(ids(c.resumoConta(dbR, fR({ ini: '2026-09' }))), ['c4', 'c1', 'c2', 'c3']);
-  assert.deepStrictEqual(ids(c.resumoConta(dbR, fR({ cat: 'casa', meio: 'cc', ini: '2026-10' }))), ['c1', 'c2']);
+  assert.deepStrictEqual(ids(c.resumoConta(dbR, fR({ cat: 'casa', meios: ['cc'], ini: '2026-10' }))), ['c1', 'c2']);
+  assert.deepStrictEqual(ids(c.resumoConta(dbR, fR({ meios: ['cc', 'pp'] }))), ['c2', 'c3'], 'varias contas juntas');
+  assert.deepStrictEqual(c.resumoAPagar(dbR, fR({ meios: ['pp', 'k'] }), '2026-11-01').map((i) => i.meio), ['pp', 'k'], 'conta e cartao juntos');
   assert.deepStrictEqual(ids(c.resumoCartoes(dbR, fR())), ['k2']);
   assert.deepStrictEqual(ids(c.resumoCartoes(dbR, fR({ base: 'fatura' }))), ['k1'], 'compra de 25/10 entra na fatura de novembro');
   assert.deepStrictEqual(c.resumoCategorias(dbR, fR()), [{ cat: 'lazer', valor: 450 }, { cat: 'casa', valor: 200 }]);

@@ -249,9 +249,10 @@ function aReceber(db, ym) {
   return pendentes(db, 'E', ym);
 }
 
-// Aba Resumos. f = { ini, fim (AAAA-MM), cat, meio, base ('compra' | 'fatura'), origem ('tudo' | 'contas' | 'cartoes') }.
-// Vazio em cat ou meio quer dizer todos.
+// Aba Resumos. f = { ini, fim (AAAA-MM), cat, meios (lista de contas e cartoes), base ('compra' | 'fatura'), origem ('tudo' | 'contas' | 'cartoes') }.
+// cat vazia ou meios vazia quer dizer todos.
 const noPeriodo = (ym, f) => ym >= f.ini && ym <= f.fim;
+const meioNoFiltro = (m, f) => !f.meios || !f.meios.length || f.meios.includes(m);
 // Mes em que o gasto conta: na conta, a data; no cartao, a data da compra ou o mes da fatura.
 function mesDoGasto(db, l, base) {
   const cartao = db.cartoes.find((c) => c.id === l.meio);
@@ -259,7 +260,7 @@ function mesDoGasto(db, l, base) {
 }
 function gastosFiltrados(db, f, deCartao) {
   return lancsVisiveis(db)
-    .filter((l) => l.tipo === 'S' && ehCartao(db, l.meio) === deCartao && (!f.cat || l.cat === f.cat) && (!f.meio || l.meio === f.meio)
+    .filter((l) => l.tipo === 'S' && ehCartao(db, l.meio) === deCartao && (!f.cat || l.cat === f.cat) && meioNoFiltro(l.meio, f)
       && noPeriodo(mesDoGasto(db, l, f.base), f))
     .sort((a, b) => a.data.localeCompare(b.data));
 }
@@ -278,14 +279,14 @@ function resumoAPagar(db, f, hoje) {
   const itens = [];
   if (f.origem !== 'cartoes') {
     for (const l of lancsVisiveis(db)) {
-      if (l.tipo === 'S' && !l.pago && !ehCartao(db, l.meio) && entra(l.data) && (!f.cat || l.cat === f.cat) && (!f.meio || l.meio === f.meio)) {
+      if (l.tipo === 'S' && !l.pago && !ehCartao(db, l.meio) && entra(l.data) && (!f.cat || l.cat === f.cat) && meioNoFiltro(l.meio, f)) {
         itens.push({ tipo: 'conta', lanc: l, meio: l.meio, desc: l.desc, venc: l.data, valor: l.valor });
       }
     }
   }
   if (f.origem !== 'contas' && !f.cat) {
     for (const c of db.cartoes) {
-      if (!ativoEm(c, f.fim) || (f.meio && f.meio !== c.id)) continue;
+      if (!ativoEm(c, f.fim) || !meioNoFiltro(c.id, f)) continue;
       for (const ym of mesesEmAberto(db, c)) {
         const venc = dataNoMes(ym, c.vencimento);
         if (entra(venc)) itens.push({ tipo: 'fatura', ym, meio: c.id, desc: 'Fatura ' + c.nome, venc, valor: restanteFatura(db, c, ym) });

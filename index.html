@@ -46,6 +46,12 @@
   #mesTxt::first-letter { text-transform: uppercase; }
   .destaque { background: var(--card); color: var(--txt); border-radius: 20px; padding: 14px 16px; box-shadow: var(--sombra); }
   .destaque small { color: var(--mut); }
+  .saldoTopo { display: flex; align-items: center; gap: 4px; }
+  button.olhoSaldo { width: 40px; height: 32px; min-height: 0; margin: -6px 0; padding: 0; background: none; color: var(--mut); }
+  button.olhoSaldo svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; vertical-align: middle; }
+  button.olhoSaldo[aria-pressed=true] svg { stroke: var(--pri); }
+  button.olhoSaldo[aria-pressed=true] svg path { stroke-dasharray: 2 2; }
+  .icoBtn { width: 20px; height: 20px; margin-right: 8px; vertical-align: -4px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   /* Cartoes: sem a faixa azul, com os quadros de Detalhes da fatura, para nao parecer o cabecalho do Resumo. */
   #hCartoes { display: none; }
   body.emCartoes #topo { background: none; color: var(--txt); border-radius: 0; padding-bottom: 0; }
@@ -73,7 +79,7 @@
   .dois { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .dois > * { min-width: 0; }
   button { font: inherit; font-weight: 600; min-height: 44px; padding: 8px 16px; border: 0; border-radius: 999px; background: var(--pri); color: #fff; cursor: pointer; }
-  :root[data-theme=dark] button:not(.sec):not(.perigo):not(.linha):not(.cartaoRes):not(.colGraf):not(.opcIco):not(.opcCor):not(.mesFatBtn):not(.pagarFat):not(.cardLim):not(.resumoIco):not(.voltarTela):not(.olho):not(.setaFluxo):not(.infoBtn):not(.linkTexto):not(.campoLink):not(.mesBar button) { color: #06201d; }
+  :root[data-theme=dark] button:not(.sec):not(.perigo):not(.linha):not(.cartaoRes):not(.colGraf):not(.opcIco):not(.opcCor):not(.mesFatBtn):not(.pagarFat):not(.cardLim):not(.resumoIco):not(.voltarTela):not(.olho):not(.olhoSaldo):not(.setaFluxo):not(.infoBtn):not(.linkTexto):not(.campoLink):not(.mesBar button) { color: #06201d; }
   button.sec { background: var(--campo); color: var(--txt); }
   button.perigo { background: transparent; color: var(--neg); border: 1px solid var(--neg); }
   button.mini { min-height: 44px; padding: 4px 14px; font-size: 13px; flex: none; }
@@ -213,7 +219,7 @@
   .icoTit { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tituloMes button.infoBtn { margin: -10px -10px -10px 0; }
   .infoBtn svg { display: block; margin: auto; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-  #rMeios .linha small, #rPagarMes .linha small { display: block; }
+  #rMeios .linha small, #rPagarMes .linha small, #resumosSecoes .linha small.fraco, #resumosSecoes .linha small.neg { display: block; }
   .tituloCartoes { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
   .tituloCartoes small { font-size: 14px; font-weight: 600; color: var(--txt); }
   /* Tabela de lancamentos: data, descricao com a conta ou o cartao embaixo, valor. */
@@ -224,7 +230,17 @@
   .tabRes td.atraso { color: var(--neg); font-weight: 600; }
   .tabCat td:first-child { overflow-wrap: anywhere; }
   .tabCat td:nth-child(2), .tabCat td:nth-child(3) { white-space: nowrap; }
-  .filtrosRes label { margin-bottom: 8px; }
+  .filtrosRes label, .filtrosRes .rotuloCampo { margin-bottom: 8px; }
+  .multiSel { position: relative; }
+  .multiSel summary { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-height: 44px; padding: 8px 12px; border-radius: 12px; background: var(--campo); list-style: none; cursor: pointer; font-size: 14px; color: var(--txt); }
+  .multiSel summary::-webkit-details-marker { display: none; }
+  .multiSel summary > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .multiOpcoes { position: absolute; z-index: 5; top: calc(100% + 4px); left: 0; width: max(100%, 240px); max-height: 300px; overflow-y: auto; padding: 4px 12px; border-radius: 12px; background: var(--card); box-shadow: 0 4px 16px rgba(0, 0, 0, .25); }
+  .multiOpcoes label { display: flex; align-items: center; gap: 8px; min-height: 44px; margin: 0; color: var(--txt); font-size: 14px; }
+  .multiOpcoes input { flex: none; margin: 0; }
+  #rdFiltros { display: block; margin-bottom: 8px; }
+  .tabRes tr.grupoCat th { text-align: left; padding-top: 12px; font-size: 14px; color: var(--txt); }
+  .tabRes tr.grupoCat th:last-child { text-align: right; }
   .filtrosRes select, .filtrosRes input { font-size: 14px; }
   [data-res] { margin-top: 4px; }
   /* Seletor de conta do Fluxo: lista propria para mostrar o icone de cada conta. */
@@ -320,7 +336,7 @@
     <button id="mesProx" class="sec" aria-label="Próximo mês">▶</button>
   </div>
   <div class="destaque">
-    <small>Saldo geral hoje</small>
+    <small class="saldoTopo">Saldo geral hoje<button type="button" class="olhoSaldo" id="hOlho" aria-pressed="false" aria-label="Ocultar valores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></small>
     <div id="hSaldo"></div>
     <div class="pares">
       <div><small>Gastos do mês</small><b id="hGastos"></b></div>
@@ -354,7 +370,7 @@
 
   <section id="s-fluxo" hidden>
     <div class="seletorFluxo"><span>Conta</span><details id="fContaSel"><summary></summary><div id="fContaOpcoes"></div></details></div>
-    <div class="card"><div id="lLista"></div></div>
+    <div class="card"><div id="lLista"></div><button type="button" class="sec gerenciar" data-exportar="fluxo"><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button></div>
     <div id="fBarra"><div>
       <div id="fBarraDados"><div class="fluxo" id="fAtual"></div><div id="fMais" aria-hidden="true"><div><div class="fluxo" id="fPrevisto"></div></div></div></div>
       <button type="button" class="setaFluxo" id="fSeta" aria-expanded="false" aria-controls="fPrevisto" aria-label="Mostrar valores previstos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
@@ -442,11 +458,15 @@
 
   <section id="s-catdet" hidden>
     <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="cdTitulo"></h2></div>
-    <div class="card"><div id="cdTabela"></div></div>
+    <div class="card"><div id="cdTabela"></div><button type="button" class="sec gerenciar" data-exportar="categoria"><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button></div>
   </section>
   <section id="s-contas" hidden><div id="resumosSecoes"></div></section>
+  <section id="s-resdet" hidden>
+    <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="rdTitulo"></h2></div>
+    <div class="card"><small class="fraco" id="rdFiltros"></small><div id="rdTabela"></div><button type="button" class="sec gerenciar" data-exportar="resumos"><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button></div>
+  </section>
 
-  <section id="s-cartoes" hidden><div class="filtrosCartao"><label><input id="fResumido" type="checkbox">Resumido</label><details id="filtroCart"><summary><span id="filtroCartTxt"></span><span aria-hidden="true">▾</span></summary><div id="filtroCartOpcoes"></div></details></div><div id="fLista"></div><div id="fAtrasadas"></div></section>
+  <section id="s-cartoes" hidden><div class="filtrosCartao"><label><input id="fResumido" type="checkbox">Resumido</label><details id="filtroCart"><summary><span id="filtroCartTxt"></span><span aria-hidden="true">▾</span></summary><div id="filtroCartOpcoes"></div></details></div><div id="fLista"></div><div id="fAtrasadas"></div><button type="button" class="sec gerenciar" data-exportar="cartoes"><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button></section>
 
   <section id="s-ajustes" hidden>
     <datalist id="listaIcones"></datalist>
@@ -466,7 +486,7 @@
         <button type="button" class="linha" data-tela="tAparencia"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg><span class="q">Aparência</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tArquivadas" id="aMenuArq" hidden><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg><span class="q">Arquivadas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.37.0 · 02/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.39.0 · 02/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -693,7 +713,12 @@
 const CHAVE = 'controle-diario', CHAVE_TEMA = 'controle-diario-tema', DIAS_BACKUP = 7, MESES_FRENTE = 12;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const brl = (c) => (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const brlReal = (c) => (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+// Olhinho do Resumo: com os valores ocultos, todo valor na tela vira pontinhos (so neste aparelho).
+let valoresOcultos = false;
+try { valoresOcultos = localStorage.getItem('controle-diario-ocultar') === '1'; } catch {}
+const OCULTO = 'R$ ••••';
+const brl = (c) => (valoresOcultos ? OCULTO : brlReal(c));
 const dataBR = (d) => d.slice(8) + '/' + d.slice(5, 7) + '/' + d.slice(2, 4);
 const novoId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 function hoje() {
@@ -755,7 +780,7 @@ const avisar = (titulo, texto) => modal(titulo, texto || '', 'OK');
 
 // Campo de dinheiro: digita centavos, como em app de banco.
 const centavos = (el) => parseInt(el.value.replace(/\D/g, ''), 10) || 0;
-function porValor(el, c) { el.value = c ? brl(c) : ''; }
+function porValor(el, c) { el.value = c ? brlReal(c) : ''; }
 document.querySelectorAll('.moeda').forEach((el) => {
   el.addEventListener('input', () => porValor(el, Math.min(centavos(el), 99999999999)));
 });
@@ -814,6 +839,8 @@ function desenhar() {
   $('mesTxt').textContent = new Date(mes + '-15T12:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
   const s = saldo(db, h);
   $('hSaldo').textContent = brl(s);
+  $('hOlho').setAttribute('aria-pressed', valoresOcultos);
+  $('hOlho').setAttribute('aria-label', valoresOcultos ? 'Mostrar valores' : 'Ocultar valores');
   $('hSaldo').className = s < 0 ? 'neg' : 'pos';
   const cats = gastosPorCategoria(db, mes);
   const gastos = Object.values(cats).reduce((a, b) => a + b, 0);
@@ -1018,7 +1045,7 @@ $('fSeta').onclick = () => {
   document.body.classList.toggle('fluxoAberto', abrir);
 };
 
-const num = (c) => (c / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const num = (c) => (valoresOcultos ? '••••' : (c / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 const mesCurto = (ym) => new Date(ym + '-15T12:00').toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
 const mesAno = (ym) => new Date(ym + '-15T12:00').toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', '').replace(' de ', '/');
 const MAX_MESES = 36;
@@ -1072,7 +1099,8 @@ function renderRelatorio() {
 }
 
 
-// Aba Resumos: quatro quadros, cada um com os seus filtros (so na memoria, guardados nos proprios campos).
+// Aba Resumos: cada quadro mostra o mes do topo somado por conta ou cartao (categoria, no ultimo);
+// os filtros so valem ao tocar em Selecionar, que abre o detalhe em outra tela.
 const ICO_RES = {
   conta: '<rect x="3" y="4" width="18" height="15" rx="2"/><circle cx="12" cy="11.5" r="3.5"/><path d="M12 8v1.5M12 13.5V15M8.5 11.5H10M14 11.5h1.5M6 19v2M18 19v2"/>',
   cartoes: '<rect x="2" y="8" width="15" height="11" rx="2"/><path d="M2 12h15"/><path d="M6 5h14a2 2 0 0 1 2 2v9"/>',
@@ -1080,68 +1108,132 @@ const ICO_RES = {
   cats: '<path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 2.6A9 9 0 0 1 21.4 9H15z"/>',
 };
 const SECOES_RES = [
-  { id: 'conta', titulo: 'Conta corrente', meios: 'contas', rotulo: 'Conta',
-    info: 'Gastos lançados nas contas, pagos ou não, pela data de cada um. Compras no cartão não entram aqui: ficam em Cartões.\n\nFiltre por mês do topo ou escolha um período de vários meses, e combine com uma categoria e uma conta. Deixe "Todas" para ver tudo.' },
-  { id: 'cartoes', titulo: 'Cartões', meios: 'cartoes', rotulo: 'Cartão', base: true,
-    info: 'Compras nos cartões, inclusive parcelas e estornos (com sinal de menos).\n\n"Mês da compra" conta cada compra pela data em que foi feita. "Mês da fatura" conta pela fatura em que ela cai, que depende do dia de fechamento do cartão.\n\nCombine período, categoria e cartão como quiser.' },
-  { id: 'apagar', titulo: 'A pagar', meios: 'todos', rotulo: 'Conta ou cartão', origem: true,
-    info: 'O que ainda falta pagar: contas não pagas e faturas em aberto, pela data de vencimento do período escolhido. O que já está atrasado aparece sempre, com a data em vermelho.\n\nEscolha ver contas, cartões ou os dois. Fatura não tem categoria: ao escolher uma categoria, só aparecem as contas.' },
-  { id: 'cats', titulo: 'Gastos por categoria', meios: 'todos', rotulo: 'Conta ou cartão', base: true,
-    info: 'Soma dos gastos de contas e cartões em cada categoria, pagos ou não, com a parte de cada uma no total.\n\nNo cartão, escolha contar pelo mês da compra ou pelo mês da fatura. Filtre por período, categoria e conta ou cartão.' },
+  { id: 'conta', titulo: 'Conta corrente', meios: 'contas', rotulo: 'Contas',
+    info: 'No quadro: os gastos do mês do topo em cada conta, pagos ou não, pela data de cada um. Compras no cartão ficam em Cartões.\n\nPara ver lançamento por lançamento, escolha os filtros (período, categoria e uma ou mais contas) e toque em Selecionar. O detalhe abre em outra tela.' },
+  { id: 'cartoes', titulo: 'Cartões', meios: 'cartoes', rotulo: 'Cartões', base: true,
+    info: 'No quadro: as compras do mês do topo em cada cartão, pelo mês da compra, com parcelas e estornos.\n\nNos filtros, "Mês da compra" conta cada compra pela data em que foi feita, e "Mês da fatura", pela fatura em que ela cai, que depende do dia de fechamento. Toque em Selecionar para ver o detalhe em outra tela.' },
+  { id: 'apagar', titulo: 'A pagar', meios: 'todos', rotulo: 'Contas e cartões', origem: true,
+    info: 'No quadro: o que falta pagar até o fim do mês do topo em cada conta e cartão, inclusive o que já está atrasado.\n\nNos filtros, escolha o período, contas, cartões ou os dois. Fatura não tem categoria: com uma categoria escolhida, só aparecem as contas. Toque em Selecionar para ver cada conta e fatura em outra tela.' },
+  { id: 'cats', titulo: 'Gastos por categoria', meios: 'todos', rotulo: 'Contas e cartões', base: true,
+    info: 'No quadro: a soma dos gastos do mês do topo em cada categoria, de contas e cartões, pela data da compra, com a parte de cada uma no total.\n\nNos filtros, escolha período, categoria, contas ou cartões e se o cartão conta pelo mês da compra ou da fatura. Toque em Selecionar para ver os lançamentos de cada categoria em outra tela.' },
 ];
 const ondeDoMeio = (m) => { const n = nomeMeio(m); return ehCartao(db, m) || /^conta/i.test(n) ? n : 'Conta ' + n; };
+const meiosDaSecao = (sec) => [...(sec.meios !== 'cartoes' ? db.contasBanco : []), ...(sec.meios !== 'contas' ? db.cartoes : [])].filter((c) => ativoEm(c, mes));
 function htmlSecaoRes(sec) {
   const ym = hoje().slice(0, 7);
   const extra = sec.base ? '<label>Contar pelo<select data-f="base"><option value="compra">Mês da compra</option><option value="fatura">Mês da fatura</option></select></label>'
     : sec.origem ? '<label>Mostrar<select data-f="origem"><option value="tudo">Contas e cartões</option><option value="contas">Só contas</option><option value="cartoes">Só cartões</option></select></label>' : '';
   return `<div class="card" data-sec="${sec.id}">
     <h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true">${ICO_RES[sec.id]}</svg><span>${sec.titulo}</span><button type="button" class="infoBtn" data-inforesumo="${sec.id}" aria-label="Como funciona ${sec.titulo}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button></h2>
+    <div data-resumo></div>
+    <h3 class="dia">Filtros</h3>
     <div class="filtrosRes">
       <div class="dois"><label>Período<select data-f="per"><option value="mes">Mês do topo</option><option value="livre">Escolher período</option></select></label><label>Categoria<select data-f="cat"></select></label></div>
       <div class="dois" data-datas hidden><label>De<input type="month" data-f="ini" value="${addMes(ym, -2)}"></label><label>Até<input type="month" data-f="fim" value="${ym}"></label></div>
-      <div class="dois"><label>${sec.rotulo}<select data-f="meio"></select></label>${extra}</div>
+      <div class="dois"><div class="rotuloCampo"><span>${sec.rotulo}</span><details class="multiSel"><summary><span>Todas</span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes"></div></details></div>${extra}</div>
     </div>
-    <div data-res></div>
+    <button type="button" class="gerenciar" data-ressel="${sec.id}">Selecionar</button>
   </div>`;
 }
 function renderResumos(h) {
   if (!$('resumosSecoes').children.length) $('resumosSecoes').innerHTML = SECOES_RES.map(htmlSecaoRes).join('');
   for (const card of $('resumosSecoes').children) renderSecaoRes(card, h);
+  if (resDet) renderResDet(h);
 }
-$('resumosSecoes').addEventListener('change', (e) => { const card = e.target.closest('[data-sec]'); if (card) renderSecaoRes(card, hoje()); });
+$('resumosSecoes').addEventListener('change', (e) => {
+  const card = e.target.closest('[data-sec]');
+  if (!card) return;
+  card.querySelector('[data-datas]').hidden = card.querySelector('[data-f="per"]').value !== 'livre';
+  textoMultiSel(card);
+});
+// Lista com caixas de marcar: nenhuma marcada quer dizer todas.
+const marcados = (card) => [...card.querySelectorAll('.multiOpcoes input:checked')].map((i) => i.value);
+function textoMultiSel(card) {
+  const v = marcados(card);
+  card.querySelector('.multiSel summary span').textContent = !v.length ? 'Todas' : v.length === 1 ? nomeMeio(v[0]) : v.length + ' selecionadas';
+}
 function renderSecaoRes(card, h) {
   const sec = SECOES_RES.find((x) => x.id === card.dataset.sec), campo = (n) => card.querySelector(`[data-f="${n}"]`);
-  const contas = opcoesContas(), cartoes = opcoesDe(db.cartoes.filter((c) => ativoEm(c, mes)));
   encher(campo('cat'), '<option value="">Todas</option>' + db.categorias.filter((c) => c.tipo === 'S').map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join(''));
-  encher(campo('meio'), '<option value="">Todas</option>' + (sec.meios === 'contas' ? contas : sec.meios === 'cartoes' ? cartoes : `<optgroup label="Contas">${contas}</optgroup><optgroup label="Cartões">${cartoes}</optgroup>`));
+  const antes = marcados(card);
+  card.querySelector('.multiOpcoes').innerHTML = meiosDaSecao(sec).map((c) => `<label>${iconeHtml(c)}<span class="q">${esc(nomeExib(c))}</span><input type="checkbox" value="${esc(c.id)}"${antes.includes(c.id) ? ' checked' : ''}></label>`).join('');
+  textoMultiSel(card);
+  card.querySelector('[data-resumo]').innerHTML = htmlResumoSecao(sec, h);
+}
+// O quadro: o mes do topo, uma linha por conta ou cartao, com o icone e o total.
+function htmlResumoSecao(sec, h) {
+  const f = { ini: mes, fim: mes, cat: '', meios: [], base: 'compra', origem: 'tudo' };
+  const vazio = '<p class="fraco" style="margin:0 0 6px">Nada neste mês.</p>';
+  if (sec.id === 'cats') {
+    const lista = resumoCategorias(db, f), soma = lista.reduce((a, g) => a + g.valor, 0);
+    return !lista.length ? vazio : lista.map((g) => `<div class="linha">${iconeCatId(g.cat)}<span class="q">${esc(nomeCat(g.cat))}</span><span class="valor">${brlSinal(g.valor)} <small>${soma ? Math.round(g.valor / soma * 100) : 0}%</small></span></div>`).join('')
+      + `<div class="linha"><b class="q">Total</b><span class="valor">${brlSinal(soma)}</span></div>`;
+  }
+  const itens = sec.id === 'apagar' ? resumoAPagar(db, f, h) : (sec.id === 'conta' ? resumoConta(db, f) : resumoCartoes(db, f)).map((l) => ({ meio: l.meio, valor: l.valor, venc: '9999' }));
+  const grupos = new Map();
+  for (const i of itens) {
+    if (!grupos.has(i.meio)) grupos.set(i.meio, { meio: i.meio, total: 0, n: 0, atraso: false });
+    const g = grupos.get(i.meio);
+    g.total += i.valor; g.n += 1; g.atraso = g.atraso || i.venc < h;
+  }
+  const lista = [...grupos.values()].sort((a, b) => b.total - a.total), total = lista.reduce((a, g) => a + g.total, 0);
+  return !lista.length ? vazio : lista.map((g) => `<div class="linha">${iconeDoMeio(g.meio)}<span class="q">${esc(ondeDoMeio(g.meio))}<small class="${g.atraso ? 'neg' : 'fraco'}">${g.n} ${sec.id === 'apagar' ? (g.n > 1 ? 'itens' : 'item') : (g.n > 1 ? 'lançamentos' : 'lançamento')}${g.atraso ? ' · com atraso' : ''}</small></span><span class="valor">${brlSinal(g.total)}</span></div>`).join('')
+    + `<div class="linha"><b class="q">Total</b><span class="valor">${brlSinal(total)}</span></div>`;
+}
+
+// Detalhe dos filtros: outra tela, que entra da direita e volta pelo voltar.
+let resDet = null, resRolagem = 0;
+function abrirResDet(id) {
+  const card = $('resumosSecoes').querySelector(`[data-sec="${id}"]`), sec = SECOES_RES.find((x) => x.id === id), campo = (n) => card.querySelector(`[data-f="${n}"]`);
   const livre = campo('per').value === 'livre';
-  card.querySelector('[data-datas]').hidden = !livre;
   const f = {
-    ini: livre ? campo('ini').value : mes, fim: livre ? campo('fim').value : mes, cat: campo('cat').value, meio: campo('meio').value,
+    ini: livre ? campo('ini').value : mes, fim: livre ? campo('fim').value : mes, cat: campo('cat').value, meios: marcados(card),
     base: sec.base ? campo('base').value : 'compra', origem: sec.origem ? campo('origem').value : 'tudo',
   };
-  const res = card.querySelector('[data-res]');
-  if (!f.ini || !f.fim || f.ini > f.fim) { res.innerHTML = '<div class="aviso">Escolha o mês inicial e o final, nessa ordem.</div>'; return; }
+  if (!f.ini || !f.fim || f.ini > f.fim) return avisar('Período inválido', 'Escolha o mês inicial e o final, nessa ordem.');
+  resDet = { sec, f };
+  resRolagem = scrollY;
+  history.pushState({ resDet: true }, '');
+  document.querySelectorAll('main > section').forEach((x) => { x.hidden = x.id !== 's-resdet'; });
+  document.body.classList.add('emAjustes');
+  $('mais').hidden = true;
+  renderResDet(hoje());
+  deslizar($('s-resdet'), 'desliza-d');
+  scrollTo(0, 0);
+}
+function fecharResDet() {
+  resDet = null;
+  abrirAba('contas');
+  deslizar($('s-contas'), 'desliza-e');
+  scrollTo(0, resRolagem);
+}
+function renderResDet(h) {
+  const { sec, f } = resDet;
+  const periodo = f.ini === f.fim ? nomeMesAno(f.ini) : `${nomeMesAno(f.ini)} a ${nomeMesAno(f.fim)}`;
+  const partes = [periodo, f.cat ? nomeCat(f.cat) : 'Todas as categorias', f.meios.length ? f.meios.map(nomeMeio).join(', ') : `Todas: ${sec.rotulo.toLowerCase()}`];
+  if (sec.base) partes.push(f.base === 'fatura' ? 'Pelo mês da fatura' : 'Pelo mês da compra');
+  if (sec.origem && f.origem !== 'tudo') partes.push(f.origem === 'contas' ? 'Só contas' : 'Só cartões');
+  $('rdTitulo').textContent = sec.titulo;
+  $('rdFiltros').textContent = partes.join(' · ');
   const vazio = '<p class="fraco" style="margin:0">Nada encontrado com estes filtros.</p>';
-  const total = (lista) => lista.reduce((s, x) => s + x.valor, 0);
-  if (sec.id === 'cats') {
-    const lista = resumoCategorias(db, f), soma = total(lista);
-    res.innerHTML = !lista.length ? vazio : `<table class="tabBal tabCat"><thead><tr><th scope="col">Categoria</th><th scope="col">Valor</th><th scope="col">%</th></tr></thead>
-      <tbody>${lista.map((g) => `<tr><td>${iconeCatId(g.cat)}${esc(nomeCat(g.cat))}</td><td>${brlSinal(g.valor)}</td><td>${soma ? Math.round(g.valor / soma * 100) : 0}%</td></tr>`).join('')}</tbody>
-      <tfoot><tr><th scope="row">Total</th><th>${brlSinal(soma)}</th><th></th></tr></tfoot></table>`;
-    return;
-  }
+  const onde = (m, extra) => `<small class="icoMini">${iconeDoMeio(m)} ${esc(ondeDoMeio(m))}${extra}</small>`;
+  const linhaLanc = (l, pend) => `<tr><td>${dataBR(l.data).slice(0, 5)}</td><td>${esc(l.desc)}${l.de ? ` (${l.parcela}/${l.de})` : ''}${onde(l.meio, ` · ${esc(nomeCat(l.cat))}${pend && !l.pago ? ' · Pendente' : ''}`)}</td><td>${brlSinal(l.valor)}</td></tr>`;
+  const total = (lista) => lista.reduce((a, x) => a + x.valor, 0);
+  const cab = (c1) => `<table class="tabBal tabRes"><thead><tr><th scope="col">${c1}</th><th scope="col">Descrição</th><th scope="col">Valor</th></tr></thead><tbody>`;
+  const rodape = (n, v) => `</tbody><tfoot><tr><th scope="row" colspan="2">Total (${n})</th><th>${brlSinal(v)}</th></tr></tfoot></table>`;
   if (sec.id === 'apagar') {
     const lista = resumoAPagar(db, f, h);
-    res.innerHTML = !lista.length ? vazio : `<table class="tabBal tabRes"><thead><tr><th scope="col">Vence</th><th scope="col">Descrição</th><th scope="col">Valor</th></tr></thead>
-      <tbody>${lista.map((i) => `<tr><td class="${i.venc < h ? 'atraso' : ''}">${dataBR(i.venc).slice(0, 5)}</td><td>${esc(i.desc)}<small>${i.tipo === 'fatura' ? 'Cartão' : esc(ondeDoMeio(i.meio)) + ' · ' + esc(nomeCat(i.lanc.cat))}${i.venc < h ? ' · Atrasada' : ''}</small></td><td>${brl(i.valor)}</td></tr>`).join('')}</tbody>
-      <tfoot><tr><th scope="row" colspan="2">Total (${lista.length})</th><th>${brl(total(lista))}</th></tr></tfoot></table>`;
+    $('rdTabela').innerHTML = !lista.length ? vazio : cab('Vence') + lista.map((i) => `<tr><td class="${i.venc < h ? 'atraso' : ''}">${dataBR(i.venc).slice(0, 5)}</td><td>${esc(i.desc)}${onde(i.meio, `${i.tipo === 'conta' ? ' · ' + esc(nomeCat(i.lanc.cat)) : ''}${i.venc < h ? ' · Atrasada' : ''}`)}</td><td>${brl(i.valor)}</td></tr>`).join('') + rodape(lista.length, total(lista));
+    return;
+  }
+  if (sec.id === 'cats') {
+    const lancs = [...resumoConta(db, f), ...resumoCartoes(db, f)], grupos = resumoCategorias(db, f);
+    $('rdTabela').innerHTML = !grupos.length ? vazio : cab('Data') + grupos.map((g) => `<tr class="grupoCat"><th colspan="2" scope="rowgroup">${iconeCatId(g.cat)}${esc(nomeCat(g.cat))}</th><th>${brlSinal(g.valor)}</th></tr>`
+      + lancs.filter((l) => l.cat === g.cat).sort((a, b) => a.data.localeCompare(b.data)).map((l) => linhaLanc(l, true)).join('')).join('') + rodape(lancs.length, total(lancs));
     return;
   }
   const lista = sec.id === 'conta' ? resumoConta(db, f) : resumoCartoes(db, f);
-  res.innerHTML = !lista.length ? vazio : `<table class="tabBal tabRes"><thead><tr><th scope="col">Data</th><th scope="col">Descrição</th><th scope="col">Valor</th></tr></thead>
-    <tbody>${lista.map((l) => `<tr><td>${dataBR(l.data).slice(0, 5)}</td><td>${esc(l.desc)}${l.de ? ` (${l.parcela}/${l.de})` : ''}<small>${esc(ondeDoMeio(l.meio))} · ${esc(nomeCat(l.cat))}${!l.pago && sec.id === 'conta' ? ' · Pendente' : ''}</small></td><td>${brlSinal(l.valor)}</td></tr>`).join('')}</tbody>
-    <tfoot><tr><th scope="row" colspan="2">Total (${lista.length})</th><th>${brlSinal(total(lista))}</th></tr></tfoot></table>`;
+  $('rdTabela').innerHTML = !lista.length ? vazio : cab('Data') + lista.map((l) => linhaLanc(l, sec.id === 'conta')).join('') + rodape(lista.length, total(lista));
 }
 
 // Tela Detalhes da fatura: abre por cima da aba de origem e entra no historico, como as telas de Ajustes.
@@ -1239,7 +1331,7 @@ function irParaLancar() {
 }
 // Limites: lista e detalhe; o detalhe entra no historico como a fatura, para o voltar do Android funcionar.
 let limCat = null, limRolagem = 0, limEditando = null;
-const brlSinal = (v) => (v < 0 ? '−' : '') + brl(Math.abs(v));
+const brlSinal = (v) => (valoresOcultos ? OCULTO : (v < 0 ? '−' : '') + brl(Math.abs(v)));
 const htmlMesesLim = () => `<div class="mesesFat">
     <button type="button" class="mesFatBtn" data-limmes="-1"><span style="display:inline-block">‹ ${nomeMes(addMes(mes, -1), { month: 'long' })}</span></button>
     <b aria-live="polite">${nomeMes(mes, { month: 'long', year: 'numeric' })}</b>
@@ -1353,6 +1445,7 @@ $('filtroCartOpcoes').onchange = (e) => {
 document.addEventListener('click', (e) => {
   if (!e.target.closest('#filtroCart')) $('filtroCart').open = false;
   if (!e.target.closest('#fContaSel')) $('fContaSel').open = false;
+  document.querySelectorAll('details.multiSel[open]').forEach((x) => { if (!x.contains(e.target)) x.open = false; });
 });
 function renderFiltroCartoes(ativos, marcados) {
   $('filtroCart').hidden = !ativos.length;
@@ -1632,6 +1725,7 @@ function abrirTela(id) {
 addEventListener('popstate', (e) => {
   const st = e.state || {};
   if (catDet && !st.catDet) { voltarAoResumo(); return; }
+  if (resDet && !st.resDet) { fecharResDet(); return; }
   if (lancOrigem) {
     const aba = lancOrigem;
     limparLanc();
@@ -1896,6 +1990,64 @@ function pedirSenhaBackup(criar, erro = '', senhaApp = false) {
   });
 }
 // Backup: mesmo caminho do Carteira BDR. Arquivo .txt porque o Android nao compartilha .json.
+// Exportar para Excel: arquivo CSV com ponto e virgula e virgula decimal, que o Excel em portugues abre direto.
+// Os valores saem sempre de verdade, mesmo com o olhinho fechado.
+const numCsv = (c) => (c / 100).toFixed(2).replace('.', ',');
+const dataCsv = (d) => `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}`;
+const celCsv = (v) => { const t = String(v ?? ''); return /[;"\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+async function exportarCSV(nome, cabecalho, linhas) {
+  if (!linhas.length) return avisar('Nada para exportar', 'Não há lançamentos nesta tela.');
+  const texto = '\ufeff' + [cabecalho, ...linhas].map((l) => l.map(celCsv).join(';')).join('\r\n');
+  const arq = new File([texto], nome.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w-]+/g, '-').replace(/-+/g, '-') + '.csv', { type: 'text/csv' });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [arq] })) await navigator.share({ files: [arq], title: arq.name });
+    else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(arq);
+      a.download = arq.name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    }
+  } catch (err) {
+    if (err.name !== 'AbortError') avisar('Não foi possível exportar', err.message);
+  }
+}
+const situacaoLanc = (l) => (ehCartao(db, l.meio) ? 'Cartão' : l.pago ? (l.tipo === 'E' ? 'Recebido' : 'Pago') : 'Pendente');
+const linhaLancCsv = (l) => [dataCsv(l.data), l.desc, l.de ? `${l.parcela}/${l.de}` : '', nomeCat(l.cat), ondeDoMeio(l.meio), numCsv(l.valor), situacaoLanc(l)];
+const CAB_LANC = ['Data', 'Descrição', 'Parcela', 'Categoria', 'Conta ou cartão', 'Valor', 'Situação'];
+function exportar(tipo) {
+  const h = hoje();
+  if (tipo === 'fluxo') {
+    const conta = contaDoFluxo();
+    const linhas = linhasFluxo(db, mes, 'fluxo', conta, mes).sort((a, b) => a.data.localeCompare(b.data)).map((i) => [dataCsv(i.data), i.desc, i.lanc && i.lanc.cat ? nomeCat(i.lanc.cat) : i.fatura ? 'Fatura de cartão' : 'Transferência',
+      numCsv(i.sinal * i.valor), i.pago ? 'Pago' : i.data < h ? 'Atrasado' : 'Pendente']);
+    return exportarCSV(`fluxo-${nomeMeio(conta)}-${mes}`, ['Data', 'Descrição', 'Categoria', 'Valor (+ entra, − sai)', 'Situação'], linhas);
+  }
+  if (tipo === 'categoria') {
+    const itens = lancsVisiveis(db).filter((l) => l.tipo === 'S' && l.cat === catDet && l.data.slice(0, 7) === mes).sort((a, b) => a.data.localeCompare(b.data));
+    return exportarCSV(`gastos-${nomeCat(catDet)}-${mes}`, CAB_LANC, itens.map(linhaLancCsv));
+  }
+  if (tipo === 'resumos') {
+    const { sec, f } = resDet, nome = `resumo-${sec.id}-${f.ini}${f.fim !== f.ini ? '-a-' + f.fim : ''}`;
+    if (sec.id === 'apagar') {
+      return exportarCSV(nome, ['Vencimento', 'Descrição', 'Categoria', 'Conta ou cartão', 'Valor', 'Situação'],
+        resumoAPagar(db, f, h).map((i) => [dataCsv(i.venc), i.desc, i.tipo === 'conta' ? nomeCat(i.lanc.cat) : 'Fatura de cartão', ondeDoMeio(i.meio), numCsv(i.valor), i.venc < h ? 'Atrasado' : 'Em aberto']));
+    }
+    const lista = sec.id === 'conta' ? resumoConta(db, f) : sec.id === 'cartoes' ? resumoCartoes(db, f) : [...resumoConta(db, f), ...resumoCartoes(db, f)].sort((a, b) => nomeCat(a.cat).localeCompare(nomeCat(b.cat)) || a.data.localeCompare(b.data));
+    return exportarCSV(nome, CAB_LANC, lista.map(linhaLancCsv));
+  }
+  if (tipo === 'cartoes') {
+    const ativos = db.cartoes.filter((c) => ativoEm(c, mes)), marcados = ativos.filter((c) => filtroCartoes.has(c.id));
+    const linhas = (marcados.length ? marcados : ativos).flatMap((c) => itensFatura(db, c, mes).sort((a, b) => a.lanc.data.localeCompare(b.lanc.data))
+      .map((p) => [c.nome, nomeMesAno(mes), statusFatura(db, c, mes, h), dataCsv(p.lanc.data), p.lanc.desc, p.de ? `${p.n}/${p.de}` : '', nomeCat(p.lanc.cat), numCsv(p.valor)]));
+    return exportarCSV(`faturas-${mes}`, ['Cartão', 'Fatura', 'Situação', 'Data', 'Descrição', 'Parcela', 'Categoria', 'Valor'], linhas);
+  }
+}
+$('hOlho').onclick = () => {
+  valoresOcultos = !valoresOcultos;
+  try { localStorage.setItem('controle-diario-ocultar', valoresOcultos ? '1' : '0'); } catch {}
+  render();
+};
 async function salvarBackup() {
   // Com senha no app, nao pergunta nada; o arquivo abre com essa senha.
   const comSenhaApp = temSenha(), senha = comSenhaApp ? null : await pedirSenhaBackup(true);
@@ -2005,6 +2157,8 @@ document.addEventListener('click', async (e) => {
   if (d.fatura) { abrirFatura(d.fatura, d.ym); return; }
   if (d.fluxoconta) { abrirFluxoDoResumo(d.fluxoconta); return; }
   if (d.fluxosel) { fluxoConta = d.fluxosel; $('fContaSel').open = false; renderFluxo(hoje()); return; }
+  if (d.ressel) { abrirResDet(d.ressel); return; }
+  if (d.exportar) { exportar(d.exportar); return; }
   if (d.inforesumo) { const sec = SECOES_RES.find((x) => x.id === d.inforesumo); avisar(sec.titulo, sec.info); return; }
   if (d.catdet) { abrirCatDet(d.catdet); return; }
   if (d.limite) { abrirLimite(d.limite); return; }
@@ -2059,9 +2213,9 @@ document.addEventListener('click', async (e) => {
     $('rTip').innerHTML = textoMesBal(balancoAtual.find((m) => m.ym === d.balmes));
   } else if (d.aba) {
     // Saindo pelo menu de telas abertas a partir do Resumo: tira do historico as telas empilhadas.
-    if (fluxoDoResumo || catDet) {
-      const n = (fluxoDoResumo ? 1 : 0) + (catDet ? 1 : 0) + (lancOrigem ? 1 : 0) + (fatCartao ? (history.state && history.state.lanc ? 2 : 1) : 0);
-      fluxoDoResumo = false; catDet = null; lancOrigem = null; fatCartao = null;
+    if (fluxoDoResumo || catDet || resDet) {
+      const n = (fluxoDoResumo ? 1 : 0) + (catDet ? 1 : 0) + (resDet ? 1 : 0) + (lancOrigem ? 1 : 0) + (fatCartao ? (history.state && history.state.lanc ? 2 : 1) : 0);
+      fluxoDoResumo = false; catDet = null; resDet = null; lancOrigem = null; fatCartao = null;
       limparLanc();
       history.go(-n);
     }
