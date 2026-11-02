@@ -722,5 +722,33 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.deepStrictEqual(meios.map((g) => [g.meio, g.total]), [['cc', 400], ['g', 800], ['p', 50]]);
   assert.deepStrictEqual(meios[0].itens.map((l) => l.id), ['b', 'a']);
   assert.strictEqual(meios.reduce((s, g) => s + g.total, 0), c.gastosPorCategoria(dbMeio, '2026-11').k);
+  // Resumos: periodo, categoria, conta ou cartao, base do cartao e o que falta pagar
+  const dbR = {
+    contasBanco: [{ id: 'cc', nome: 'C', saldoInicial: 0 }, { id: 'pp', nome: 'P', saldoInicial: 0 }],
+    cartoes: [{ id: 'k', nome: 'K', fechamento: 20, vencimento: 28, contaPag: 'cc' }], faturasPagas: {}, parciais: [], series: [],
+    lancs: [
+      { id: 'c1', tipo: 'S', data: '2026-10-10', valor: 100, meio: 'cc', cat: 'casa', pago: true },
+      { id: 'c2', tipo: 'S', data: '2026-11-10', valor: 200, meio: 'cc', cat: 'casa', pago: false },
+      { id: 'c3', tipo: 'S', data: '2026-11-12', valor: 50, meio: 'pp', cat: 'lazer', pago: false },
+      { id: 'c4', tipo: 'S', data: '2026-09-05', valor: 70, meio: 'cc', cat: 'lazer', pago: false },
+      { id: 'k1', tipo: 'S', data: '2026-10-25', valor: 300, meio: 'k', cat: 'casa', pago: true },
+      { id: 'k2', tipo: 'S', data: '2026-11-21', valor: 400, meio: 'k', cat: 'lazer', pago: true },
+      { id: 'e1', tipo: 'E', data: '2026-11-01', valor: 999, meio: 'cc', cat: 'r', pago: true },
+    ],
+  };
+  const fR = (x) => ({ ini: '2026-11', fim: '2026-11', cat: '', meio: '', base: 'compra', origem: 'tudo', ...x });
+  const ids = (l) => l.map((x) => x.id);
+  assert.deepStrictEqual(ids(c.resumoConta(dbR, fR())), ['c2', 'c3']);
+  assert.deepStrictEqual(ids(c.resumoConta(dbR, fR({ ini: '2026-09' }))), ['c4', 'c1', 'c2', 'c3']);
+  assert.deepStrictEqual(ids(c.resumoConta(dbR, fR({ cat: 'casa', meio: 'cc', ini: '2026-10' }))), ['c1', 'c2']);
+  assert.deepStrictEqual(ids(c.resumoCartoes(dbR, fR())), ['k2']);
+  assert.deepStrictEqual(ids(c.resumoCartoes(dbR, fR({ base: 'fatura' }))), ['k1'], 'compra de 25/10 entra na fatura de novembro');
+  assert.deepStrictEqual(c.resumoCategorias(dbR, fR()), [{ cat: 'lazer', valor: 450 }, { cat: 'casa', valor: 200 }]);
+  const apagar = (x) => c.resumoAPagar(dbR, fR(x), '2026-11-15').map((i) => i.tipo === 'conta' ? i.lanc.id : i.desc + ' ' + i.ym + ' ' + i.valor);
+  assert.deepStrictEqual(apagar(), ['c4', 'c2', 'c3', 'Fatura K 2026-11 300']);
+  assert.deepStrictEqual(apagar({ origem: 'contas' }), ['c4', 'c2', 'c3']);
+  assert.deepStrictEqual(apagar({ origem: 'cartoes' }), ['Fatura K 2026-11 300']);
+  assert.deepStrictEqual(apagar({ cat: 'casa' }), ['c2'], 'com categoria, fatura nao entra');
+  assert.deepStrictEqual(apagar({ ini: '2026-12', fim: '2026-12' }), ['c4', 'c2', 'c3', 'Fatura K 2026-12 400'], 'atrasadas entram em qualquer periodo futuro');
   console.log('calc.js: todos os testes passaram');
 })().catch((e) => { console.error(e); process.exit(1); });

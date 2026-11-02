@@ -101,6 +101,7 @@
   button.linha.venceHoje { background: var(--aviso); }
   button.linha.atrasada { background: var(--atraso); }
   button.linha.venceHoje small, button.linha.atrasada small { color: var(--txt); }
+  .seletorFluxo { margin: 0 0 12px; }
   #fBarra { position: fixed; z-index: 9; left: 0; right: 0; bottom: calc(61px + env(safe-area-inset-bottom)); padding: 8px 8px 8px 16px; background: var(--card); border-top: 1px solid var(--linha); box-shadow: 0 -4px 12px rgba(0,0,0,.1); }
   #fBarra > div { display: flex; align-items: flex-start; gap: 4px; max-width: 640px; margin: 0 auto; }
   #fBarraDados { flex: 1; min-width: 0; }
@@ -206,9 +207,34 @@
   #dInfoBackup button, #dInfoMes button { width: 100%; margin-top: 16px; }
   #dInfoMes .linha { padding: 5px 0; font-size: 14px; }
   .tituloMes { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+  /* Titulos do Resumo: faixa de ponta a ponta no alto do quadro, na cor das contas atrasadas do Fluxo. */
+  h2.faixaTit { display: flex; align-items: center; gap: 8px; margin: -14px -16px 12px; padding: 10px 16px; background: var(--atraso); border-radius: 20px 20px 0 0; }
+  h2.faixaTit > span:first-of-type { flex: 1; min-width: 0; }
+  .icoTit { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tituloMes button.infoBtn { margin: -10px -10px -10px 0; }
   .infoBtn svg { display: block; margin: auto; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
   #rMeios .linha small, #rPagarMes .linha small { display: block; }
+  .tituloCartoes { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .tituloCartoes small { font-size: 14px; font-weight: 600; color: var(--txt); }
+  /* Tabela de lancamentos: data, descricao com a conta ou o cartao embaixo, valor. */
+  .tabRes td small { display: block; color: var(--mut); font-size: 12px; }
+  .tabRes td:nth-child(2), .tabRes th:nth-child(2) { text-align: left; overflow-wrap: anywhere; }
+  .tabRes td { vertical-align: top; }
+  .tabRes td:last-child, .tabRes th:last-child { white-space: nowrap; }
+  .tabRes td.atraso { color: var(--neg); font-weight: 600; }
+  .tabCat td:first-child { overflow-wrap: anywhere; }
+  .tabCat td:nth-child(2), .tabCat td:nth-child(3) { white-space: nowrap; }
+  .filtrosRes label { margin-bottom: 8px; }
+  .filtrosRes select, .filtrosRes input { font-size: 14px; }
+  [data-res] { margin-top: 4px; }
+  /* Seletor de conta do Fluxo: lista propria para mostrar o icone de cada conta. */
+  .seletorFluxo { margin: 0 0 12px; }
+  .seletorFluxo > span { display: block; font-size: 13px; color: var(--mut); margin-bottom: 4px; }
+  #fContaSel { position: relative; }
+  #fContaSel summary { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 14px; border-radius: 12px; background: var(--campo); list-style: none; cursor: pointer; }
+  #fContaSel summary::-webkit-details-marker { display: none; }
+  #fContaSel summary > span:nth-child(2) { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  #fContaOpcoes { position: absolute; z-index: 5; top: calc(100% + 4px); left: 0; right: 0; max-height: 300px; overflow-y: auto; padding: 4px 12px; border-radius: 12px; background: var(--card); box-shadow: 0 4px 16px rgba(0, 0, 0, .25); }
   button.voltarTela { flex: none; width: 44px; height: 44px; padding: 0 0 4px; font-size: 30px; line-height: 1; font-weight: 400; background: var(--campo); color: var(--txt); }
   :root[data-theme=dark] button.voltarTela { color: var(--txt); }
   .tela.entra { animation: telaEntra .22s ease-out; }
@@ -220,6 +246,8 @@
   .botoes2 button[hidden] { display: none; }
   .icoMenu { flex: none; width: 24px; height: 24px; fill: none; stroke: var(--pri); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .icoCat { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; }
+  .icoCat.verde { background: #15803d; }
+  .icoCat.vermelho { background: #c0262d; }
   .icoCat.peq { width: 24px; height: 24px; margin-right: 8px; vertical-align: middle; }
   .icoCat svg, button.opcIco svg { width: 62%; height: 62%; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .gradeIco { display: grid; grid-template-columns: repeat(auto-fill, 46px); justify-content: space-between; gap: 6px; margin-top: 8px; }
@@ -306,29 +334,26 @@
   <div id="avisoBackup" class="aviso" hidden></div>
 
   <section id="s-resumo">
-    <div class="card"><h2>Minhas contas</h2><div id="rContas"></div><button type="button" class="sec gerenciar" data-aba="ajustes" data-tela="tContas">Gerenciar contas</button></div>
-    <div class="card" id="rFaturasBox">
-      <small class="fraco">Faturas do mês</small>
-      <div id="rFaturasTotal" class="valor neg" style="font-size:20px"></div>
-      <h2 style="margin-top:10px">Meus cartões</h2>
+    <div class="card"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="15" rx="2"/><circle cx="12" cy="11.5" r="3.5"/><path d="M12 8v1.5M12 13.5V15M8.5 11.5H10M14 11.5h1.5M6 19v2M18 19v2"/></svg><span>Minhas contas</span></h2><div id="rContas"></div><button type="button" class="sec gerenciar" data-aba="ajustes" data-tela="tContas">Gerenciar contas</button></div>
+    <div class="card">
+      <h2 class="tituloCartoes faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="8" width="15" height="11" rx="2"/><path d="M2 12h15"/><path d="M6 5h14a2 2 0 0 1 2 2v9"/></svg><span>Meus cartões</span><small>Faturas atuais: <span id="rFaturasTotal" class="valor neg"></span></small></h2>
       <div id="rCartoes"></div>
       <button type="button" class="sec gerenciar" data-aba="ajustes" data-tela="tCartoes">Gerenciar cartões</button>
     </div>
-    <div class="card"><h2>Fluxo de caixa</h2><div class="fluxo" id="rFluxo"></div></div>
+    <div class="card"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 20V4M3 8l4-4 4 4"/><path d="M17 4v16M13 16l4 4 4-4"/></svg><span>Fluxo de caixa</span></h2><div class="fluxo" id="rFluxo"></div></div>
     <div class="card">
-      <h2 class="tituloMes"><span id="rMesTitulo"></span><button type="button" class="infoBtn" id="rMesInfo" aria-label="Como estes valores são compostos"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button></h2>
-      <div class="linha"><span>Entradas</span><span id="rEntradas" class="valor pos"></span></div>
+      <h2 class="tituloMes faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 21z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><span id="rMesTitulo"></span><button type="button" class="infoBtn" id="rMesInfo" aria-label="Como estes valores são compostos"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button></h2>
+      <div class="linha"><span id="rEntradasIco"></span><span class="q">Entradas</span><span id="rEntradas" class="valor pos"></span></div>
       <div id="rMeios"></div>
-      <div class="linha"><span>Gastos</span><span id="rGastos" class="valor neg"></span></div>
-      <div class="linha"><b>Sobra</b><span id="rSobra" class="valor"></span></div>
+      <div class="linha"><span id="rGastosIco"></span><span class="q">Gastos</span><span id="rGastos" class="valor neg"></span></div>
+      <div class="linha"><span id="rSobraIco"></span><b class="q">Saldo</b><span id="rSobra" class="valor"></span></div>
     </div>
-    <div class="card"><h2 id="rPagarTitulo"></h2><div id="rPagarMes"></div></div>
-    <div class="card"><h2>A pagar e a receber</h2><div id="rProximo"></div></div>
-    <div class="card"><h2>A pagar</h2><div id="rPagar"></div></div>
-    <div class="card"><h2>Gastos por categoria</h2><div id="rCats"></div></div>
+    <div class="card"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8.5 15.5l2 2 4.5-4.5"/></svg><span id="rPagarTitulo"></span></h2><div id="rPagarMes"></div></div>
+    <div class="card"><h2 class="tituloMes faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 2.6A9 9 0 0 1 21.4 9H15z"/></svg><span>Gastos por Categoria por Mês</span><button type="button" class="infoBtn" id="rCatsInfo" aria-label="O que entra em Gastos por categoria"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button></h2><div id="rCats"></div></div>
   </section>
 
   <section id="s-fluxo" hidden>
+    <div class="seletorFluxo"><span>Conta</span><details id="fContaSel"><summary></summary><div id="fContaOpcoes"></div></details></div>
     <div class="card"><div id="lLista"></div></div>
     <div id="fBarra"><div>
       <div id="fBarraDados"><div class="fluxo" id="fAtual"></div><div id="fMais" aria-hidden="true"><div><div class="fluxo" id="fPrevisto"></div></div></div></div>
@@ -415,11 +440,11 @@
     </form>
   </section>
 
-  <section id="s-contas" hidden>
-    <div class="botoes" style="margin-bottom:14px"><button type="button" id="cNova">Nova conta a pagar</button></div>
-    <div class="card"><h2>A pagar</h2><small class="fraco">Até o fim do mês, com as atrasadas. Toque na descrição para corrigir ou excluir.</small><div id="cLista"></div></div>
-    <div class="card"><h2>A receber</h2><div id="cReceber"></div></div>
+  <section id="s-catdet" hidden>
+    <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="cdTitulo"></h2></div>
+    <div class="card"><div id="cdTabela"></div></div>
   </section>
+  <section id="s-contas" hidden><div id="resumosSecoes"></div></section>
 
   <section id="s-cartoes" hidden><div class="filtrosCartao"><label><input id="fResumido" type="checkbox">Resumido</label><details id="filtroCart"><summary><span id="filtroCartTxt"></span><span aria-hidden="true">▾</span></summary><div id="filtroCartOpcoes"></div></details></div><div id="fLista"></div><div id="fAtrasadas"></div></section>
 
@@ -441,7 +466,7 @@
         <button type="button" class="linha" data-tela="tAparencia"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg><span class="q">Aparência</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tArquivadas" id="aMenuArq" hidden><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg><span class="q">Arquivadas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.32.1 · 01/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.37.0 · 02/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -530,6 +555,7 @@
         <label>Saldo inicial<input id="aSaldo" class="moeda" inputmode="numeric" autocomplete="off"></label>
       </div>
       <label><input id="aNegativo" type="checkbox">Saldo inicial negativo</label>
+      <label id="aPrincipalBox"><input id="aPrincipal" type="checkbox">Conta principal (o Fluxo abre nela)</label>
       <div class="botoes botoes2">
         <button type="submit">Salvar</button>
         <button type="button" class="sec" id="aContaLimpar">Limpar</button>
@@ -589,7 +615,7 @@
   <button data-aba="fluxo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg>Fluxo</button>
   <button data-aba="relatorios"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.5 6"/></svg>Relatórios</button>
   <button data-aba="limites"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>Limites</button>
-  <button data-aba="contas"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg>A pagar</button>
+  <button data-aba="contas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>Resumos</button>
   <button data-aba="cartoes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18"/></svg>Cartões</button>
   <button data-aba="ajustes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Ajustes</button>
 </nav>
@@ -798,7 +824,7 @@ function desenhar() {
   renderResumo(cats, gastos, pagar, h);
   renderFluxo(h);
   renderRelatorio();
-  renderContas(h);
+  renderResumos(h);
   renderCartoes(h);
   if (fatCartao) renderFatura(h);
   renderLimites();
@@ -832,7 +858,7 @@ $('rMesInfo').onclick = () => {
     <h4>Gastos: ${brl(totalG)}</h4>${meios.map((g) => linhaInfo(esc(nomeMeio(g.meio)), brl(g.total))).join('') || '<p>Nenhum gasto neste mês.</p>'}
     <p style="margin-top:6px"><b>Gasto no mês não é o mesmo que pago no mês.</b> No cartão, conta a compra ou a parcela com data neste mês, não o valor da fatura. O que foi gasto pode ser pago só no mês seguinte: depende das datas de fechamento e vencimento do cartão.</p>
     <h4>Gastos por categoria</h4>${cats.map(([id, v]) => linhaInfo(esc(nomeCat(id)), brl(v))).join('')}
-    <h4>Sobra: ${brl(totalE - totalG)}</h4><p>É só Entradas menos Gastos. Não é dinheiro disponível: as faturas do mês trazem principalmente compras do mês anterior.</p>
+    <h4>Saldo: ${brlSinal(totalE - totalG)}</h4><p>É só Entradas menos Gastos. Não é dinheiro disponível: as faturas do mês trazem principalmente compras do mês anterior.</p>
     <h4>O que vai acontecer na conta</h4>
     ${linhaInfo('Saldo hoje', brlSinal(f.saldo))}${linhaInfo('+ A receber', brl(receber))}${linhaInfo('− Contas a pagar', brl(contas))}${linhaInfo('− Faturas a pagar', brl(faturas))}${atrasadas ? linhaInfo('− Faturas atrasadas', brl(atrasadas)) : ''}${linhaInfo('= Saldo previsto', brlSinal(f.previsao), true)}`;
   $('dInfoMes').showModal();
@@ -841,6 +867,8 @@ $('rMesInfo').onclick = () => {
 $('dMesFechar').onclick = () => $('dInfoMes').close();
 
 // O que ainda vai entrar e sair da conta ate o fim do mes: despesas por conta e cada fatura em aberto, com as atrasadas.
+// Cifrao para entradas (verde) e gastos (vermelho); carteira para o saldo, verde ou vermelha pelo sinal.
+const icoValor = (simbolo, bom) => `<span class="icoCat ${bom ? 'verde' : 'vermelho'}" aria-hidden="true"><svg viewBox="0 0 24 24">${SIMBOLOS[simbolo][1]}</svg></span>`;
 function htmlPagarMes(pagar, h) {
   const receber = aReceber(db, mes).reduce((s, i) => s + i.valor, 0), total = pagar.reduce((s, i) => s + i.valor, 0), sobra = receber - total;
   const contas = new Map();
@@ -857,12 +885,58 @@ function htmlPagarMes(pagar, h) {
     const atrasada = i.venc < h;
     return linha(`${esc(nomeMeio(i.id))}<small class="${atrasada ? 'neg' : 'fraco'}">${atrasada ? 'Atrasada, venceu' : 'Vence'} ${dataBR(i.venc)}</small>`, brl(i.valor), '', iconeDoMeio(i.id));
   });
-  return linha('Entradas', brl(receber), 'pos')
+  return linha('Entradas', brl(receber), 'pos', icoValor('moeda', true))
     + [...contas.values()].sort((a, b) => b.total - a.total).map((g) => linha(htmlNomeMeio(g), brl(g.total), '', iconeDoMeio(g.meio))).join('')
     + faturas.join('')
-    + linha('A pagar', brl(total), 'neg')
-    + `<div class="linha"><b>Sobra</b><span class="valor ${sobra < 0 ? 'neg' : 'pos'}">${brlSinal(sobra)}</span></div>`;
+    + linha('A pagar', brl(total), 'neg', icoValor('moeda', false))
+    + `<div class="linha">${icoValor('carteira', sobra >= 0)}<b class="q">Saldo</b><span class="valor ${sobra < 0 ? 'neg' : 'pos'}">${brlSinal(sobra)}</span></div>`;
 }
+
+// Telas abertas a partir do Resumo: entram da direita e voltam para ele pelo voltar.
+let fluxoDoResumo = false, catDet = null, resumoRolagem = 0;
+function deslizar(el, classe) {
+  el.classList.remove('desliza-d', 'desliza-e');
+  void el.offsetWidth;
+  el.classList.add(classe);
+}
+function abrirFluxoDoResumo(conta) {
+  fluxoConta = conta;
+  renderFluxo(hoje());
+  resumoRolagem = scrollY;
+  abrirAba('fluxo');
+  fluxoDoResumo = true;
+  history.pushState({ fluxoResumo: true }, '');
+  deslizar($('s-fluxo'), 'desliza-d');
+}
+function abrirCatDet(id) {
+  resumoRolagem = scrollY;
+  catDet = id;
+  history.pushState({ catDet: true }, '');
+  document.querySelectorAll('main > section').forEach((s) => { s.hidden = s.id !== 's-catdet'; });
+  document.body.classList.add('emAjustes');
+  $('mais').hidden = true;
+  renderCatDet();
+  deslizar($('s-catdet'), 'desliza-d');
+  scrollTo(0, 0);
+}
+function voltarAoResumo() {
+  fluxoDoResumo = false;
+  catDet = null;
+  abrirAba('resumo');
+  deslizar($('s-resumo'), 'desliza-e');
+  scrollTo(0, resumoRolagem);
+}
+// Gastos de uma categoria no mes, em tabela, com a conta ou o cartao de cada um.
+function renderCatDet() {
+  const itens = lancsVisiveis(db).filter((l) => l.tipo === 'S' && l.cat === catDet && l.data.slice(0, 7) === mes).sort((a, b) => a.data.localeCompare(b.data));
+  const onde = (m) => { const n = nomeMeio(m); return ehCartao(db, m) || /^conta/i.test(n) ? n : 'Conta ' + n; };
+  $('cdTitulo').textContent = `${nomeCat(catDet)} (${nomeMesAno(mes)})`;
+  $('cdTabela').innerHTML = !itens.length ? '<p class="fraco" style="margin:0">Nenhum gasto nesta categoria no mês.</p>'
+    : `<table class="tabBal tabRes"><thead><tr><th scope="col">Data</th><th scope="col">Descrição</th><th scope="col">Valor</th></tr></thead>
+      <tbody>${itens.map((l) => `<tr><td>${dataBR(l.data).slice(0, 5)}</td><td>${esc(l.desc)}${l.de ? ` (${l.parcela}/${l.de})` : ''}<small>${esc(onde(l.meio))}</small></td><td>${brlSinal(l.valor)}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><th scope="row" colspan="2">Total</th><th>${brlSinal(itens.reduce((s, l) => s + l.valor, 0))}</th></tr></tfoot></table>`;
+}
+$('rCatsInfo').onclick = () => avisar('Gastos por categoria por mês', 'São os gastos do mês corrente, pela data de cada compra ou lançamento, sem considerar a data de fechamento da fatura do cartão de crédito. Toque em uma categoria para ver os gastos dela.');
 
 function renderResumo(cats, gastos, pagar, h) {
   const entradas = entradasDoMes(db, mes), sobra = entradas - gastos, meios = gastosPorMeio(db, mes);
@@ -871,13 +945,15 @@ function renderResumo(cats, gastos, pagar, h) {
   // Com uma so conta ou cartao, a lista repetiria a linha de Gastos.
   $('rMeios').innerHTML = meios.length < 2 ? '' : meios.map((g) => `<div class="linha">${iconeDoMeio(g.meio)}<span class="q">${htmlNomeMeio(g)}</span><span class="valor">${brl(g.total)}</span></div>`).join('');
   $('rGastos').textContent = brl(gastos);
-  $('rSobra').textContent = brl(sobra);
+  $('rSobra').textContent = brlSinal(sobra);
+  $('rEntradasIco').innerHTML = icoValor('moeda', true);
+  $('rGastosIco').innerHTML = icoValor('moeda', false);
+  $('rSobraIco').innerHTML = icoValor('carteira', sobra >= 0);
   $('rSobra').className = 'valor ' + (sobra < 0 ? 'neg' : 'pos');
   $('rPagarTitulo').textContent = `A ser pago no Mês (${nomeMesAno(mes)})`;
   $('rPagarMes').innerHTML = htmlPagarMes(pagar, h);
   const cartoesAtivos = db.cartoes.filter((c) => ativoEm(c, mes));
-  $('rFaturasBox').querySelector('small').textContent = 'Faturas atuais';
-  $('rFaturasTotal').textContent = '− ' + brl(cartoesAtivos.reduce((s, c) => s + faturaAtual(db, c, h).valor, 0));
+  $('rFaturasTotal').textContent = brl(cartoesAtivos.reduce((s, c) => s + faturaAtual(db, c, h).valor, 0));
   $('rCartoes').innerHTML = cartoesAtivos.map((c) => {
     const f = faturaAtual(db, c, h), livre = limiteDisponivel(db, c);
     return `<button type="button" class="cartaoRes" data-fatura="${esc(c.id)}" data-ym="${f.ym}"><span class="tituloC">${iconeHtml(c)}<b>${esc(nomeExib(c))}</b></span>
@@ -887,23 +963,11 @@ function renderResumo(cats, gastos, pagar, h) {
       </span></button>`;
   }).join('') || '<p class="fraco">Nenhum cartão neste mês.</p>';
   const saldos = saldosPorConta(db, h);
-  $('rContas').innerHTML = db.contasBanco.filter((c) => ativoEm(c, mes)).map((c) => `<div class="linha">${iconeHtml(c)}<span class="q">${esc(nomeExib(c))}<br><small>${TIPOS_CONTA[c.tipo] || ''}</small></span><span class="valor ${saldos[c.id] < 0 ? 'neg' : ''}">${brl(saldos[c.id])}</span></div>`).join('');
-  const soma = (lista) => lista.reduce((a, i) => a + i.valor, 0);
-  const prox = addMes(mes, 1), doProx = (lista) => lista.filter((i) => i.venc.slice(0, 7) === prox);
-  const nomeProx = new Date(prox + '-15T12:00').toLocaleDateString('pt-BR', { month: 'long' });
-  $('rProximo').innerHTML = [
-    ['A pagar até o fim do mês', soma(pagar)],
-    [`A pagar em ${nomeProx}`, soma(doProx(aPagar(db, prox)))],
-    ['A receber até o fim do mês', soma(aReceber(db, mes))],
-    [`A receber em ${nomeProx}`, soma(doProx(aReceber(db, prox)))],
-  ].map(([nome, v]) => `<div class="linha"><span class="q">${nome}</span><span class="valor">${brl(v)}</span></div>`).join('');
-  $('rPagar').innerHTML = pagar.map((i) => `<div class="linha">
-      <div class="q">${esc(i.desc)}<br><small class="${i.venc < h ? 'neg' : ''}">${i.venc < h ? 'Atrasada, venceu' : 'Vence'} ${dataBR(i.venc)}</small></div>
-      <span class="valor">${brl(i.valor)}</span></div>`).join('') || '<small class="fraco">Nada a pagar neste mês.</small>';
+  $('rContas').innerHTML = db.contasBanco.filter((c) => ativoEm(c, mes)).map((c) => `<button type="button" class="linha" data-fluxoconta="${esc(c.id)}">${iconeHtml(c)}<span class="q">${esc(nomeExib(c))}${c.principal ? ' <span class="selada">Principal</span>' : ''}<br><small>${TIPOS_CONTA[c.tipo] || ''}</small></span><span class="valor ${saldos[c.id] < 0 ? 'neg' : ''}">${brl(saldos[c.id])}</span></button>`).join('');
   const ordem = Object.entries(cats).sort((a, b) => b[1] - a[1]);
-  $('rCats').innerHTML = ordem.map(([id, v]) => `<div class="linha" style="display:block">
+  $('rCats').innerHTML = ordem.map(([id, v]) => `<button type="button" class="linha" style="display:block" data-catdet="${esc(id)}">
       <div style="display:flex;justify-content:space-between;gap:10px"><span class="q">${iconeCatId(id)}${esc(nomeCat(id))}</span><span class="valor">${brl(v)} <small>${Math.round(v / gastos * 100)}%</small></span></div>
-      <div class="barra"><i style="width:${v / gastos * 100}%"></i></div></div>`).join('') || '<small class="fraco">Nenhum gasto neste mês.</small>';
+      <div class="barra"><i style="width:${v / gastos * 100}%"></i></div></button>`).join('') || '<small class="fraco">Nenhum gasto neste mês.</small>';
 }
 
 const celula = (v, nome, classe) => `<div><b class="${classe}">${v < 0 ? '−' : ''}${brl(Math.abs(v))}</b><small>${nome}</small></div>`;
@@ -924,8 +988,19 @@ function linhaFluxo(i, h) {
   return `<button type="button" class="linha${cor}" data-lanc="${esc(l.id)}">${l.tipo === 'T' ? iconeDoMeio(l.meio) : iconeCat(db.categorias.find((c) => c.id === l.cat) || { nome: '' })}<span class="q">${esc(l.desc)}<br><small>${onde}${l.de ? ` · Parcela ${l.parcela}/${l.de}` : l.serie ? ' · Fixa' : ''}</small></span>${lado}</button>`;
 }
 
+// O Fluxo e de uma conta: a escolhida no seletor ou no Resumo; sem escolha, a principal; sem principal, a primeira.
+let fluxoConta = null;
+function contaDoFluxo() {
+  const ativas = db.contasBanco.filter((c) => ativoEm(c, mes));
+  const c = ativas.find((x) => x.id === fluxoConta) || ativas.find((x) => x.principal) || ativas[0];
+  return c ? c.id : '';
+}
 function renderFluxo(h) {
-  const linhas = linhasFluxo(db, mes, 'fluxo', '', mes), f = fluxoMes(db, mes, h, '', mes);
+  const conta = contaDoFluxo();
+  const atual = db.contasBanco.find((c) => c.id === conta);
+  $('fContaSel').querySelector('summary').innerHTML = atual ? `${iconeHtml(atual)}<span>${esc(nomeExib(atual))}</span><span aria-hidden="true">▾</span>` : '<span>Nenhuma conta</span>';
+  $('fContaOpcoes').innerHTML = db.contasBanco.filter((c) => ativoEm(c, mes)).map((c) => `<button type="button" class="linha" data-fluxosel="${esc(c.id)}" aria-pressed="${c.id === conta}">${iconeHtml(c)}<span class="q">${esc(nomeExib(c))}${c.principal ? ' <span class="selada">Principal</span>' : ''}</span>${c.id === conta ? '<span aria-hidden="true">✓</span>' : ''}</button>`).join('');
+  const linhas = linhasFluxo(db, mes, 'fluxo', conta, mes), f = fluxoMes(db, mes, h, conta, mes);
   $('fAtual').innerHTML = celula(f.entradas, 'Entradas', 'pos') + celula(f.saidas, 'Saídas', 'neg') + celula(f.saldo, 'Saldo hoje', corSaldo(f.saldo));
   $('fPrevisto').innerHTML = celula(f.prevEntradas, 'Entradas previstas', 'pos') + celula(f.prevSaidas, 'Saídas previstas', 'neg') + celula(f.previsao, 'Saldo previsto', corSaldo(f.previsao));
   let dia = '';
@@ -996,15 +1071,77 @@ function renderRelatorio() {
     : htmlBalanco(relatorioBalanco(itens, ini, fim));
 }
 
-function renderContas(h) {
-  const linha = (i, texto, atraso, botao) => `<div class="linha">
-      <button type="button" class="linha" style="border:0;flex:1;min-width:0" ${i.tipo === 'conta' ? `data-lanc="${esc(i.id)}"` : `data-fatura="${esc(i.id)}" data-ym="${i.ym}"`}><span class="q">${esc(i.desc)}<br>
-        <small class="${i.venc < h ? 'neg' : ''}">${i.venc < h ? atraso : texto} ${dataBR(i.venc)}</small></span>
-        <span class="valor">${brl(i.valor)}</span></button>${botao}</div>`;
-  $('cLista').innerHTML = aPagar(db, mes).map((i) => linha(i, 'Vence', 'Atrasada, venceu', i.tipo === 'conta'
-    ? `<button type="button" class="mini" data-pagar="${esc(i.id)}">Pagar</button>`
-    : `<button type="button" class="mini" data-pagafat="${esc(i.id)}" data-ym="${i.ym}"${faturaPagavel(db.cartoes.find((x) => x.id === i.id), i.ym, h) ? '' : ' disabled title="A fatura ainda não fechou"'}>Pagar</button>`)).join('') || '<p class="fraco">Nada a pagar até o fim deste mês.</p>';
-  $('cReceber').innerHTML = aReceber(db, mes).map((i) => linha(i, 'Previsto para', 'Atrasada, era para', `<button type="button" class="mini" data-pagar="${esc(i.id)}">Receber</button>`)).join('') || '<p class="fraco">Nada a receber até o fim deste mês.</p>';
+
+// Aba Resumos: quatro quadros, cada um com os seus filtros (so na memoria, guardados nos proprios campos).
+const ICO_RES = {
+  conta: '<rect x="3" y="4" width="18" height="15" rx="2"/><circle cx="12" cy="11.5" r="3.5"/><path d="M12 8v1.5M12 13.5V15M8.5 11.5H10M14 11.5h1.5M6 19v2M18 19v2"/>',
+  cartoes: '<rect x="2" y="8" width="15" height="11" rx="2"/><path d="M2 12h15"/><path d="M6 5h14a2 2 0 0 1 2 2v9"/>',
+  apagar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8.5 15.5l2 2 4.5-4.5"/>',
+  cats: '<path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M15 2.6A9 9 0 0 1 21.4 9H15z"/>',
+};
+const SECOES_RES = [
+  { id: 'conta', titulo: 'Conta corrente', meios: 'contas', rotulo: 'Conta',
+    info: 'Gastos lançados nas contas, pagos ou não, pela data de cada um. Compras no cartão não entram aqui: ficam em Cartões.\n\nFiltre por mês do topo ou escolha um período de vários meses, e combine com uma categoria e uma conta. Deixe "Todas" para ver tudo.' },
+  { id: 'cartoes', titulo: 'Cartões', meios: 'cartoes', rotulo: 'Cartão', base: true,
+    info: 'Compras nos cartões, inclusive parcelas e estornos (com sinal de menos).\n\n"Mês da compra" conta cada compra pela data em que foi feita. "Mês da fatura" conta pela fatura em que ela cai, que depende do dia de fechamento do cartão.\n\nCombine período, categoria e cartão como quiser.' },
+  { id: 'apagar', titulo: 'A pagar', meios: 'todos', rotulo: 'Conta ou cartão', origem: true,
+    info: 'O que ainda falta pagar: contas não pagas e faturas em aberto, pela data de vencimento do período escolhido. O que já está atrasado aparece sempre, com a data em vermelho.\n\nEscolha ver contas, cartões ou os dois. Fatura não tem categoria: ao escolher uma categoria, só aparecem as contas.' },
+  { id: 'cats', titulo: 'Gastos por categoria', meios: 'todos', rotulo: 'Conta ou cartão', base: true,
+    info: 'Soma dos gastos de contas e cartões em cada categoria, pagos ou não, com a parte de cada uma no total.\n\nNo cartão, escolha contar pelo mês da compra ou pelo mês da fatura. Filtre por período, categoria e conta ou cartão.' },
+];
+const ondeDoMeio = (m) => { const n = nomeMeio(m); return ehCartao(db, m) || /^conta/i.test(n) ? n : 'Conta ' + n; };
+function htmlSecaoRes(sec) {
+  const ym = hoje().slice(0, 7);
+  const extra = sec.base ? '<label>Contar pelo<select data-f="base"><option value="compra">Mês da compra</option><option value="fatura">Mês da fatura</option></select></label>'
+    : sec.origem ? '<label>Mostrar<select data-f="origem"><option value="tudo">Contas e cartões</option><option value="contas">Só contas</option><option value="cartoes">Só cartões</option></select></label>' : '';
+  return `<div class="card" data-sec="${sec.id}">
+    <h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true">${ICO_RES[sec.id]}</svg><span>${sec.titulo}</span><button type="button" class="infoBtn" data-inforesumo="${sec.id}" aria-label="Como funciona ${sec.titulo}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button></h2>
+    <div class="filtrosRes">
+      <div class="dois"><label>Período<select data-f="per"><option value="mes">Mês do topo</option><option value="livre">Escolher período</option></select></label><label>Categoria<select data-f="cat"></select></label></div>
+      <div class="dois" data-datas hidden><label>De<input type="month" data-f="ini" value="${addMes(ym, -2)}"></label><label>Até<input type="month" data-f="fim" value="${ym}"></label></div>
+      <div class="dois"><label>${sec.rotulo}<select data-f="meio"></select></label>${extra}</div>
+    </div>
+    <div data-res></div>
+  </div>`;
+}
+function renderResumos(h) {
+  if (!$('resumosSecoes').children.length) $('resumosSecoes').innerHTML = SECOES_RES.map(htmlSecaoRes).join('');
+  for (const card of $('resumosSecoes').children) renderSecaoRes(card, h);
+}
+$('resumosSecoes').addEventListener('change', (e) => { const card = e.target.closest('[data-sec]'); if (card) renderSecaoRes(card, hoje()); });
+function renderSecaoRes(card, h) {
+  const sec = SECOES_RES.find((x) => x.id === card.dataset.sec), campo = (n) => card.querySelector(`[data-f="${n}"]`);
+  const contas = opcoesContas(), cartoes = opcoesDe(db.cartoes.filter((c) => ativoEm(c, mes)));
+  encher(campo('cat'), '<option value="">Todas</option>' + db.categorias.filter((c) => c.tipo === 'S').map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join(''));
+  encher(campo('meio'), '<option value="">Todas</option>' + (sec.meios === 'contas' ? contas : sec.meios === 'cartoes' ? cartoes : `<optgroup label="Contas">${contas}</optgroup><optgroup label="Cartões">${cartoes}</optgroup>`));
+  const livre = campo('per').value === 'livre';
+  card.querySelector('[data-datas]').hidden = !livre;
+  const f = {
+    ini: livre ? campo('ini').value : mes, fim: livre ? campo('fim').value : mes, cat: campo('cat').value, meio: campo('meio').value,
+    base: sec.base ? campo('base').value : 'compra', origem: sec.origem ? campo('origem').value : 'tudo',
+  };
+  const res = card.querySelector('[data-res]');
+  if (!f.ini || !f.fim || f.ini > f.fim) { res.innerHTML = '<div class="aviso">Escolha o mês inicial e o final, nessa ordem.</div>'; return; }
+  const vazio = '<p class="fraco" style="margin:0">Nada encontrado com estes filtros.</p>';
+  const total = (lista) => lista.reduce((s, x) => s + x.valor, 0);
+  if (sec.id === 'cats') {
+    const lista = resumoCategorias(db, f), soma = total(lista);
+    res.innerHTML = !lista.length ? vazio : `<table class="tabBal tabCat"><thead><tr><th scope="col">Categoria</th><th scope="col">Valor</th><th scope="col">%</th></tr></thead>
+      <tbody>${lista.map((g) => `<tr><td>${iconeCatId(g.cat)}${esc(nomeCat(g.cat))}</td><td>${brlSinal(g.valor)}</td><td>${soma ? Math.round(g.valor / soma * 100) : 0}%</td></tr>`).join('')}</tbody>
+      <tfoot><tr><th scope="row">Total</th><th>${brlSinal(soma)}</th><th></th></tr></tfoot></table>`;
+    return;
+  }
+  if (sec.id === 'apagar') {
+    const lista = resumoAPagar(db, f, h);
+    res.innerHTML = !lista.length ? vazio : `<table class="tabBal tabRes"><thead><tr><th scope="col">Vence</th><th scope="col">Descrição</th><th scope="col">Valor</th></tr></thead>
+      <tbody>${lista.map((i) => `<tr><td class="${i.venc < h ? 'atraso' : ''}">${dataBR(i.venc).slice(0, 5)}</td><td>${esc(i.desc)}<small>${i.tipo === 'fatura' ? 'Cartão' : esc(ondeDoMeio(i.meio)) + ' · ' + esc(nomeCat(i.lanc.cat))}${i.venc < h ? ' · Atrasada' : ''}</small></td><td>${brl(i.valor)}</td></tr>`).join('')}</tbody>
+      <tfoot><tr><th scope="row" colspan="2">Total (${lista.length})</th><th>${brl(total(lista))}</th></tr></tfoot></table>`;
+    return;
+  }
+  const lista = sec.id === 'conta' ? resumoConta(db, f) : resumoCartoes(db, f);
+  res.innerHTML = !lista.length ? vazio : `<table class="tabBal tabRes"><thead><tr><th scope="col">Data</th><th scope="col">Descrição</th><th scope="col">Valor</th></tr></thead>
+    <tbody>${lista.map((l) => `<tr><td>${dataBR(l.data).slice(0, 5)}</td><td>${esc(l.desc)}${l.de ? ` (${l.parcela}/${l.de})` : ''}<small>${esc(ondeDoMeio(l.meio))} · ${esc(nomeCat(l.cat))}${!l.pago && sec.id === 'conta' ? ' · Pendente' : ''}</small></td><td>${brlSinal(l.valor)}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><th scope="row" colspan="2">Total (${lista.length})</th><th>${brlSinal(total(lista))}</th></tr></tfoot></table>`;
 }
 
 // Tela Detalhes da fatura: abre por cima da aba de origem e entra no historico, como as telas de Ajustes.
@@ -1213,7 +1350,10 @@ $('filtroCartOpcoes').onchange = (e) => {
   if (ativos.every((c) => filtroCartoes.has(c.id))) filtroCartoes.clear();
   comCache(db, () => renderCartoes(hoje()));
 };
-document.addEventListener('click', (e) => { if (!e.target.closest('#filtroCart')) $('filtroCart').open = false; });
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#filtroCart')) $('filtroCart').open = false;
+  if (!e.target.closest('#fContaSel')) $('fContaSel').open = false;
+});
 function renderFiltroCartoes(ativos, marcados) {
   $('filtroCart').hidden = !ativos.length;
   $('filtroCartTxt').textContent = !marcados.length ? 'Todos os cartões' : marcados.length === 1 ? marcados[0].nome : marcados.length + ' cartões';
@@ -1288,7 +1428,7 @@ function renderAjustes() {
   const perfil = db.perfil || {};
   $('pFotoMenu').innerHTML = htmlFoto(perfil.foto, perfil.nome);
   $('pNomeMenu').textContent = perfil.nome || 'Seu nome';
-  $('aContas').innerHTML = db.contasBanco.filter((c) => !c.arquivadaEm).map((c) => `<button type="button" class="linha" data-editconta="${esc(c.id)}">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>${TIPOS_CONTA[c.tipo] || ''}</small></span><span class="valor">${brl(c.saldoInicial)}</span>${SETA}</button>`).join('');
+  $('aContas').innerHTML = db.contasBanco.filter((c) => !c.arquivadaEm).map((c) => `<button type="button" class="linha" data-editconta="${esc(c.id)}">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>${TIPOS_CONTA[c.tipo] || ''}${c.principal ? ' · Principal' : ''}</small></span><span class="valor">${brl(c.saldoInicial)}</span>${SETA}</button>`).join('');
   const linhaArq = (c, tipo) => `<div class="linha">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>Arquivada em ${dataBR(c.arquivadaEm)}</small></span><button type="button" class="sec mini" data-desarquivar="${esc(c.id)}">Desarquivar</button></div>`;
   const contasArq = db.contasBanco.filter((c) => c.arquivadaEm), cartoesArq = db.cartoes.filter((c) => c.arquivadaEm);
   $('aArqContas').innerHTML = contasArq.map(linhaArq).join('');
@@ -1460,13 +1600,6 @@ $('rFim').value = hoje().slice(0, 7);
 ['rTipo', 'rIni', 'rFim', 'rFiltro', 'rBase'].forEach((id) => { $(id).onchange = renderRelatorio; });
 
 // A pagar: conta nova e so um gasto pendente.
-$('cNova').onclick = () => {
-  limparLanc();
-  $('lPago').checked = false;
-  $('lTitulo').textContent = 'Nova conta a pagar';
-  abrirAba('lancar');
-  $('lDesc').focus();
-};
 
 // Ajustes
 const SETA = '<span class="seta" aria-hidden="true">›</span>';
@@ -1498,6 +1631,7 @@ function abrirTela(id) {
 }
 addEventListener('popstate', (e) => {
   const st = e.state || {};
+  if (catDet && !st.catDet) { voltarAoResumo(); return; }
   if (lancOrigem) {
     const aba = lancOrigem;
     limparLanc();
@@ -1510,6 +1644,7 @@ addEventListener('popstate', (e) => {
     scrollTo(0, lancRolagem);
     return;
   }
+  if (fluxoDoResumo && !st.fluxoResumo && !fatCartao) { voltarAoResumo(); return; }
   if (st.limite) {
     if (!limCat) return;
     limparLanc();
@@ -1562,9 +1697,16 @@ function limparConta() {
   $('fConta').reset();
   $('aContaTitulo').textContent = 'Nova conta';
   $('aContaExcluir').hidden = true;
+  mostrarPrincipal(null);
+}
+// So uma conta principal: a caixa aparece para todas enquanto nenhuma for principal; depois, so na principal.
+function mostrarPrincipal(c) {
+  const outra = db.contasBanco.some((x) => x.principal && !x.arquivadaEm && (!c || x.id !== c.id));
+  $('aPrincipalBox').hidden = outra;
+  $('aPrincipal').checked = !!(c && c.principal);
 }
 // Limpar apaga os campos e continua no mesmo item: Excluir e Salvar seguem valendo para ele.
-$('aContaLimpar').onclick = () => $('fConta').reset();
+$('aContaLimpar').onclick = () => { $('fConta').reset(); mostrarPrincipal(db.contasBanco.find((c) => c.id === contaEditando)); };
 $('aCLimpar').onclick = () => $('fCartao').reset();
 $('aCatLimpar').onclick = () => {
   const tipo = $('aCatTipo').value;
@@ -1586,7 +1728,9 @@ $('fConta').onsubmit = async (e) => {
   const ic = await escolherIcone($('aIcone'), db.contasBanco.find((c) => c.id === id), ICONES_BANCOS);
   botao.disabled = false;
   if (!ic) return avisar('Ícone não encontrado', 'Escolha um nome da lista ou deixe vazio para usar as iniciais.');
-  const dados = { nome, tipo: $('aTipo').value, saldoInicial: centavos($('aSaldo')) * ($('aNegativo').checked ? -1 : 1), ...ic.campos };
+  const principal = !$('aPrincipalBox').hidden && $('aPrincipal').checked;
+  const dados = { nome, tipo: $('aTipo').value, saldoInicial: centavos($('aSaldo')) * ($('aNegativo').checked ? -1 : 1), principal, ...ic.campos };
+  if (principal) db.contasBanco.forEach((c) => { c.principal = false; });
   if (id) Object.assign(db.contasBanco.find((c) => c.id === id), dados);
   else db.contasBanco.push({ id: novoId(), ...dados });
   fecharEditor();
@@ -1859,6 +2003,10 @@ document.addEventListener('click', async (e) => {
     return;
   }
   if (d.fatura) { abrirFatura(d.fatura, d.ym); return; }
+  if (d.fluxoconta) { abrirFluxoDoResumo(d.fluxoconta); return; }
+  if (d.fluxosel) { fluxoConta = d.fluxosel; $('fContaSel').open = false; renderFluxo(hoje()); return; }
+  if (d.inforesumo) { const sec = SECOES_RES.find((x) => x.id === d.inforesumo); avisar(sec.titulo, sec.info); return; }
+  if (d.catdet) { abrirCatDet(d.catdet); return; }
   if (d.limite) { abrirLimite(d.limite); return; }
   if ('limnovo' in d) { editarLimite(null); return; }
   if ('limedit' in d) { editarLimite(limCat); return; }
@@ -1910,7 +2058,16 @@ document.addEventListener('click', async (e) => {
     document.querySelectorAll('.colGraf').forEach((c) => c.setAttribute('aria-pressed', c === b));
     $('rTip').innerHTML = textoMesBal(balancoAtual.find((m) => m.ym === d.balmes));
   } else if (d.aba) {
+    // Saindo pelo menu de telas abertas a partir do Resumo: tira do historico as telas empilhadas.
+    if (fluxoDoResumo || catDet) {
+      const n = (fluxoDoResumo ? 1 : 0) + (catDet ? 1 : 0) + (lancOrigem ? 1 : 0) + (fatCartao ? (history.state && history.state.lanc ? 2 : 1) : 0);
+      fluxoDoResumo = false; catDet = null; lancOrigem = null; fatCartao = null;
+      limparLanc();
+      history.go(-n);
+    }
     if (d.mes) { mes = d.mes; render(); }
+    // Pelo menu, o Fluxo volta a abrir na conta principal.
+    if (d.aba === 'fluxo') { fluxoConta = null; renderFluxo(hoje()); }
     abrirAba(d.aba);
     if (d.tela) abrirTela(d.tela);
   } else if (d.lanc) {
@@ -1943,6 +2100,7 @@ document.addEventListener('click', async (e) => {
     porValor($('aSaldo'), Math.abs(c.saldoInicial)); $('aNegativo').checked = c.saldoInicial < 0;
     $('aContaExcluir').hidden = false;
     $('aContaExcluir').textContent = contaEmUso(c.id) ? 'Arquivar' : 'Excluir';
+    mostrarPrincipal(c);
     abrirEditor($('fConta'));
   } else if (d.pagar) {
     const l = db.lancs.find((x) => x.id === d.pagar), entrada = l.tipo === 'E';

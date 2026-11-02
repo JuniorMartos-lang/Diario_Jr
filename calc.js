@@ -249,6 +249,52 @@ function aReceber(db, ym) {
   return pendentes(db, 'E', ym);
 }
 
+// Aba Resumos. f = { ini, fim (AAAA-MM), cat, meio, base ('compra' | 'fatura'), origem ('tudo' | 'contas' | 'cartoes') }.
+// Vazio em cat ou meio quer dizer todos.
+const noPeriodo = (ym, f) => ym >= f.ini && ym <= f.fim;
+// Mes em que o gasto conta: na conta, a data; no cartao, a data da compra ou o mes da fatura.
+function mesDoGasto(db, l, base) {
+  const cartao = db.cartoes.find((c) => c.id === l.meio);
+  return cartao && base === 'fatura' ? mesFatura(l.data, cartao) : l.data.slice(0, 7);
+}
+function gastosFiltrados(db, f, deCartao) {
+  return lancsVisiveis(db)
+    .filter((l) => l.tipo === 'S' && ehCartao(db, l.meio) === deCartao && (!f.cat || l.cat === f.cat) && (!f.meio || l.meio === f.meio)
+      && noPeriodo(mesDoGasto(db, l, f.base), f))
+    .sort((a, b) => a.data.localeCompare(b.data));
+}
+const resumoConta = (db, f) => gastosFiltrados(db, f, false);
+const resumoCartoes = (db, f) => gastosFiltrados(db, f, true);
+// Gastos de contas e cartoes somados por categoria, do maior para o menor.
+function resumoCategorias(db, f) {
+  const t = {};
+  for (const l of [...gastosFiltrados(db, f, false), ...gastosFiltrados(db, f, true)]) t[l.cat] = (t[l.cat] || 0) + l.valor;
+  return Object.entries(t).map(([cat, valor]) => ({ cat, valor })).sort((a, b) => b.valor - a.valor);
+}
+// O que falta pagar com vencimento no periodo, mais o que ja esta atrasado. Fatura nao tem categoria:
+// com uma categoria escolhida, so entram contas.
+function resumoAPagar(db, f, hoje) {
+  const entra = (venc) => noPeriodo(venc.slice(0, 7), f) || (venc < hoje && venc.slice(0, 7) < f.ini);
+  const itens = [];
+  if (f.origem !== 'cartoes') {
+    for (const l of lancsVisiveis(db)) {
+      if (l.tipo === 'S' && !l.pago && !ehCartao(db, l.meio) && entra(l.data) && (!f.cat || l.cat === f.cat) && (!f.meio || l.meio === f.meio)) {
+        itens.push({ tipo: 'conta', lanc: l, meio: l.meio, desc: l.desc, venc: l.data, valor: l.valor });
+      }
+    }
+  }
+  if (f.origem !== 'contas' && !f.cat) {
+    for (const c of db.cartoes) {
+      if (!ativoEm(c, f.fim) || (f.meio && f.meio !== c.id)) continue;
+      for (const ym of mesesEmAberto(db, c)) {
+        const venc = dataNoMes(ym, c.vencimento);
+        if (entra(venc)) itens.push({ tipo: 'fatura', ym, meio: c.id, desc: 'Fatura ' + c.nome, venc, valor: restanteFatura(db, c, ym) });
+      }
+    }
+  }
+  return itens.sort((a, b) => a.venc.localeCompare(b.venc));
+}
+
 // Tudo o que falta pagar ate o fim do mes, incluindo o que ficou atrasado de meses anteriores.
 function aPagar(db, ym) {
   const itens = pendentes(db, 'S', ym);
@@ -640,6 +686,6 @@ function backupValido(d) {
 if (typeof module !== 'undefined') {
   module.exports = {
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, gastosPorMeio, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, gastosPorMeio, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }
