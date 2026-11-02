@@ -23,6 +23,15 @@ function mesFatura(data, cartao) {
   return cartao.vencimento > cartao.fechamento ? fecha : addMes(fecha, 1);
 }
 
+// Desenhar as telas repete as mesmas contas milhares de vezes. Dentro de comCache os dados nao mudam,
+// entao cada conta roda uma vez; fora dele tudo e recalculado.
+let cacheCalc = null;
+const cacheDe = (db) => (cacheCalc && cacheCalc.db === db ? cacheCalc : null);
+function comCache(db, fn) {
+  cacheCalc = { db, parcelas: new Map() };
+  try { return fn(); } finally { cacheCalc = null; }
+}
+
 // Conta ou cartao arquivado aparece ate o mes do arquivamento e some dos meses seguintes.
 function ativoEm(item, ym) {
   return !item.arquivadaEm || ym <= item.arquivadaEm.slice(0, 7);
@@ -30,13 +39,17 @@ function ativoEm(item, ym) {
 
 // Lancamentos depois do mes do arquivamento ficam guardados, mas nao contam: voltam ao desarquivar.
 function lancsVisiveis(db) {
+  const c = cacheDe(db);
+  if (c && c.visiveis) return c.visiveis;
   const todos = [...db.contasBanco, ...db.cartoes];
   const ativo = (id, ym) => { const o = todos.find((x) => x.id === id); return !o || ativoEm(o, ym); };
-  return db.lancs.filter((l) => {
+  const visiveis = db.lancs.filter((l) => {
     const cartao = db.cartoes.find((x) => x.id === l.meio);
     const ym = cartao ? mesFatura(l.data, cartao) : l.data.slice(0, 7);
     return ativo(l.meio, ym) && (!l.destino || ativo(l.destino, ym));
   });
+  if (c) c.visiveis = visiveis;
+  return visiveis;
 }
 
 // Cada parcela e um lancamento proprio; a fatura vem da data dele.
@@ -45,7 +58,18 @@ function todasParcelas(db, cartao) {
 }
 
 function itensFatura(db, cartao, ym) {
-  return todasParcelas(db, cartao).filter((p) => p.ym === ym);
+  const c = cacheDe(db);
+  if (!c) return todasParcelas(db, cartao).filter((p) => p.ym === ym);
+  let porMes = c.parcelas.get(cartao.id);
+  if (!porMes) {
+    porMes = new Map();
+    for (const p of todasParcelas(db, cartao)) {
+      if (!porMes.has(p.ym)) porMes.set(p.ym, []);
+      porMes.get(p.ym).push(p);
+    }
+    c.parcelas.set(cartao.id, porMes);
+  }
+  return [...(porMes.get(ym) || [])];
 }
 
 function totalFatura(db, cartao, ym) {
@@ -245,8 +269,8 @@ function faturasAte(db, ym) {
 }
 
 function mesesEmAberto(db, cartao) {
-  const meses = new Set(todasParcelas(db, cartao).map((p) => p.ym).filter((m) => restanteFatura(db, cartao, m) > 0));
-  return [...meses].sort();
+  const meses = new Set(todasParcelas(db, cartao).map((p) => p.ym));
+  return [...meses].filter((m) => restanteFatura(db, cartao, m) > 0).sort();
 }
 
 function statusFatura(db, cartao, ym, hoje) {
@@ -601,7 +625,7 @@ function backupValido(d) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
+    comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
     protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }

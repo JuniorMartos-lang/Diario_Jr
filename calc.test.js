@@ -703,5 +703,15 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   const gNova = await c.protegerSenha('senha-nova-22');
   await assert.rejects(c.decifrarBackup(bkApp, 'senha-nova-22'));
   assert.ok(c.usaSenhaDoApp(await c.cifrarBackupSenhaApp(claroBk, gNova)));
+  // Cache: mesmo resultado que sem ele; a lista devolvida pode ser alterada; ao sair, volta a ver mudancas
+  const semCache = [c.totalFatura(dbAtr, cartaoAtr, '2026-10'), c.faturasAtrasadas(dbAtr, '2026-10-29')];
+  c.comCache(dbAtr, () => {
+    assert.deepStrictEqual([c.totalFatura(dbAtr, cartaoAtr, '2026-10'), c.faturasAtrasadas(dbAtr, '2026-10-29')], semCache);
+    c.itensFatura(dbAtr, cartaoAtr, '2026-10').pop();
+    assert.strictEqual(c.totalFatura(dbAtr, cartaoAtr, '2026-10'), semCache[0]);
+    assert.deepStrictEqual(c.itensFatura(dbAtr, cartaoAtr, '1999-01'), []);
+  });
+  dbAtr.lancs.push({ id: 'n', tipo: 'S', data: '2026-10-20', valor: 100, meio: 'x', cat: 't', pago: true });
+  assert.strictEqual(c.totalFatura(dbAtr, cartaoAtr, '2026-10'), semCache[0] + 100);
   console.log('calc.js: todos os testes passaram');
 })().catch((e) => { console.error(e); process.exit(1); });
