@@ -486,7 +486,7 @@
         <button type="button" class="linha" data-tela="tAparencia"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg><span class="q">Aparência</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tArquivadas" id="aMenuArq" hidden><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg><span class="q">Arquivadas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.39.0 · 02/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.39.1 · 02/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -2092,6 +2092,7 @@ $('aArquivo').onchange = async () => {
   try { bruto = JSON.parse(await f.text()); } catch { bruto = null; }
   if (ehBackupCifrado(bruto)) {
     let erro = '', aberto = null;
+    if (senhaSessao) { try { aberto = await decifrarBackup(bruto, senhaSessao); } catch { aberto = null; } }
     while (!aberto) {
       const senha = await pedirSenhaBackup(false, erro, usaSenhaDoApp(bruto));
       if (!senha) return;
@@ -2345,6 +2346,8 @@ $('fPerfil').onsubmit = (e) => {
 // Senha do app, guardada fora dos dados: nao vai no backup. Trava de tela: os dados nao ficam cifrados.
 const CHAVE_SENHA = 'controle-diario-senha';
 let trava;
+// Senha digitada ao destravar ou ao criar: so na memoria, enquanto o app esta aberto. Restaurar tenta com ela antes de perguntar.
+let senhaSessao = null;
 try { trava = JSON.parse(localStorage.getItem(CHAVE_SENHA)) || {}; } catch { trava = {}; }
 let bioDisponivel = false;
 const temSenha = () => !!trava.senha;
@@ -2380,6 +2383,7 @@ $('fSenha').onsubmit = async (e) => {
   if (erro) return avisar('Confira a nova senha', erro);
   const anterior = JSON.stringify(trava);
   trava.senha = await protegerSenha($('sNova').value);
+  senhaSessao = $('sNova').value;
   const codigo = tem ? null : await novoCodigo();
   if (!gravarTrava()) { trava = JSON.parse(anterior); return; }
   if (codigo) await mostrarCodigo(codigo);
@@ -2392,6 +2396,7 @@ $('sRemover').onclick = async () => {
   const anterior = trava;
   trava = {};
   if (!gravarTrava()) { trava = anterior; return; }
+  senhaSessao = null;
   history.back();
   avisar('Senha removida');
 };
@@ -2453,7 +2458,7 @@ $('tVoltar').onclick = () => modoRecuperar(false);
 $('tForm').onsubmit = async (e) => {
   e.preventDefault();
   if ($('tRecuperar').hidden) {
-    if (await confereSenha($('tSenhaCampo').value, trava.senha)) liberar();
+    if (await confereSenha($('tSenhaCampo').value, trava.senha)) { senhaSessao = $('tSenhaCampo').value; liberar(); }
     else $('tMsg').textContent = 'Senha errada.';
     return;
   }
@@ -2462,6 +2467,7 @@ $('tForm').onsubmit = async (e) => {
   if (erro) { $('tMsgR').textContent = erro; return; }
   const anterior = JSON.stringify(trava);
   trava.senha = await protegerSenha($('tNova').value);
+  senhaSessao = $('tNova').value;
   // O codigo usado deixa de valer: pode ter sido visto.
   const codigo = await novoCodigo();
   if (!gravarTrava()) { trava = JSON.parse(anterior); return; }
