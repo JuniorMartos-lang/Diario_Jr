@@ -116,15 +116,17 @@
   #fMais > div { min-height: 0; overflow: hidden; }
   body.fluxoAberto #fMais { grid-template-rows: 1fr; }
   #fPrevisto { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--linha); }
+  #fResgates, #rResgates { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--linha); font-size: 13px; }
+  #fResgates b, #rResgates b { font-variant-numeric: tabular-nums; }
   body.emFluxo #mais { transition: bottom .25s ease-out; }
   @media (prefers-reduced-motion: reduce) { #fMais, body.emFluxo #mais { transition: none; } }
   button.setaFluxo { flex: none; width: 44px; height: 44px; min-height: 0; padding: 0; background: none; color: var(--pri); }
   button.setaFluxo svg { display: block; margin: auto; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
   button.setaFluxo[aria-expanded=true] svg { transform: rotate(180deg); }
   body.emFluxo:not(.emAjustes) { padding-bottom: calc(210px + env(safe-area-inset-bottom)); }
-  body.emFluxo.fluxoAberto:not(.emAjustes) { padding-bottom: calc(270px + env(safe-area-inset-bottom)); }
+  body.emFluxo.fluxoAberto:not(.emAjustes) { padding-bottom: calc(300px + env(safe-area-inset-bottom)); }
   body.emFluxo:not(.emAjustes) #mais { bottom: calc(140px + env(safe-area-inset-bottom)); }
-  body.emFluxo.fluxoAberto:not(.emAjustes) #mais { bottom: calc(200px + env(safe-area-inset-bottom)); }
+  body.emFluxo.fluxoAberto:not(.emAjustes) #mais { bottom: calc(232px + env(safe-area-inset-bottom)); }
   .lado { text-align: right; flex: none; }
   .lado small { display: block; font-size: 12px; }
   #lLista .lado { padding: 6px 0 6px 10px; margin: -6px 0; cursor: pointer; }
@@ -366,7 +368,7 @@
       <div id="rCartoes"></div>
       <button type="button" class="sec gerenciar" data-aba="ajustes" data-tela="tCartoes">Gerenciar cartões</button>
     </div>
-    <div class="card"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 20V4M3 8l4-4 4 4"/><path d="M17 4v16M13 16l4 4 4-4"/></svg><span>Fluxo de caixa</span></h2><div class="fluxo" id="rFluxo"></div></div>
+    <div class="card"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 20V4M3 8l4-4 4 4"/><path d="M17 4v16M13 16l4 4 4-4"/></svg><span>Fluxo de caixa</span></h2><div class="fluxo" id="rFluxo"></div><div id="rResgates"></div></div>
     <div class="card">
       <h2 class="tituloMes faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 21z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><span id="rMesTitulo"></span><button type="button" class="infoBtn" id="rMesInfo" aria-label="Como estes valores são compostos"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button></h2>
       <div class="linha"><span id="rEntradasIco"></span><span class="q">Entradas</span><span id="rEntradas" class="valor pos"></span></div>
@@ -383,7 +385,7 @@
     <div class="seletorFluxo"><span>Conta</span><details id="fContaSel"><summary></summary><div id="fContaOpcoes"></div></details></div>
     <div class="card"><div id="lLista"></div><button type="button" class="sec gerenciar" data-exportar="fluxo"><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button></div>
     <div id="fBarra"><div>
-      <div id="fBarraDados"><div class="fluxo" id="fAtual"></div><div id="fMais" aria-hidden="true"><div><div class="fluxo" id="fPrevisto"></div></div></div></div>
+      <div id="fBarraDados"><div class="fluxo" id="fAtual"></div><div id="fMais" aria-hidden="true"><div><div class="fluxo" id="fPrevisto"></div><div id="fResgates"></div></div></div></div>
       <button type="button" class="setaFluxo" id="fSeta" aria-expanded="false" aria-controls="fPrevisto" aria-label="Mostrar valores previstos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
     </div></div>
   </section>
@@ -506,7 +508,7 @@
         <button type="button" class="linha" data-tela="tAparencia"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg><span class="q">Aparência</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tArquivadas" id="aMenuArq" hidden><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg><span class="q">Arquivadas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.42.2 · 03/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.43.1 · 03/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -868,6 +870,7 @@ function desenhar() {
   $('hGastos').textContent = brl(gastos);
   $('hPagar').textContent = brl(pagar.reduce((a, i) => a + i.valor, 0));
   $('rFluxo').innerHTML = htmlFluxo(fluxoMes(db, mes, h));
+  $('rResgates').innerHTML = htmlResgates(resgatesDoMes(db, mes));
   renderResumo(cats, gastos, pagar, h);
   renderFluxo(h);
   renderRelatorio();
@@ -1078,6 +1081,7 @@ function renderResumo(cats, gastos, pagar, h) {
 
 const celula = (v, nome, classe) => `<div><b class="${classe}">${v < 0 ? '−' : ''}${brl(Math.abs(v))}</b><small>${nome}</small></div>`;
 const corSaldo = (v) => (v < 0 ? 'neg' : '');
+const htmlResgates = (rg) => `<span>Resgates de aplicações${rg.n ? ` <small class="fraco">(${rg.n})</small>` : ''}</span><b class="pos">${brl(rg.total)}</b>`;
 function htmlFluxo(f) {
   return celula(f.entradas, 'Entradas', 'pos') + celula(f.saidas, 'Saídas', 'neg') + celula(f.saldo, 'Saldo hoje', corSaldo(f.saldo))
     + celula(f.prevEntradas, 'Entradas previstas', 'pos') + celula(f.prevSaidas, 'Saídas previstas', 'neg') + celula(f.previsao, 'Saldo previsto', corSaldo(f.previsao));
@@ -1108,6 +1112,9 @@ function renderFluxo(h) {
   $('fContaOpcoes').innerHTML = db.contasBanco.filter((c) => ativoEm(c, mes)).map((c) => `<button type="button" class="linha" data-fluxosel="${esc(c.id)}" aria-pressed="${c.id === conta}">${iconeHtml(c)}<span class="q">${esc(nomeExib(c))}${c.principal ? ' <span class="selada">Principal</span>' : ''}</span>${c.id === conta ? '<span aria-hidden="true">✓</span>' : ''}</button>`).join('');
   const linhas = linhasFluxo(db, mes, 'fluxo', conta, mes), f = fluxoMes(db, mes, h, conta, mes);
   $('fAtual').innerHTML = celula(f.entradas, 'Entradas', 'pos') + celula(f.saidas, 'Saídas', 'neg') + celula(f.saldo, 'Saldo hoje', corSaldo(f.saldo));
+  // Resgates de aplicacoes: ja entram em Entradas; aqui aparecem somados a parte.
+  const rg = resgatesDoMes(db, mes, conta);
+  $('fResgates').innerHTML = htmlResgates(rg);
   $('fPrevisto').innerHTML = celula(f.prevEntradas, 'Entradas previstas', 'pos') + celula(f.prevSaidas, 'Saídas previstas', 'neg') + celula(f.previsao, 'Saldo previsto', corSaldo(f.previsao));
   let dia = '';
   $('lLista').innerHTML = linhas.map((i) => {

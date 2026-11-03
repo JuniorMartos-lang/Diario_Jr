@@ -765,5 +765,19 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.deepStrictEqual(c.resumoParcelamentos(dbP, '2026-11-02'), [{ meio: 'k', total: 200, n: 2, ultima: '2026-12-10' }, { meio: 'cc', total: 100, n: 2, ultima: '2026-12-05' }]);
   assert.deepStrictEqual(c.parcelasNoPeriodo(dbP, '2026-10-01', '2026-11-30', []).map((l) => l.id), ['a1', 'b1', 'a2']);
   assert.deepStrictEqual(c.parcelasNoPeriodo(dbP, '2026-01-01', '2027-12-31', ['cc']).map((l) => l.id), ['b1', 'b2'], 'conta fixa e avulso ficam de fora');
+  // Resgates: so entradas em categoria de receita com "resgate" no nome, no mes e na conta
+  const dbRg = {
+    contasBanco: [{ id: 'cc', nome: 'C', saldoInicial: 0 }, { id: 'pp', nome: 'P', saldoInicial: 0 }], cartoes: [], faturasPagas: {}, parciais: [], series: [],
+    categorias: [{ id: 'rg', nome: 'Resgate de Aplicações', tipo: 'E' }, { id: 'ot', nome: 'Outras receitas', tipo: 'E' }, { id: 'sx', nome: 'Resgate', tipo: 'S' }],
+    lancs: [
+      { id: 'a', tipo: 'E', data: '2026-11-03', valor: 500, meio: 'cc', cat: 'rg', pago: true },
+      { id: 'b', tipo: 'E', data: '2026-11-20', valor: 300, meio: 'cc', cat: 'rg', pago: false },
+      { id: 'c', tipo: 'E', data: '2026-11-03', valor: 999, meio: 'cc', cat: 'ot', desc: 'Resgate antigo', pago: true },
+      { id: 'd', tipo: 'E', data: '2026-11-03', valor: 70, meio: 'pp', cat: 'rg', pago: true },
+      { id: 'e', tipo: 'E', data: '2026-10-03', valor: 40, meio: 'cc', cat: 'rg', pago: true },
+    ],
+  };
+  assert.deepStrictEqual(c.resgatesDoMes(dbRg, '2026-11', 'cc'), { total: 800, n: 2 });
+  assert.deepStrictEqual(c.resgatesDoMes(dbRg, '2026-11', ''), { total: 870, n: 3 });
   console.log('calc.js: todos os testes passaram');
 })().catch((e) => { console.error(e); process.exit(1); });

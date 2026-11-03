@@ -296,6 +296,14 @@ function resumoAPagar(db, f, hoje) {
   return itens.sort((a, b) => a.venc.localeCompare(b.venc));
 }
 
+// Resgates de aplicacoes do mes numa conta: entradas em categoria de receita cujo nome tem "resgate".
+const ehCatResgate = (c) => !!c && c.tipo === 'E' && c.nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().includes('resgate');
+function resgatesDoMes(db, ym, conta) {
+  const cats = new Set(db.categorias.filter(ehCatResgate).map((c) => c.id));
+  const itens = lancsVisiveis(db).filter((l) => l.tipo === 'E' && cats.has(l.cat) && l.data.slice(0, 7) === ym && (!conta || l.meio === conta));
+  return { total: itens.reduce((s, l) => s + l.valor, 0), n: itens.length };
+}
+
 // Parcelamentos: so gastos com parcelas (de > 1), em conta ou cartao; contas fixas ficam de fora.
 const parcelasDeGasto = (db) => lancsVisiveis(db).filter((l) => l.tipo === 'S' && l.de > 1);
 // Por conta ou cartao, o que ainda vem deste mes em diante: total, quantidade e data da ultima parcela.
@@ -707,6 +715,6 @@ function backupValido(d) {
 if (typeof module !== 'undefined') {
   module.exports = {
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, gastosPorMeio, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }
