@@ -78,6 +78,8 @@
   input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--pri); outline-offset: 1px; }
   .dois { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .dois > * { min-width: 0; }
+  /* Sem o campo Para (gasto ou entrada), Pago com ocupa a linha toda e o nome do cartao nao corta. */
+  #lMeioLinha:has(> #lDestinoBox[hidden]) > label { grid-column: 1 / -1; }
   button { font: inherit; font-weight: 600; min-height: 44px; padding: 8px 16px; border: 0; border-radius: 999px; background: var(--pri); color: #fff; cursor: pointer; }
   :root[data-theme=dark] button:not(.sec):not(.perigo):not(.linha):not(.cartaoRes):not(.colGraf):not(.opcIco):not(.opcCor):not(.mesFatBtn):not(.pagarFat):not(.cardLim):not(.resumoIco):not(.voltarTela):not(.olho):not(.olhoSaldo):not(.setaFluxo):not(.infoBtn):not(.linkTexto):not(.campoLink):not(.mesBar button):not(.usaCard) { color: #06201d; }
   button.sec { background: var(--campo); color: var(--txt); }
@@ -104,6 +106,9 @@
   .finalCartao { display: flex; gap: 4px; min-width: 0; }
   .finalCartao input { width: 64px; flex: none; text-align: center; font-variant-numeric: tabular-nums; }
   .finalCartao select { flex: 1; min-width: 0; }
+  .finalCartao .finalAtivo { flex: none; display: flex; align-items: center; gap: 2px; margin: 0; font-size: 12px; color: var(--mut); }
+  .finalCartao .finalAtivo input { width: auto; margin: 0; }
+  .finaisInativos .linha small { overflow-wrap: anywhere; }
   /* Os 4 finais cabem numa linha em 375 px; em tela menor, quebram. */
   /* Dois finais por linha: com Fisico/Virtual e Titular/Adicional, quatro numa linha nao cabem. */
   /* Tabela de finais: um cartao por linha, colunas iguais (numero, fisico/virtual, titular/adicional). */
@@ -230,6 +235,8 @@
   .tabMoedas input { width: 84px; min-height: 36px; padding: 4px 8px; text-align: right; }
   /* Cabecalho das despesas no mesmo estilo do seletor de conta do Fluxo. */
   .tituloIco { display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .tituloIco > span { min-width: 0; overflow-wrap: anywhere; }
+  #uTituloIco { display: contents; }
   .seletorFluxo > span.saldoTopo { display: flex; }
   .viagemSel { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 14px; border-radius: 12px; background: var(--campo); }
   .viagemSel .q { flex: 1; min-width: 0; overflow-wrap: anywhere; }
@@ -502,7 +509,7 @@
         <label><span id="lValorTxt">Valor</span><input id="lValor" class="moeda" inputmode="numeric" autocomplete="off"></label>
         <div id="lCatBox" class="rotuloCampo"><span id="lCatRotulo">Categoria</span><select id="lCat" hidden></select><button type="button" class="campoLink" id="lCatBtn" aria-labelledby="lCatRotulo lCatBtnTxt"><span id="lCatBtnTxt"></span><span class="seta" aria-hidden="true">›</span></button></div>
       </div>
-      <div class="dois">
+      <div class="dois" id="lMeioLinha">
         <label><span id="lMeioTxt">Pago com</span><select id="lMeio"></select></label>
         <label id="lDestinoBox">Para<select id="lDestino"></select></label>
       </div>
@@ -587,25 +594,25 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.48.4 · 03/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.50.4 · 03/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
       <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Aqui ficam suas contas correntes, poupanças e outras, cada uma com seu saldo inicial e o ícone do banco. Os saldos aparecem em Minhas contas, no Resumo. Toque em uma conta para corrigir. Conta com lançamentos não é excluída: ela é arquivada.</span></p>
       <div class="card"><div id="aContas"></div>
-        <button type="button" class="sec gerenciar" data-novoform="fConta">+ Nova conta</button></div>
+        <button type="button" class="sec gerenciar" data-novoform="fConta">+ Nova conta</button><div id="aContasArq"></div></div>
     </div>
     <div class="tela" id="tCartoes" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Cartões de crédito</h2></div>
       <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Aqui ficam seus cartões, com os dias de fechamento e vencimento, o limite, a bandeira e a conta que paga a fatura. Esses dias definem em qual fatura cada compra cai. Toque em um cartão para corrigir. Cartão com lançamentos não é excluído: ele é arquivado.</span></p>
       <div class="card"><div id="aCartoes"></div>
-        <button type="button" class="sec gerenciar" data-novoform="fCartao">+ Novo cartão</button></div>
+        <button type="button" class="sec gerenciar" data-novoform="fCartao">+ Novo cartão</button><div id="aCartoesArq"></div></div>
     </div>
     <div class="tela" id="tCats" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Categorias e limites</h2></div>
       <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>As categorias organizam seus lançamentos em despesas e receitas e formam os relatórios. Em uma categoria de despesa, você pode definir um limite por mês e acompanhar o quanto já gastou no menu Limites. Categoria em uso não pode ser excluída.</span></p>
       <div class="card"><div id="aCats"></div>
-        <button type="button" class="sec gerenciar" data-novoform="fCat">+ Nova categoria</button></div>
+        <button type="button" class="sec gerenciar" data-novoform="fCat">+ Nova categoria</button><div id="aCatsArq"></div></div>
     </div>
     <div class="tela" id="tBackup" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Backup</h2></div>
@@ -672,7 +679,7 @@
         <button type="button" class="sec gerenciar" data-editviagem="">+ Nova viagem</button></div>
     </div>
     <div class="tela" id="tEditViagem" hidden>
-      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="uViagemTit">Nova viagem</h2></div>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2><span id="uViagemTit">Nova viagem</span></h2></div>
       <form id="fUsaViagem" class="card" novalidate>
         <label>Nome da viagem<input id="uViagem" maxlength="60" autocomplete="off"></label>
         <div class="dois">
@@ -703,30 +710,30 @@
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Meios de pagamento</h2></div>
       <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Contas bancárias e cartões usados na viagem, cada um com o ícone do banco ou da bandeira. São cadastros só da área Travel: não aparecem nas contas e cartões do resto do app. No cartão, basta dizer se é físico ou virtual. Toque em um item para corrigir.</span></p>
       <div class="card"><h3 class="dia">Contas bancárias</h3><div id="uContas"></div>
-        <button type="button" class="sec gerenciar" data-novousa="contas">+ Nova conta</button>
+        <button type="button" class="sec gerenciar" data-novousa="contas">+ Nova conta</button><div id="uContasArq"></div>
         <h3 class="dia">Cartões</h3><div id="uCartoes"></div>
-        <button type="button" class="sec gerenciar" data-novousa="cartoes">+ Novo cartão</button></div>
+        <button type="button" class="sec gerenciar" data-novousa="cartoes">+ Novo cartão</button><div id="uCartoesArq"></div></div>
     </div>
     <div class="tela" id="tUsaViaj" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Viajantes</h2></div>
       <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>As pessoas que vão na viagem, com nome e foto. A foto vira o ícone de cada viajante na aba Travel; sem foto, aparecem as iniciais do nome. Toque em um viajante para corrigir ou excluir.</span></p>
       <div class="card"><div id="uViajantes"></div>
-        <button type="button" class="sec gerenciar" data-novousa="viajantes">+ Novo viajante</button></div>
+        <button type="button" class="sec gerenciar" data-novousa="viajantes">+ Novo viajante</button><div id="uViajArq"></div></div>
     </div>
     <div class="tela" id="tUsaCats" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Categorias</h2></div>
       <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Categorias dos gastos da viagem, cada uma com ícone e cor. São separadas das categorias do resto do app, então podem ter os mesmos nomes sem misturar nada. Toque em uma categoria para corrigir ou excluir.</span></p>
       <div class="card"><div id="uCats"></div>
-        <button type="button" class="sec gerenciar" data-novousa="categorias">+ Nova categoria</button></div>
+        <button type="button" class="sec gerenciar" data-novousa="categorias">+ Nova categoria</button><div id="uCatsArq"></div></div>
     </div>
     <div class="tela" id="tUsaMoedas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Moedas</h2></div>
       <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>As moedas que podem ser usadas nas viagens, com código de 3 letras e símbolo. O app já vem com as 15 principais; você pode corrigir, excluir ou criar outras. Em cada viagem você escolhe quais moedas usar e qual é a moeda base do total.</span></p>
       <div class="card"><div id="uMoedas"></div>
-        <button type="button" class="sec gerenciar" data-novousa="moedas">+ Nova moeda</button></div>
+        <button type="button" class="sec gerenciar" data-novousa="moedas">+ Nova moeda</button><div id="uMoedasArq"></div></div>
     </div>
     <div class="tela" id="tEditUsa" hidden>
-      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="uTitulo">Novo</h2></div>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 class="tituloIco"><span id="uTituloIco"></span><span id="uTitulo">Novo</span></h2></div>
     <form id="fUsa" class="card" novalidate>
       <div class="perfilTopo" id="uFotoBox" style="padding-top:0">
         <div id="uFotoEdit"></div>
@@ -737,9 +744,9 @@
       <label>Nome<input id="uNome" maxlength="30" autocomplete="off"></label>
       <label id="uInicialBox"><input id="uInicial" type="checkbox">Visualizar inicialmente (foto no alto da aba Travel)</label>
       <label id="uBancoBox">Ícone: banco<input id="uBanco" list="listaIcones" autocomplete="off" placeholder="Toque e escolha, ou deixe vazio"></label>
-      <div class="dois" id="uCartaoBox">
-        <label>Ícone: bandeira<input id="uBand" list="listaBandeiras" autocomplete="off" placeholder="Toque e escolha"></label>
-        <label>Tipo<select id="uTipo"><option value="F">Físico</option><option value="V">Virtual</option></select></label>
+      <div id="uCartaoBox">
+        <label>Ícone: bandeira<input id="uBand" list="listaBandeiras" autocomplete="off" placeholder="Toque e escolha, ou deixe vazio"></label>
+        <div class="finaisBox" id="uFinaisBox"></div>
       </div>
       <div class="dois" id="uMoedaBox">
         <label>Código (3 letras)<input id="uCodigo" maxlength="3" autocomplete="off" autocapitalize="characters" placeholder="USD"></label>
@@ -755,12 +762,13 @@
       <div class="botoes botoes2">
         <button type="submit">Salvar</button>
         <button type="button" class="sec" id="uLimpar">Limpar</button>
+        <button type="button" class="sec" id="uArquivar" hidden>Arquivar</button>
         <button type="button" class="perigo" id="uExcluir" hidden>Excluir</button>
       </div>
     </form>
     </div>
     <div class="tela" id="tEditConta" hidden>
-      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="aContaTitulo">Nova conta</h2></div>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2><span id="aContaTitulo">Nova conta</span></h2></div>
     <form id="fConta" class="card" novalidate>
       
       <label>Nome<input id="aNome" maxlength="30" autocomplete="off"></label>
@@ -779,7 +787,7 @@
     </form>
     </div>
     <div class="tela" id="tEditCartao" hidden>
-      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="aCTitulo">Novo cartão</h2></div>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2><span id="aCTitulo">Novo cartão</span></h2></div>
     <form id="fCartao" class="card" novalidate>
       
       <label>Nome<input id="aCNome" maxlength="30" autocomplete="off"></label>
@@ -792,7 +800,7 @@
         <label>Limite<input id="aCLim" class="moeda" inputmode="numeric" autocomplete="off"></label>
         <label>Conta que paga a fatura<select id="aCPag"></select></label>
       </div>
-      <div class="rotuloCampo"><span>Finais dos cartões (até 4, só os 4 últimos números)</span><div class="finaisCartao"><div class="finalCartao"><input class="aCFinal" type="text" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Final do cartão 1" placeholder="0000"><select class="aCFinalTipo" aria-label="Tipo do cartão 1"><option value="F">Físico</option><option value="V">Virtual</option></select><select class="aCFinalDono" aria-label="Titular ou adicional, cartão 1"><option value="T">Titular</option><option value="A">Adicional</option></select></div><div class="finalCartao"><input class="aCFinal" type="text" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Final do cartão 2" placeholder="0000"><select class="aCFinalTipo" aria-label="Tipo do cartão 2"><option value="F">Físico</option><option value="V">Virtual</option></select><select class="aCFinalDono" aria-label="Titular ou adicional, cartão 2"><option value="T">Titular</option><option value="A">Adicional</option></select></div><div class="finalCartao"><input class="aCFinal" type="text" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Final do cartão 3" placeholder="0000"><select class="aCFinalTipo" aria-label="Tipo do cartão 3"><option value="F">Físico</option><option value="V">Virtual</option></select><select class="aCFinalDono" aria-label="Titular ou adicional, cartão 3"><option value="T">Titular</option><option value="A">Adicional</option></select></div><div class="finalCartao"><input class="aCFinal" type="text" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Final do cartão 4" placeholder="0000"><select class="aCFinalTipo" aria-label="Tipo do cartão 4"><option value="F">Físico</option><option value="V">Virtual</option></select><select class="aCFinalDono" aria-label="Titular ou adicional, cartão 4"><option value="T">Titular</option><option value="A">Adicional</option></select></div></div></div>
+      <div class="finaisBox" id="aCFinaisBox"></div>
       <div class="botoes botoes2">
         <button type="submit">Salvar</button>
         <button type="button" class="sec" id="aCLimpar">Limpar</button>
@@ -801,7 +809,7 @@
     </form>
     </div>
     <div class="tela" id="tEditCat" hidden>
-      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="aCatTitulo">Nova categoria</h2></div>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2><span id="aCatTitulo">Nova categoria</span></h2></div>
     <form id="fCat" class="card" novalidate>
       
       <label>Nome<input id="aCatNome" maxlength="30" autocomplete="off"></label>
@@ -905,6 +913,13 @@
   <label>Data da compra<input id="udData" type="date"></label>
   <div class="dois"><label>Moeda<select id="udMoeda"></select></label><label>Valor<input id="udValor" inputmode="numeric" autocomplete="off" placeholder="0,00"></label></div>
   <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="udFechar">Fechar</button><button type="button" class="perigo" id="udExcluir" hidden>Excluir</button></div>
+</form></dialog>
+<dialog id="dMotivo"><form novalidate>
+  <h3 id="dMotivoTit"></h3>
+  <p>O cartão será arquivado: vai para Cartões arquivados, com a data de hoje e este motivo, e a linha fica livre para outro. Nada é apagado. Isso é gravado ao tocar em Salvar no cartão.</p>
+  <label>Motivo<textarea id="dMotivoTxt" maxlength="200" rows="3" placeholder="Ex.: cartão perdido, trocado pelo banco"></textarea></label>
+  <p id="dMotivoMsg" class="neg" style="min-height:20px;margin:4px 0 8px"></p>
+  <div class="botoes"><button type="submit">Sim, arquivar</button><button type="button" class="sec" id="dMotivoNao">Cancelar</button></div>
 </form></dialog>
 <dialog id="dEscolheCat">
   <h3>Escolha a categoria</h3>
@@ -1676,7 +1691,7 @@ function abrirLimite(id) {
   scrollTo(0, 0);
 }
 function editarLimite(id) {
-  const livres = db.categorias.filter((c) => c.tipo === 'S' && !c.limite);
+  const livres = db.categorias.filter((c) => c.tipo === 'S' && !c.limite && !c.arquivadaEm);
   if (!id && !livres.length) return avisar('Nenhuma categoria livre', 'Todas as categorias de despesa já têm limite. Crie outra em Ajustes.');
   const atual = db.categorias.find((c) => c.id === id);
   limEditando = id;
@@ -1801,6 +1816,7 @@ function htmlFoto(foto, nome) {
   const letras = (nome || '').split(/[^\p{L}\p{N}]+/u).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
   return `<div class="fotoPerfil fotoVazia" aria-hidden="true">${esc(letras || '?')}</div>`;
 }
+const htmlArquivados = (itens, ico, attr) => (!itens.length ? '' : '<h3 class="dia">Arquivados</h3>' + itens.map((x) => `<div class="linha">${ico(x)}<span class="q">${esc(x.nome)}<br><small>Arquivado em ${dataBR(x.arquivadaEm)}</small></span><button type="button" class="sec mini" ${attr(x)}>Desarquivar</button></div>`).join(''));
 function renderAjustes() {
   const perfil = db.perfil || {};
   $('pFotoMenu').innerHTML = htmlFoto(perfil.foto, perfil.nome);
@@ -1815,8 +1831,12 @@ function renderAjustes() {
   $('aMenuArq').hidden = !contasArq.length && !cartoesArq.length;
   $('aArqVazio').hidden = !$('aMenuArq').hidden ? true : false;
   $('aCartoes').innerHTML = db.cartoes.filter((c) => !c.arquivadaEm).map((c) => `<button type="button" class="linha" data-editcartao="${esc(c.id)}">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>Fecha dia ${c.fechamento} · Vence dia ${c.vencimento} · Paga por ${esc(nomeMeio(c.contaPag))}</small></span><span class="valor">${c.limite ? brl(c.limite) : ''}</span>${SETA}</button>`).join('');
-  const listaCats = (tipo, titulo) => `<h3 class="dia">${titulo}</h3>` + db.categorias.filter((c) => c.tipo === tipo).map((c) => `<button type="button" class="linha" data-editcat="${esc(c.id)}">${iconeCat(c)}<span class="q">${esc(c.nome)}</span><span class="valor">${c.limite ? brl(c.limite) + ' <small>por mês</small>' : ''}</span>${SETA}</button>`).join('');
+  const listaCats = (tipo, titulo) => `<h3 class="dia">${titulo}</h3>` + db.categorias.filter((c) => c.tipo === tipo && !c.arquivadaEm).map((c) => `<button type="button" class="linha" data-editcat="${esc(c.id)}">${iconeCat(c)}<span class="q">${esc(c.nome)}</span><span class="valor">${c.limite ? brl(c.limite) + ' <small>por mês</small>' : ''}</span>${SETA}</button>`).join('');
   $('aCats').innerHTML = listaCats('S', 'Despesas') + listaCats('E', 'Receitas');
+  // Arquivados aparecem abaixo de cada lista, com Desarquivar.
+  $('aContasArq').innerHTML = htmlArquivados(db.contasBanco.filter((c) => c.arquivadaEm), iconeHtml, (c) => `data-desarquivar="${esc(c.id)}"`);
+  $('aCartoesArq').innerHTML = htmlArquivados(db.cartoes.filter((c) => c.arquivadaEm), iconeHtml, (c) => `data-desarquivar="${esc(c.id)}"`);
+  $('aCatsArq').innerHTML = htmlArquivados(db.categorias.filter((c) => c.arquivadaEm), (c) => iconeCat(c), (c) => `data-desarqcat="${esc(c.id)}"`);
   $('aUltimo').textContent = db.ultimoBackupEm
     ? 'Último backup: ' + new Date(db.ultimoBackupEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
     : 'Nenhum backup feito ainda.';
@@ -1871,7 +1891,7 @@ function mostrarCatEscolhida() {
 }
 $('lCatBtn').onclick = () => {
   const tipo = $('lTipo').value === 'E' ? 'E' : 'S', atual = $('lCat').value;
-  $('dEscolheLista').innerHTML = db.categorias.filter((c) => c.tipo === tipo).map((c) => `<button type="button" class="linha ${c.id === atual ? 'marcada' : ''}" data-escolhecat="${esc(c.id)}" aria-pressed="${c.id === atual}">${iconeCat(c)}<span class="q">${esc(c.nome)}</span>${c.id === atual ? '<span aria-hidden="true">✓</span>' : ''}</button>`).join('') || '<p class="fraco">Nenhuma categoria deste tipo. Crie em Ajustes.</p>';
+  $('dEscolheLista').innerHTML = db.categorias.filter((c) => c.tipo === tipo && (!c.arquivadaEm || c.id === atual)).map((c) => `<button type="button" class="linha ${c.id === atual ? 'marcada' : ''}" data-escolhecat="${esc(c.id)}" aria-pressed="${c.id === atual}">${iconeCat(c)}<span class="q">${esc(c.nome)}</span>${c.id === atual ? '<span aria-hidden="true">✓</span>' : ''}</button>`).join('') || '<p class="fraco">Nenhuma categoria deste tipo. Crie em Ajustes.</p>';
   $('dEscolheCat').showModal();
 };
 $('dEscolheFechar').onclick = () => $('dEscolheCat').close();
@@ -1980,6 +2000,19 @@ $('rFim').value = hoje().slice(0, 7);
 
 // Ajustes
 const SETA = '<span class="seta" aria-hidden="true">›</span>';
+// Titulo de cada tela de Ajustes com o mesmo icone do item do menu que a abre; a edicao usa o da sua lista.
+const MENU_DA_TELA = { tEditConta: 'tContas', tEditCartao: 'tCartoes', tEditCat: 'tCats', tEditViagem: 'tUsaViagem' };
+function icoMenuDe(tela) {
+  const s = document.querySelector(`#tAjustes [data-tela="${tela}"] svg`);
+  return s ? s.outerHTML.replace('class="icoMenu"', 'class="icoTit"') : '';
+}
+document.querySelectorAll('#s-ajustes .tela').forEach((t) => {
+  const h2 = t.querySelector('.topoTela h2'), ico = icoMenuDe(MENU_DA_TELA[t.id] || t.id);
+  if (!h2 || !ico) return;
+  if (!h2.querySelector('span')) h2.innerHTML = `<span>${h2.innerHTML}</span>`;
+  h2.classList.add('tituloIco');
+  h2.insertAdjacentHTML('afterbegin', ico);
+});
 // Ajustes navega em telas: cada uma fica no historico do navegador, e por isso a seta da tela
 // e o botao voltar do Android fazem o mesmo caminho.
 let pilhaTelas = [], rolagens = [];
@@ -2129,9 +2162,10 @@ function cartaoEmUso(id) {
     || db.parciais.some((p) => p.cartao === id) || Object.keys(db.faturasPagas).some((k) => k.startsWith(id + '|'));
 }
 const TEXTO_ARQUIVAR = 'Fica visível até o fim deste mês, com "(Arquivada)" no nome. A partir do mês seguinte, ela e os lançamentos dela somem do Resumo, das faturas e da previsão, e não dá para fazer novos lançamentos. Os meses anteriores continuam iguais, e nada é apagado: você pode desarquivar em Ajustes.';
-async function arquivar(item, aviso) {
-  if (!await modal(`Arquivar ${item.nome}?`, (aviso ? aviso + '\n\n' : '') + TEXTO_ARQUIVAR, 'Sim, arquivar', 'Cancelar')) return;
+async function arquivar(item, aviso, texto = TEXTO_ARQUIVAR, antes) {
+  if (!await modal(`Arquivar ${item.nome}?`, (aviso ? aviso + '\n\n' : '') + texto, 'Sim, arquivar', 'Cancelar')) return;
   item.arquivadaEm = hoje();
+  if (antes) antes(item);
   fecharEditor();
   salvar();
   avisar('Arquivada com sucesso', 'Está em Ajustes, em Arquivadas.');
@@ -2156,11 +2190,78 @@ $('aContaExcluir').onclick = async () => {
 function limparCartao() {
   cartaoEditando = null;
   $('fCartao').reset();
+  porFinais($('aCFinaisBox'));
   $('aCTitulo').textContent = 'Novo cartão';
   $('aCExcluir').hidden = true;
 }
 // Finais do cartao: so numeros; guarda so os 4 ultimos digitos, nunca o numero inteiro.
-document.querySelectorAll('.aCFinal').forEach((el) => el.addEventListener('input', () => { el.value = el.value.replace(/\D/g, '').slice(0, 4); }));
+// O mesmo bloco serve o cartao do app e o da area Travel: ate 4 ativos e, abaixo, os desabilitados com motivo.
+const linhaFinal = (i) => `<div class="finalCartao"><input class="cFinal" type="text" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Final do cartão ${i}" placeholder="0000"><select class="cFinalTipo" aria-label="Tipo do cartão ${i}"><option value="F">Físico</option><option value="V">Virtual</option></select><select class="cFinalDono" aria-label="Titular ou adicional, cartão ${i}"><option value="T">Titular</option><option value="A">Adicional</option></select><label class="finalAtivo"><input type="checkbox" class="cFinalAtivo" aria-label="Cartão ${i} ativo">Ativo</label></div>`;
+document.querySelectorAll('.finaisBox').forEach((box) => {
+  box.innerHTML = `<div class="rotuloCampo"><span>Finais dos cartões ativos (até 4, só os 4 últimos números)</span><div class="finaisCartao">${[1, 2, 3, 4].map(linhaFinal).join('')}</div></div><div class="finaisInativos"></div>`;
+  box.inativos = [];
+});
+function mostrarInativos(box) {
+  box.querySelector('.finaisInativos').innerHTML = !box.inativos.length ? '' : '<h3 class="dia">Cartões arquivados</h3>' + box.inativos.map((f) => `<div class="linha"><span class="q">XX ${esc(f.n)} · ${f.tipo === 'V' ? 'Virtual' : 'Físico'} · ${f.dono === 'A' ? 'Adicional' : 'Titular'}<br><small>Arquivado em ${dataBR(f.em)}: ${esc(f.motivo)}</small></span></div>`).join('');
+}
+function porFinais(box, finais = [], inativos = []) {
+  box.querySelectorAll('.finalCartao').forEach((row, i) => {
+    const f = finais[i];
+    row.querySelector('.cFinal').value = f ? f.n : '';
+    row.querySelector('.cFinalTipo').value = f ? f.tipo : 'F';
+    // Finais gravados na 1.44 nao tem dono: contam como titular.
+    row.querySelector('.cFinalDono').value = f && f.dono === 'A' ? 'A' : 'T';
+    row.querySelector('.cFinalAtivo').checked = !!f;
+  });
+  // Finais que ja estavam gravados: so eles pedem motivo ao desmarcar.
+  box.salvos = finais.map((f) => f.n);
+  box.inativos = inativos.map((f) => ({ ...f }));
+  mostrarInativos(box);
+}
+const lerFinais = (box) => [...box.querySelectorAll('.finalCartao')].map((row) => ({ n: row.querySelector('.cFinal').value, tipo: row.querySelector('.cFinalTipo').value, dono: row.querySelector('.cFinalDono').value })).filter((f) => f.n);
+// Erro do bloco de finais, ou vazio se pode salvar.
+function erroFinais(box) {
+  for (const row of box.querySelectorAll('.finalCartao')) {
+    const n = row.querySelector('.cFinal').value, ativo = row.querySelector('.cFinalAtivo').checked;
+    if (n && !/^\d{4}$/.test(n)) return 'Cada final do cartão precisa ter 4 números.';
+    if (n && !ativo) return `Marque Ativo no cartão final ${n} para salvar, ou apague o número.`;
+    if (!n && ativo) return 'Há uma linha com Ativo marcado e sem número. Digite o final ou desmarque Ativo.';
+  }
+  return '';
+}
+function pedirMotivo(n) {
+  return new Promise((ok) => {
+    $('dMotivoTit').textContent = `Arquivar o cartão final ${n}?`;
+    $('dMotivoTxt').value = '';
+    $('dMotivoMsg').textContent = '';
+    $('dMotivo').querySelector('form').onsubmit = (e) => {
+      e.preventDefault();
+      const t = $('dMotivoTxt').value.trim();
+      if (!t) { $('dMotivoMsg').textContent = 'Escreva o motivo.'; $('dMotivoTxt').focus(); return; }
+      $('dMotivo').close(); ok(t);
+    };
+    $('dMotivoNao').onclick = () => { $('dMotivo').close(); ok(null); };
+    $('dMotivo').oncancel = (e) => { e.preventDefault(); $('dMotivo').close(); ok(null); };
+    $('dMotivo').showModal();
+    $('dMotivoTxt').focus();
+  });
+}
+document.addEventListener('input', (e) => { if (e.target.classList.contains('cFinal')) e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4); });
+// Desmarcar Ativo de um final ja gravado pede o motivo e arquiva; as linhas de baixo sobem e a ultima fica livre.
+document.addEventListener('change', async (e) => {
+  if (!e.target.classList.contains('cFinalAtivo') || e.target.checked) return;
+  const row = e.target.closest('.finalCartao'), box = e.target.closest('.finaisBox'), n = row.querySelector('.cFinal').value;
+  if (!(box.salvos || []).includes(n)) return;
+  e.target.checked = true;
+  const motivo = await pedirMotivo(n);
+  if (!motivo) return;
+  box.inativos.push({ n, tipo: row.querySelector('.cFinalTipo').value, dono: row.querySelector('.cFinalDono').value, motivo, em: hoje() });
+  box.salvos = box.salvos.filter((x) => x !== n);
+  const rows = [...box.querySelectorAll('.finalCartao')], campos = (r) => ['.cFinal', '.cFinalTipo', '.cFinalDono'].map((s) => r.querySelector(s).value).concat(r.querySelector('.cFinalAtivo').checked);
+  const resto = rows.filter((r) => r !== row).map(campos).concat([['', 'F', 'T', false]]);
+  rows.forEach((r, i) => { const [v, t, d, a] = resto[i]; r.querySelector('.cFinal').value = v; r.querySelector('.cFinalTipo').value = t; r.querySelector('.cFinalDono').value = d; r.querySelector('.cFinalAtivo').checked = a; });
+  mostrarInativos(box);
+});
 const numCartao = (f) => `<small class="numCartao"><span class="tipoCartao">XX ${esc(f.n)}</span><span class="tipoCartao">${f.tipo === 'V' ? 'Virtual' : 'Físico'}</span><span class="tipoCartao">${f.dono === 'A' ? 'Adicional' : 'Titular'}</span></small>`;
 // Dia do cartao: o digito que passaria de 31 nem entra no campo.
 ['aCFecha', 'aCVenc'].forEach((id) => {
@@ -2176,10 +2277,9 @@ $('fCartao').onsubmit = async (e) => {
   const dia = (d) => Number.isInteger(d) && d >= 1 && d <= 31;
   if (!nome) return avisar('Falta informação', 'Informe o nome do cartão.');
   if (!dia(fechamento) || !dia(vencimento)) return avisar('Dia inválido', 'Fechamento e vencimento: de 1 a 31.');
-  const tipos = document.querySelectorAll('.aCFinalTipo'), donos = document.querySelectorAll('.aCFinalDono');
-  const finais = [...document.querySelectorAll('.aCFinal')].map((el, i) => ({ n: el.value, tipo: tipos[i].value, dono: donos[i].value })).filter((f) => f.n);
-  if (finais.some((f) => !/^\d{4}$/.test(f.n))) return avisar('Final incompleto', 'Cada final do cartão precisa ter 4 números.');
-  const dados = { nome, fechamento, vencimento, limite: centavos($('aCLim')), contaPag: $('aCPag').value, finais };
+  if (erroFinais($('aCFinaisBox'))) return avisar('Confira os finais', erroFinais($('aCFinaisBox')));
+  const finais = lerFinais($('aCFinaisBox')), inativos = $('aCFinaisBox').inativos;
+  const dados = { nome, fechamento, vencimento, limite: centavos($('aCLim')), contaPag: $('aCPag').value, finais, finaisInativos: inativos.length ? inativos : undefined };
   const atual = db.cartoes.find((c) => c.id === cartaoEditando);
   if (atual) {
     // As faturas sao calculadas a partir destes dias: mudar um deles redistribui as compras antigas tambem.
@@ -2204,8 +2304,9 @@ $('aCExcluir').onclick = async () => {
   if (cartaoEmUso(id)) {
     const item = db.cartoes.find((c) => c.id === id);
     // Lista tudo em aberto, mesmo o que ja vai sumir, porque a divida continua existindo fora do app.
-    const aberto = aPagar(db, '9999-12').filter((i) => i.tipo === 'fatura' && i.id === id).reduce((a, i) => a + i.valor, 0);
-    return arquivar(item, aberto ? `Atenção: há ${brl(aberto)} em aberto neste cartão, incluindo parcelas futuras. O que vencer depois deste mês deixa de aparecer, mesmo sem ter sido pago.` : '');
+    const ate = ultimaFaturaAte(db, item, hoje());
+    return arquivar(item, '', `Não aceita novas compras. As compras feitas até hoje, inclusive as parcelas futuras e as que caem na próxima fatura, continuam nas faturas até a de ${nomeMesAno(ate)}, com fechamento e vencimento normais, e podem ser pagas. Depois disso o cartão some das telas. Nada é apagado: você pode desarquivar em Ajustes.`,
+      (c) => { c.ativoAte = ultimaFaturaAte(db, c, c.arquivadaEm); });
   }
   if (await modal('Excluir cartão?', $('aCNome').value, 'Sim, excluir', 'Cancelar')) {
     db.cartoes = db.cartoes.filter((c) => c.id !== id);
@@ -2246,9 +2347,13 @@ $('fCat').onsubmit = (e) => {
   salvar();
   avisar('Gravado com sucesso');
 };
+const catEmUso = (id) => db.lancs.some((l) => l.cat === id) || db.series.some((s) => !s.encerrada && s.modelo.cat === id);
 $('aCatExcluir').onclick = async () => {
   const id = catEditando;
-  if (db.lancs.some((l) => l.cat === id) || db.series.some((s) => !s.encerrada && s.modelo.cat === id)) return avisar('Não é possível excluir', 'Esta categoria está em uso.');
+  if (catEmUso(id)) {
+    const c = db.categorias.find((x) => x.id === id);
+    return arquivar(c, '', 'Ela sai das listas de escolha e de Limites a partir do mês seguinte, mas os lançamentos que já usam esta categoria continuam com ela nos relatórios e no histórico. Nada é apagado: ela fica em Arquivadas, abaixo da lista de categorias, e pode ser desarquivada.');
+  }
   if (await modal('Excluir categoria?', $('aCatNome').value, 'Sim, excluir', 'Cancelar')) {
     db.categorias = db.categorias.filter((c) => c.id !== id);
     fecharEditor();
@@ -2515,6 +2620,8 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
   if (d.usadesp) { abrirDespesa(d.usadesp); return; }
   if (d.udcat) { escolherUdCat(d.udcat); $('udCatSel').open = false; return; }
   if ('editviagem' in d) { abrirViagem(d.editviagem); return; }
+  if (d.desarqusa) { delete usa()[d.desarqusa].find((x) => x.id === d.id).arquivadaEm; salvar(); return; }
+  if (d.desarqcat) { delete db.categorias.find((x) => x.id === d.desarqcat).arquivadaEm; salvar(); return; }
   if (d.novousa) { abrirUsa(d.novousa); return; }
   if (d.editusa) { if (d.editusa === 'viagens') abrirViagem(d.id); else abrirUsa(d.editusa, d.id); return; }
   if (d.novoform) abrirEditor($(d.novoform));
@@ -2531,6 +2638,7 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
   else if (d.desarquivar) {
     const item = [...db.contasBanco, ...db.cartoes].find((c) => c.id === d.desarquivar);
     delete item.arquivadaEm;
+    delete item.ativoAte;
     // Cartao volta com conta ativa para pagar a fatura.
     if (item.contaPag && db.contasBanco.find((c) => c.id === item.contaPag).arquivadaEm) item.contaPag = db.contasBanco.find((c) => !c.arquivadaEm).id;
     salvar();
@@ -2610,9 +2718,7 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
     $('aCTitulo').textContent = c.nome;
     $('aCNome').value = c.nome; $('aCIcone').value = c.iconeNome || ''; $('aCFecha').value = c.fechamento; $('aCVenc').value = c.vencimento;
     porValor($('aCLim'), c.limite || 0); $('aCPag').value = c.contaPag;
-    const tipos = document.querySelectorAll('.aCFinalTipo'), donos = document.querySelectorAll('.aCFinalDono');
-    // Finais gravados na 1.44 nao tem dono: contam como titular.
-    document.querySelectorAll('.aCFinal').forEach((el, i) => { const f = (c.finais || [])[i]; el.value = f ? f.n : ''; tipos[i].value = f ? f.tipo : 'F'; donos[i].value = f && f.dono === 'A' ? 'A' : 'T'; });
+    porFinais($('aCFinaisBox'), c.finais, c.finaisInativos);
     $('aCExcluir').hidden = false;
     $('aCExcluir').textContent = cartaoEmUso(c.id) ? 'Arquivar' : 'Excluir';
     abrirEditor($('fCartao'));
@@ -2626,6 +2732,7 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
     porValor($('aCatLim'), c.limite || 0);
     $('aCatLimBox').hidden = c.tipo === 'E';
     $('aCatExcluir').hidden = false;
+    $('aCatExcluir').textContent = catEmUso(c.id) ? 'Arquivar' : 'Excluir';
     ({ simbolo: catSimbolo, cor: catCor } = aparenciaCat(c));
     renderEscolhaCat();
     abrirEditor($('fCat'));
@@ -2677,18 +2784,28 @@ const icoMoeda = (m) => `<span class="ico ini" style="background:#2f6f73;font-si
 const datasViagem = (v) => (v.inicio ? `${dataBR(v.inicio)}${v.fim ? ' a ' + dataBR(v.fim) : ''}` : 'Sem datas');
 const icoViagem = (v) => (v.fundo ? `<img class="ico foto" src="${esc(v.fundo)}" alt="">` : iconeHtml(v));
 const USA_NOVO = { contas: 'Nova conta', cartoes: 'Novo cartão', viajantes: 'Novo viajante', categorias: 'Nova categoria', moedas: 'Nova moeda' };
+// Icone do titulo da edicao: o do item do menu que leva a cada cadastro.
+const TELA_USA = { contas: 'tUsaMeios', cartoes: 'tUsaMeios', viajantes: 'tUsaViaj', categorias: 'tUsaCats', moedas: 'tUsaMoedas' };
 const USA_ITEM = { contas: 'conta', cartoes: 'cartão', viajantes: 'viajante', categorias: 'categoria', moedas: 'moeda' };
 const fotoViajante = (v) => (v.foto ? `<img class="ico foto" src="${esc(v.foto)}" alt="">` : iconeHtml(v));
 function renderUsa() {
   const u = usa();
-  const lista = (tipo, ico, sub) => u[tipo].map((x) => `<button type="button" class="linha" data-editusa="${tipo}" data-id="${esc(x.id)}">${ico(x)}<span class="q">${esc(x.nome)}${sub ? `<br><small>${sub(x)}</small>` : ''}</span>${SETA}</button>`).join('')
+  const lista = (tipo, ico, sub) => u[tipo].filter((x) => !x.arquivadaEm).map((x) => `<button type="button" class="linha" data-editusa="${tipo}" data-id="${esc(x.id)}">${ico(x)}<span class="q">${esc(x.nome)}${sub ? `<br><small>${sub(x)}</small>` : ''}</span>${SETA}</button>`).join('')
     || '<p class="fraco">Nenhum cadastro ainda.</p>';
   $('uViagensAj').innerHTML = lista('viagens', icoViagem, datasViagem);
   $('uContas').innerHTML = lista('contas', iconeHtml);
-  $('uCartoes').innerHTML = lista('cartoes', iconeHtml, (c) => (c.tipo === 'V' ? 'Virtual' : 'Físico'));
+  const subCartao = (c) => (c.finais && c.finais.length ? c.finais.map((f) => `XX ${esc(f.n)} ${f.tipo === 'V' ? 'virtual' : 'físico'}`).join(' · ') : c.tipo === 'V' ? 'Virtual' : c.tipo === 'F' ? 'Físico' : 'Sem finais')
+    + (c.finaisInativos && c.finaisInativos.length ? ` · ${c.finaisInativos.length} desabilitado${c.finaisInativos.length > 1 ? 's' : ''}` : '');
+  $('uCartoes').innerHTML = lista('cartoes', iconeHtml, subCartao);
   $('uViajantes').innerHTML = lista('viajantes', fotoViajante);
   $('uCats').innerHTML = lista('categorias', (c) => iconeCat(c));
   $('uMoedas').innerHTML = lista('moedas', icoMoeda, (m) => `${esc(m.codigo)} · ${esc(m.simbolo)}`);
+  const arq = (tipo, ico) => htmlArquivados(u[tipo].filter((x) => x.arquivadaEm), ico, (x) => `data-desarqusa="${tipo}" data-id="${esc(x.id)}"`);
+  $('uContasArq').innerHTML = arq('contas', iconeHtml);
+  $('uViajArq').innerHTML = arq('viajantes', fotoViajante);
+  $('uCartoesArq').innerHTML = arq('cartoes', iconeHtml);
+  $('uCatsArq').innerHTML = arq('categorias', (c) => iconeCat(c));
+  $('uMoedasArq').innerHTML = arq('moedas', icoMoeda);
   const total = (v) => fmtTotais(u, v);
   const viajantes = (v) => u.viajantes.filter((p) => v.viajantes.includes(p.id)).map(fotoViajante).join('');
   const porInicio = (a, b) => (a.inicio || '9999').localeCompare(b.inicio || '9999');
@@ -2714,7 +2831,7 @@ function renderUsa() {
     : filtradas.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}"><span class="q">${esc(v.nome)}<br><small>${datasViagem(v)}</small></span><span class="valor">${total(v)}</span></button>`).join('')
       + `<div class="linha"><b class="q">Total</b><b class="valor">${totaisViagens(u, filtradas).map((t) => fmtMoeda(t.valor, t.moeda)).join(' + ')}</b></div>`;
   // Viajantes marcados para aparecer no alto da aba, ao lado do titulo.
-  $('uFotosTopo').innerHTML = u.viajantes.filter((p) => p.inicial).map((p) => `<span title="${esc(p.nome)}">${fotoViajante(p)}</span>`).join('');
+  $('uFotosTopo').innerHTML = u.viajantes.filter((p) => p.inicial && !p.arquivadaEm).map((p) => `<span title="${esc(p.nome)}">${fotoViajante(p)}</span>`).join('');
   $('uOlho').setAttribute('aria-pressed', valoresOcultos);
   $('uOlho').setAttribute('aria-label', valoresOcultos ? 'Mostrar valores' : 'Ocultar valores');
   if (usaAberta) renderUsaDesp();
@@ -2752,8 +2869,10 @@ function abrirViagem(id) {
   mostrarFundo();
   const marcar = (el, itens, sel, ico) => { el.innerHTML = itens.map((x) => `<label>${ico(x)}<span class="q">${esc(x.nome)}</span><input type="checkbox" value="${esc(x.id)}"${sel.includes(x.id) ? ' checked' : ''}></label>`).join('') || '<p class="fraco">Nenhum cadastro ainda em Ajustes Travel.</p>'; };
   // Viagem nova ja vem com todos os viajantes e com dolar e real.
-  marcar($('uViagViaj'), usa().viajantes, v.id ? v.viajantes : usa().viajantes.map((p) => p.id), fotoViajante);
-  marcar($('uViagMoedas'), usa().moedas, v.id ? v.moedas : ['USD', 'BRL'], icoMoeda);
+  // Viajante arquivado so aparece na viagem que ja o tem; viagem nova vem com todos os ativos.
+  const viajAtivos = usa().viajantes.filter((p) => !p.arquivadaEm || (v.viajantes || []).includes(p.id));
+  marcar($('uViagViaj'), viajAtivos, v.id ? v.viajantes : viajAtivos.map((p) => p.id), fotoViajante);
+  marcar($('uViagMoedas'), usa().moedas.filter((m) => !m.arquivadaEm || (v.moedas || []).includes(m.id)), v.id ? v.moedas : ['USD', 'BRL'], icoMoeda);
   mostrarBase(v.base || 'USD');
   mostrarViajViagem();
   $('uViagemExcluir').hidden = !v.id;
@@ -2828,9 +2947,10 @@ function abrirUsa(tipo, id) {
   usaEd = { tipo, id: x ? x.id : null };
   $('fUsa').reset();
   $('uTitulo').textContent = x ? x.nome : USA_NOVO[tipo];
+  $('uTituloIco').innerHTML = icoMenuDe(TELA_USA[tipo]);
   $('uNome').value = x ? x.nome : '';
   $('uBanco').value = $('uBand').value = (x && x.iconeNome) || '';
-  $('uTipo').value = (x && x.tipo) || 'F';
+  porFinais($('uFinaisBox'), (x && x.finais) || [], (x && x.finaisInativos) || []);
   $('uBancoBox').hidden = tipo !== 'contas';
   $('uCartaoBox').hidden = tipo !== 'cartoes';
   $('uFotoBox').hidden = $('uInicialBox').hidden = tipo !== 'viajantes';
@@ -2844,14 +2964,14 @@ function abrirUsa(tipo, id) {
   ({ simbolo: catSimbolo, cor: catCor } = x && tipo === 'categorias' ? aparenciaCat(x) : { simbolo: 'aviao', cor: CORES_CATEGORIA[0] });
   renderEscolhaCat();
   $('uExcluir').hidden = !x;
+  $('uArquivar').hidden = !x;
   abrirTela('tEditUsa');
   if (!x) $('uNome').focus();
 }
 $('uNome').addEventListener('input', () => { if (!fotoUsa) mostrarFotoUsa(); });
 $('uLimpar').onclick = () => {
-  const tipo = $('uTipo').value;
   $('fUsa').reset();
-  $('uTipo').value = tipo;
+  porFinais($('uFinaisBox'), [], $('uFinaisBox').inativos);
   fotoUsa = undefined;
   mostrarFotoUsa();
   catSimbolo = 'aviao'; catCor = CORES_CATEGORIA[0];
@@ -2871,7 +2991,10 @@ $('fUsa').onsubmit = async (e) => {
     botao.disabled = false;
     if (!ic) return avisar('Ícone não encontrado', 'Escolha um nome da lista ou deixe vazio para usar as iniciais.');
     Object.assign(dados, ic.campos);
-    if (tipo === 'cartoes') dados.tipo = $('uTipo').value;
+    if (tipo === 'cartoes') {
+      if (erroFinais($('uFinaisBox'))) return avisar('Confira os finais', erroFinais($('uFinaisBox')));
+      Object.assign(dados, { finais: lerFinais($('uFinaisBox')), finaisInativos: $('uFinaisBox').inativos.length ? $('uFinaisBox').inativos : undefined });
+    }
   }
   if (tipo === 'viajantes') Object.assign(dados, { foto: fotoUsa, inicial: $('uInicial').checked });
   if (tipo === 'categorias') Object.assign(dados, { simbolo: catSimbolo, cor: catCor });
@@ -2888,12 +3011,20 @@ $('fUsa').onsubmit = async (e) => {
   salvar();
   if (ic) avisoGravado(ic); else avisar('Gravado com sucesso');
 };
+// Arquivar: sai das listas e das escolhas, mas o que ja usa o cadastro continua igual.
+$('uArquivar').onclick = async () => {
+  const { tipo, id } = usaEd, item = usa()[tipo].find((x) => x.id === id);
+  if (!await modal(`Arquivar ${item.nome}?`, 'Sai das listas e das escolhas da área Travel, mas viagens e despesas que já usam este cadastro continuam com ele. Nada é apagado: fica em Arquivados, abaixo da lista, e pode ser desarquivado.', 'Sim, arquivar', 'Cancelar')) return;
+  item.arquivadaEm = hoje();
+  fecharEditor();
+  salvar();
+};
 $('uExcluir').onclick = async () => {
   const { tipo, id } = usaEd, u = usa();
   const emUso = tipo === 'categorias' ? u.despesas.some((d) => d.cat === id)
     : tipo === 'viajantes' ? u.viagens.some((v) => v.viajantes.includes(id))
       : tipo === 'moedas' ? u.viagens.some((v) => v.moedas.includes(id)) : false;
-  if (emUso) return avisar('Não é possível excluir', 'Este cadastro está em uso em uma viagem ou despesa.');
+  if (emUso) return avisar('Não é possível excluir', 'Este cadastro está em uso em uma viagem ou despesa. Use Arquivar para tirá-lo das listas sem perder o histórico.');
   if (!await modal(`Excluir ${USA_ITEM[tipo]}?`, $('uNome').value, 'Sim, excluir', 'Cancelar')) return;
   usa()[tipo] = usa()[tipo].filter((x) => x.id !== id);
   fecharEditor();
@@ -2944,9 +3075,11 @@ function renderUsaDesp() {
     return cab + `<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}<br><small>${esc(c.nome)}${quem ? ' · ' + quem : ''}</small></span><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span></button>`;
   }).join('') || '<p class="fraco" style="margin:0">Nenhuma despesa ainda. Toque em + para lançar.</p>';
 }
+// Quem pode dividir a despesa: viajantes da viagem nao arquivados, mais os que ja estao na despesa editada.
+let udPessoas = [];
 function textoUdQuem() {
-  const v = viagemAberta(), sel = marcados($('udQuemBox'));
-  $('udQuem').querySelector('summary span').textContent = !sel.length || sel.length === v.viajantes.length ? 'Todos'
+  const sel = marcados($('udQuemBox'));
+  $('udQuem').querySelector('summary span').textContent = !sel.length || sel.length === udPessoas.length ? 'Todos'
     : sel.length === 1 ? (usa().viajantes.find((p) => p.id === sel[0]) || { nome: '?' }).nome : sel.length + ' viajantes';
 }
 $('udQuem').addEventListener('change', textoUdQuem);
@@ -2954,15 +3087,21 @@ const fmtValorUd = (c) => (c ? (c / 100).toLocaleString('pt-BR', { minimumFracti
 $('udValor').addEventListener('input', () => { $('udValor').value = fmtValorUd(Math.min(centavos($('udValor')), 99999999999)); });
 function abrirDespesa(id) {
   const v = viagemAberta(), u = usa(), d = u.despesas.find((x) => x.id === id);
-  if (!u.categorias.length) return avisar('Falta categoria', 'Cadastre ao menos uma categoria em Ajustes > Ajustes Travel > Categorias.');
+  // Despesa nova comeca na primeira categoria nao arquivada; a editada mantem a sua, mesmo arquivada.
+  const ativas = u.categorias.filter((c) => !c.arquivadaEm);
+  if (!d && !ativas.length) return avisar('Falta categoria', 'Cadastre ao menos uma categoria em Ajustes > Ajustes Travel > Categorias.');
+  // Moeda arquivada tambem sai da escolha; a da despesa editada continua.
+  const moedas = v.moedas.filter((m) => !moedaUsa(m).arquivadaEm || (d && m === d.moeda));
+  if (!moedas.length) return avisar('Falta moeda', 'Todas as moedas desta viagem estão arquivadas. Desarquive uma em Ajustes > Ajustes Travel > Moedas ou escolha outra no cadastro da viagem.');
   despEd = d ? d.id : null;
   $('udfTit').textContent = d ? 'Editar despesa' : 'Nova despesa';
   $('udDesc').value = d ? d.desc : '';
   // Categoria: lista propria para mostrar o icone, como no combo dos viajantes.
-  $('udCatOpcoes').innerHTML = u.categorias.map((c) => `<button type="button" class="linha" data-udcat="${esc(c.id)}">${iconeCat(c)}<span class="q">${esc(c.nome)}</span></button>`).join('');
+  $('udCatOpcoes').innerHTML = u.categorias.filter((c) => !c.arquivadaEm || (d && c.id === d.cat)).map((c) => `<button type="button" class="linha" data-udcat="${esc(c.id)}">${iconeCat(c)}<span class="q">${esc(c.nome)}</span></button>`).join('');
   $('udCatSel').open = false;
-  escolherUdCat(d ? d.cat : u.categorias[0].id);
-  const pessoas = u.viajantes.filter((p) => v.viajantes.includes(p.id)), sel = d ? d.quem : [];
+  escolherUdCat(d ? d.cat : ativas[0].id);
+  const sel = d ? d.quem : [], pessoas = u.viajantes.filter((p) => v.viajantes.includes(p.id) && (!p.arquivadaEm || sel.includes(p.id)));
+  udPessoas = pessoas.map((p) => p.id);
   $('udQuemBox').hidden = !pessoas.length;
   $('udQuem').open = false;
   $('udQuem').querySelector('.multiOpcoes').innerHTML = OPC_TODOS + pessoas.map((p) => `<label>${fotoViajante(p)}<span class="q">${esc(p.nome)}</span><input type="checkbox" value="${esc(p.id)}"${sel.includes(p.id) && sel.length < pessoas.length ? ' checked' : ''}></label>`).join('');
@@ -2971,8 +3110,8 @@ function abrirDespesa(id) {
   // Data: hoje, ou o inicio da viagem se hoje estiver fora dela.
   const h = hoje();
   $('udData').value = d ? d.data : v.inicio && (h < v.inicio || (v.fim && h > v.fim)) ? v.inicio : h;
-  $('udMoeda').innerHTML = v.moedas.map((m) => `<option value="${esc(m)}">${esc(moedaUsa(m).codigo)} ${esc(moedaUsa(m).simbolo)}</option>`).join('');
-  $('udMoeda').value = d ? d.moeda : v.base;
+  $('udMoeda').innerHTML = moedas.map((m) => `<option value="${esc(m)}">${esc(moedaUsa(m).codigo)} ${esc(moedaUsa(m).simbolo)}</option>`).join('');
+  $('udMoeda').value = d ? d.moeda : moedas.includes(v.base) ? v.base : moedas[0];
   $('udValor').value = d ? fmtValorUd(d.valor) : '';
   $('udExcluir').hidden = !d;
   $('dUsaDesp').showModal();
@@ -2993,7 +3132,7 @@ $('fUsaDesp').onsubmit = (e) => {
   if (!data) return avisar('Falta informação', 'Informe a data da compra.');
   if (!valor) return avisar('Falta informação', 'Informe o valor.');
   // Nenhum marcado ou Todos: divide entre todos os viajantes da viagem.
-  const sel = marcados($('udQuemBox')), quem = $('udQuemBox').hidden ? [] : sel.length ? sel : [...v.viajantes];
+  const sel = marcados($('udQuemBox')), quem = $('udQuemBox').hidden ? [] : sel.length ? sel : [...udPessoas];
   const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem };
   const atual = usa().despesas.find((x) => x.id === despEd);
   if (atual) Object.assign(atual, dados); else usa().despesas.push({ id: novoId(), ...dados });

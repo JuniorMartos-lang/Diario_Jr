@@ -99,7 +99,25 @@ assert.ok(c.backupValido(JSON.parse(JSON.stringify(dp))));
   k.finais = ['1111', '2222', '3333', '4444', '5555'].map((n) => ({ n, tipo: 'F' })); assert.ok(!c.backupValido(b));
   k.finais = [{ n: '1234', tipo: 'X' }]; assert.ok(!c.backupValido(b));
   k.finais = [{ n: '1234', tipo: 'V', dono: 'A' }]; assert.ok(c.backupValido(b));
-  k.finais = [{ n: '1234', tipo: 'V', dono: 'Z' }]; assert.ok(!c.backupValido(b)); }
+  k.finais = [{ n: '1234', tipo: 'V', dono: 'Z' }]; assert.ok(!c.backupValido(b));
+  k.finais = []; k.finaisInativos = [{ n: '1234', tipo: 'V', dono: 'A', motivo: 'Trocado', em: '2026-11-03' }]; assert.ok(c.backupValido(b));
+  k.finaisInativos = [{ n: '1234', tipo: 'V', motivo: '', em: '2026-11-03' }]; assert.ok(!c.backupValido(b));
+  k.finaisInativos = [{ n: '1234', tipo: 'V', motivo: 'Trocado' }]; assert.ok(!c.backupValido(b)); delete k.finaisInativos;
+  k.ativoAte = '2027-03'; assert.ok(c.backupValido(b)); k.ativoAte = '03/2027'; assert.ok(!c.backupValido(b)); delete k.ativoAte;
+  b.categorias.push({ id: 'cq', nome: 'Q', tipo: 'S', arquivadaEm: '2026-11-03' }); assert.ok(c.backupValido(b)); b.categorias[b.categorias.length - 1].arquivadaEm = 'ontem'; assert.ok(!c.backupValido(b)); b.categorias.pop(); }
+// Cartao arquivado: compras ate o arquivamento seguem nas faturas (parcelas futuras e compra depois do fechamento); as de depois, nao.
+{ const cart = { id: 'k1', nome: 'K', fechamento: 1, vencimento: 10, contaPag: 'conta' };
+  const lanc = (id, data, extra) => ({ id, tipo: 'S', data, desc: id, valor: 100, cat: 'x', meio: 'k1', pago: true, ...extra });
+  const dbA = { contasBanco: [{ id: 'conta', nome: 'C', saldoInicial: 0 }], cartoes: [cart], categorias: [], series: [], faturasPagas: {}, parciais: [],
+    lancs: [lanc('p3', '2027-01-05', { compra: '2026-10-05', parcela: 3, de: 3 }), lanc('depois', '2026-11-02'), lanc('fixa', '2026-12-05')] };
+  cart.arquivadaEm = '2026-11-03'; cart.ativoAte = c.ultimaFaturaAte(dbA, cart, cart.arquivadaEm);
+  assert.strictEqual(cart.ativoAte, c.mesFatura('2027-01-05', cart));
+  const nomes = (ym) => c.itensFatura(dbA, cart, ym).map((p) => p.lanc.id);
+  assert.deepStrictEqual(nomes(c.mesFatura('2026-11-02', cart)), ['depois']);
+  assert.ok(nomes(cart.ativoAte).includes('p3'));
+  assert.ok(!nomes(c.mesFatura('2026-12-05', cart)).includes('fixa'));
+  assert.ok(c.ativoEm(cart, cart.ativoAte) && !c.ativoEm(cart, c.addMes(cart.ativoAte, 1)));
+  assert.ok(c.backupValido(dbA)); }
 
 // Pagamento parcial: o resto fica em aberto na mesma fatura
 let dpp = parcelar({ data: '2026-10-10', valor: 30000, meio: 'nu', pago: true }, 'mensal', 3);
@@ -748,18 +766,23 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   // Finais dos cartoes (numero, fisico/virtual, titular/adicional) passam inteiros pelos dois tipos de backup e pela restauracao
   const comFinais = JSON.parse(JSON.stringify(dp));
   comFinais.cartoes[0].finais = [{ n: '1111', tipo: 'F', dono: 'T' }, { n: '2222', tipo: 'V', dono: 'T' }, { n: '3333', tipo: 'F', dono: 'A' }, { n: '4444', tipo: 'V', dono: 'A' }];
+  comFinais.cartoes[0].finaisInativos = [{ n: '9999', tipo: 'F', dono: 'T', motivo: 'Cartão perdido', em: '2026-11-03' }];
   for (const arq of [await c.cifrarBackup(comFinais, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comFinais, gApp)]) {
     const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
     const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-03');
     assert.ok(c.backupValido(volta));
     assert.deepStrictEqual(volta.cartoes[0].finais, comFinais.cartoes[0].finais);
+    assert.deepStrictEqual(volta.cartoes[0].finaisInativos, comFinais.cartoes[0].finaisInativos);
   }
   // Area USA inteira (viagens com imagem, contas, cartoes, viajantes, categorias) passa pelos dois tipos de backup
   const jpg = 'data:image/jpeg;base64,/9j/AAAA', svg = 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=';
   const comUsa = { ...JSON.parse(JSON.stringify(dp)), usa: { moedas: c.MOEDAS_PADRAO, despesas: [{ id: 'd1', viagem: 'v1', desc: 'Parque', cat: 'u4', data: '2027-04-05', moeda: 'BRL', valor: 12345, quem: ['u3'] }],
     viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 } }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {} }],
-    contas: [{ id: 'u1', nome: 'Wise', icone: svg, iconeNome: 'Wise' }], cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'V', icone: svg, iconeNome: 'Visa' }],
-    viajantes: [{ id: 'u3', nome: 'Ana', foto: jpg, inicial: true }], categorias: [{ id: 'u4', nome: 'Parques', simbolo: 'carro', cor: '#2f8486' }] } };
+    contas: [{ id: 'u1', nome: 'Wise', icone: svg, iconeNome: 'Wise' }], cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'V', icone: svg, iconeNome: 'Visa',
+      finais: [{ n: '1234', tipo: 'V', dono: 'T' }], finaisInativos: [{ n: '5678', tipo: 'F', dono: 'A', motivo: 'Vencido', em: '2026-11-03' }] }],
+    viajantes: [{ id: 'u3', nome: 'Ana', foto: jpg, inicial: true }], categorias: [{ id: 'u4', nome: 'Parques', simbolo: 'carro', cor: '#2f8486', arquivadaEm: '2026-11-03' }] } };
+  comUsa.usa.moedas = c.MOEDAS_PADRAO.map((m) => (m.id === 'EUR' ? { ...m, arquivadaEm: '2026-11-03' } : m));
+  comUsa.usa.contas[0].arquivadaEm = '2026-11-03';
   for (const arq of [await c.cifrarBackup(comUsa, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comUsa, gApp)]) {
     const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
     const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-03');

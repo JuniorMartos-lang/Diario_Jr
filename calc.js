@@ -33,8 +33,13 @@ function comCache(db, fn) {
 }
 
 // Conta ou cartao arquivado aparece ate o mes do arquivamento e some dos meses seguintes.
+// Cartao arquivado vai ate a ultima fatura das compras feitas ate o arquivamento (ativoAte), para nao sumir parcela.
 function ativoEm(item, ym) {
-  return !item.arquivadaEm || ym <= item.arquivadaEm.slice(0, 7);
+  return !item.arquivadaEm || ym <= (item.ativoAte || item.arquivadaEm.slice(0, 7));
+}
+function ultimaFaturaAte(db, cartao, data) {
+  return db.lancs.filter((l) => l.meio === cartao.id && (l.compra || l.data) <= data)
+    .reduce((m, l) => { const ym = mesFatura(l.data, cartao); return ym > m ? ym : m; }, data.slice(0, 7));
 }
 
 // Lancamentos depois do mes do arquivamento ficam guardados, mas nao contam: voltam ao desarquivar.
@@ -46,6 +51,8 @@ function lancsVisiveis(db) {
   const visiveis = db.lancs.filter((l) => {
     const cartao = db.cartoes.find((x) => x.id === l.meio);
     const ym = cartao ? mesFatura(l.data, cartao) : l.data.slice(0, 7);
+    // No cartao arquivado, depois do mes do arquivamento so continuam as compras feitas ate ele (parcelas inclusive).
+    if (cartao && cartao.arquivadaEm && ym > cartao.arquivadaEm.slice(0, 7)) return ativoEm(cartao, ym) && (l.compra || l.data) <= cartao.arquivadaEm;
     return ativo(l.meio, ym) && (!l.destino || ativo(l.destino, ym));
   });
   if (c) c.visiveis = visiveis;
@@ -156,7 +163,7 @@ function gastosPorCategoria(db, ym) {
 function limitesDoMes(db, ym) {
   const gastos = gastosPorCategoria(db, ym), anteriores = gastosPorCategoria(db, addMes(ym, -1));
   return db.categorias
-    .filter((c) => c.tipo === 'S' && c.limite)
+    .filter((c) => c.tipo === 'S' && c.limite && ativoEm(c, ym))
     .map((c) => {
       const gasto = gastos[c.id] || 0, anterior = anteriores[c.id] || 0;
       return { cat: c, limite: c.limite, gasto, resta: c.limite - gasto, pct: Math.round(gasto / c.limite * 100), variacao: anterior ? (gasto / anterior - 1) * 100 : null };
@@ -726,7 +733,7 @@ function usaValido(u) {
   if (u === undefined) return true;
   const data = (v) => v === undefined || /^\d{4}-\d{2}-\d{2}$/.test(v);
   const jpeg = (v, max) => v === undefined || (typeof v === 'string' && v.length <= max && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(v));
-  const itens = (l, ok) => Array.isArray(l) && l.every((x) => x && typeof x.id === 'string' && typeof x.nome === 'string' && x.nome.length <= 60 && ok(x));
+  const itens = (l, ok) => Array.isArray(l) && l.every((x) => x && typeof x.id === 'string' && typeof x.nome === 'string' && x.nome.length <= 60 && data(x.arquivadaEm) && ok(x));
   if (!u || typeof u !== 'object' || !itens(u.moedas, (x) => /^[A-Z]{3}$/.test(x.codigo) && typeof x.simbolo === 'string' && x.simbolo.length >= 1 && x.simbolo.length <= 5)
     || !itens(u.viajantes, () => true) || !itens(u.categorias, () => true)) return false;
   const tem = (lista, id) => lista.some((x) => x.id === id);
@@ -736,10 +743,16 @@ function usaValido(u) {
     && Array.isArray(u.despesas) && u.despesas.every((d) => d && typeof d.id === 'string' && typeof d.desc === 'string' && d.desc.length <= 60 && tem(u.viagens, d.viagem)
       && tem(u.categorias, d.cat) && tem(u.moedas, d.moeda) && /^\d{4}-\d{2}-\d{2}$/.test(d.data) && Number.isInteger(d.valor) && d.valor > 0 && ids(d.quem, u.viajantes))
     && itens(u.contas, (x) => iconeValido(x.icone))
-    && itens(u.cartoes, (x) => iconeValido(x.icone) && (x.tipo === 'F' || x.tipo === 'V'))
+    && itens(u.cartoes, (x) => iconeValido(x.icone) && (x.tipo === undefined || x.tipo === 'F' || x.tipo === 'V') && finaisValidos(x))
     && itens(u.viajantes, (x) => jpeg(x.foto, 200000) && (x.inicial === undefined || typeof x.inicial === 'boolean'))
     && itens(u.categorias, (x) => /^[a-z]+$/.test(x.simbolo) && /^#[0-9a-f]{6}$/i.test(x.cor));
 }
+
+// Finais do cartao: ate 4 ativos; os desabilitados ficam guardados com motivo e data, para nao perder o historico.
+const finalOk = (f) => !!f && /^\d{4}$/.test(f.n) && (f.tipo === 'F' || f.tipo === 'V') && (f.dono === undefined || f.dono === 'T' || f.dono === 'A');
+const finaisValidos = (c) => (c.finais === undefined || (Array.isArray(c.finais) && c.finais.length <= 4 && c.finais.every(finalOk)))
+  && (c.finaisInativos === undefined || (Array.isArray(c.finaisInativos) && c.finaisInativos.every((f) => finalOk(f)
+    && typeof f.motivo === 'string' && f.motivo.length >= 1 && f.motivo.length <= 200 && /^\d{4}-\d{2}-\d{2}$/.test(f.em))));
 
 // Barreira da restauracao: um arquivo fora deste formato nao pode substituir os dados.
 function backupValido(d) {
@@ -754,10 +767,10 @@ function backupValido(d) {
   return d.contasBanco.every((c) => c.id && typeof c.nome === 'string' && inteiro(c.saldoInicial) && iconeValido(c.icone) && arquivo(c))
     && d.categorias.every((c) => c.id && typeof c.nome === 'string' && (c.tipo === 'S' || c.tipo === 'E')
       && (c.limite === undefined || (inteiro(c.limite) && c.limite >= 0))
-      && (c.simbolo === undefined || /^[a-z]+$/.test(c.simbolo)) && (c.cor === undefined || /^#[0-9a-f]{6}$/i.test(c.cor)))
+      && (c.simbolo === undefined || /^[a-z]+$/.test(c.simbolo)) && (c.cor === undefined || /^#[0-9a-f]{6}$/i.test(c.cor)) && arquivo(c))
     && d.cartoes.every((c) => c.id && typeof c.nome === 'string' && inteiro(c.fechamento) && inteiro(c.vencimento) && conta(c.contaPag) && iconeValido(c.icone) && arquivo(c)
       && (c.limite === undefined || (inteiro(c.limite) && c.limite >= 0))
-      && (c.finais === undefined || (Array.isArray(c.finais) && c.finais.length <= 4 && c.finais.every((f) => f && /^\d{4}$/.test(f.n) && (f.tipo === 'F' || f.tipo === 'V') && (f.dono === undefined || f.dono === 'T' || f.dono === 'A')))))
+      && finaisValidos(c) && (c.ativoAte === undefined || /^\d{4}-\d{2}$/.test(c.ativoAte)))
     && d.lancs.every((l) => data(l.data) && inteiro(l.valor) && typeof l.pago === 'boolean'
       && (l.tipo === 'T' ? conta(l.meio) && conta(l.destino) && l.meio !== l.destino
         : l.tipo === 'E' ? conta(l.meio)
@@ -771,6 +784,6 @@ function backupValido(d) {
 if (typeof module !== 'undefined') {
   module.exports = {
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }
