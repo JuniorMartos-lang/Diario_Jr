@@ -702,7 +702,7 @@ function backupValido(d) {
       && (c.simbolo === undefined || /^[a-z]+$/.test(c.simbolo)) && (c.cor === undefined || /^#[0-9a-f]{6}$/i.test(c.cor)))
     && d.cartoes.every((c) => c.id && typeof c.nome === 'string' && inteiro(c.fechamento) && inteiro(c.vencimento) && conta(c.contaPag) && iconeValido(c.icone) && arquivo(c)
       && (c.limite === undefined || (inteiro(c.limite) && c.limite >= 0))
-      && (c.finais === undefined || (Array.isArray(c.finais) && c.finais.length <= 4 && c.finais.every((f) => f && /^\d{4}$/.test(f.n) && (f.tipo === 'F' || f.tipo === 'V')))))
+      && (c.finais === undefined || (Array.isArray(c.finais) && c.finais.length <= 4 && c.finais.every((f) => f && /^\d{4}$/.test(f.n) && (f.tipo === 'F' || f.tipo === 'V') && (f.dono === undefined || f.dono === 'T' || f.dono === 'A')))))
     && d.lancs.every((l) => data(l.data) && inteiro(l.valor) && typeof l.pago === 'boolean'
       && (l.tipo === 'T' ? conta(l.meio) && conta(l.destino) && l.meio !== l.destino
         : l.tipo === 'E' ? conta(l.meio)

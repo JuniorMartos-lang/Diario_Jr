@@ -97,7 +97,9 @@ assert.ok(c.backupValido(JSON.parse(JSON.stringify(dp))));
   k.finais = [{ n: '1234', tipo: 'F' }, { n: '0001', tipo: 'V' }]; assert.ok(c.backupValido(b));
   k.finais = [{ n: '123', tipo: 'F' }]; assert.ok(!c.backupValido(b));
   k.finais = ['1111', '2222', '3333', '4444', '5555'].map((n) => ({ n, tipo: 'F' })); assert.ok(!c.backupValido(b));
-  k.finais = [{ n: '1234', tipo: 'X' }]; assert.ok(!c.backupValido(b)); }
+  k.finais = [{ n: '1234', tipo: 'X' }]; assert.ok(!c.backupValido(b));
+  k.finais = [{ n: '1234', tipo: 'V', dono: 'A' }]; assert.ok(c.backupValido(b));
+  k.finais = [{ n: '1234', tipo: 'V', dono: 'Z' }]; assert.ok(!c.backupValido(b)); }
 
 // Pagamento parcial: o resto fica em aberto na mesma fatura
 let dpp = parcelar({ data: '2026-10-10', valor: 30000, meio: 'nu', pago: true }, 'mensal', 3);
@@ -705,6 +707,15 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.deepStrictEqual(await c.decifrarBackup(JSON.parse(textoApp), 'senha-do-app-1'), claroBk);
   await assert.rejects(c.decifrarBackup(bkApp, 'senha-errada-1'));
   await assert.rejects(c.decifrarBackup(bkApp, gApp.hash));
+  // Finais dos cartoes (numero, fisico/virtual, titular/adicional) passam inteiros pelos dois tipos de backup e pela restauracao
+  const comFinais = JSON.parse(JSON.stringify(dp));
+  comFinais.cartoes[0].finais = [{ n: '1111', tipo: 'F', dono: 'T' }, { n: '2222', tipo: 'V', dono: 'T' }, { n: '3333', tipo: 'F', dono: 'A' }, { n: '4444', tipo: 'V', dono: 'A' }];
+  for (const arq of [await c.cifrarBackup(comFinais, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comFinais, gApp)]) {
+    const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
+    const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-03');
+    assert.ok(c.backupValido(volta));
+    assert.deepStrictEqual(volta.cartoes[0].finais, comFinais.cartoes[0].finais);
+  }
   // Backup antigo continua abrindo com a senha antiga depois que a senha do app muda
   const gNova = await c.protegerSenha('senha-nova-22');
   await assert.rejects(c.decifrarBackup(bkApp, 'senha-nova-22'));
