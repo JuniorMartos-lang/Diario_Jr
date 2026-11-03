@@ -73,9 +73,10 @@
   .card { background: var(--card); border-radius: 20px; padding: 14px 16px; box-shadow: var(--sombra); margin-bottom: 14px; }
   h2 { font-size: 16px; margin: 0 0 10px; }
   label { display: block; font-size: 13px; color: var(--mut); margin-bottom: 10px; }
-  input, select { display: block; width: 100%; margin-top: 3px; min-height: 44px; padding: 8px 12px; font: inherit; font-size: 16px; color: var(--txt); background: var(--campo); border: 1px solid transparent; border-radius: 12px; }
+  input, select, textarea { display: block; width: 100%; margin-top: 3px; min-height: 44px; padding: 8px 12px; font: inherit; font-size: 16px; color: var(--txt); background: var(--campo); border: 1px solid transparent; border-radius: 12px; }
+  textarea { resize: vertical; }
   input[type=checkbox] { display: inline-block; width: 20px; min-height: 20px; margin: 0 6px 0 0; vertical-align: middle; }
-  input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--pri); outline-offset: 1px; }
+  input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--pri); outline-offset: 1px; }
   .dois { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .dois > * { min-width: 0; }
   /* Sem o campo Para (gasto ou entrada), Pago com ocupa a linha toda e o nome do cartao nao corta. */
@@ -147,11 +148,11 @@
   .lado small { display: block; font-size: 12px; }
   #lLista .lado { padding: 6px 0 6px 10px; margin: -6px 0; cursor: pointer; }
   /* Situacao no Fluxo: elipse com texto branco em negrito; cores fixas nos dois temas. */
-  #lLista .lado { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-  #lLista .lado small.pilula { display: inline-block; padding: 1px 9px; border-radius: 999px; color: #fff; font-weight: 700; font-size: 11px; }
-  #lLista .lado small.ok { background: #15803d; }
+  #lLista .lado, #udLista .lado { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  #lLista .lado small.pilula, #udLista .lado small.pilula { display: inline-block; padding: 1px 9px; border-radius: 999px; color: #fff; font-weight: 700; font-size: 11px; }
+  #lLista .lado small.ok, #udLista .lado small.ok { background: #15803d; }
   #lLista .lado small.atraso { background: #c0262d; }
-  #lLista .lado small.pend { background: #5a6b76; }
+  #lLista .lado small.pend, #udLista .lado small.pend { background: #5a6b76; }
   #mais, #udMais { position: fixed; z-index: 11; right: 16px; bottom: calc(72px + env(safe-area-inset-bottom)); width: 56px; height: 56px; padding: 0; font-size: 30px; line-height: 1; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
   #rIni, #rFim { padding-left: 8px; padding-right: 4px; font-size: 15px; }
   summary { cursor: pointer; padding: 9px 0; border-top: 1px solid var(--linha); list-style-position: outside; margin-left: 16px; }
@@ -238,6 +239,16 @@
   .tituloIco > span { min-width: 0; overflow-wrap: anywhere; }
   #uTituloIco { display: contents; }
   .seletorFluxo > span.saldoTopo { display: flex; }
+  .linhaPag { margin: 4px 0 6px; }
+  .linhaPag:has(> input[hidden]) > details { grid-column: 1 / -1; }
+  .selMeio summary { margin-left: 0; border-top: 0; }
+  .txtMeio { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .txtMeio .ico { width: 24px; height: 24px; padding: 2px; font-size: 9px; }
+  .selMeio button.linha { gap: 8px; justify-content: flex-start; border-top: 0; font-size: 14px; color: var(--txt); }
+  .detUd .ico { width: 18px; height: 18px; padding: 1px; font-size: 7px; vertical-align: -4px; margin-right: 3px; }
+  #udPagBox .caixaTit { margin: 2px 0 4px; font-weight: 500; }
+  .udTopo { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+  .detUd { display: block; margin-top: 4px; color: var(--mut); white-space: pre-line; overflow-wrap: anywhere; }
   .viagemSel { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 14px; border-radius: 12px; background: var(--campo); }
   .viagemSel .q { flex: 1; min-width: 0; overflow-wrap: anywhere; }
   .viagemSel .valor { text-align: right; }
@@ -564,7 +575,7 @@
   <section id="s-usadesp" hidden>
     <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="udTitulo" class="tituloIco"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 7V4h6v3M9 11v5M15 11v5M8 20v1.5M16 20v1.5"/></svg><span>Despesas de Viagem</span></h2></div>
     <div class="seletorFluxo"><span class="saldoTopo">Viagem<button type="button" class="olhoSaldo" id="udOlho" aria-pressed="false" aria-label="Ocultar valores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span><div class="viagemSel" id="udResumo"></div></div>
-    <div class="card"><div id="udLista"></div></div>
+    <div class="card"><div class="udTopo"><label class="caixaTit"><input type="checkbox" id="udDetalhes">Detalhes</label></div><div id="udLista"></div></div>
     <button type="button" id="udMais" aria-label="Nova despesa">+</button>
   </section>
 
@@ -594,7 +605,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.50.4 · 03/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.51.1 · 03/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -911,7 +922,15 @@
   <div class="rotuloCampo" id="udCatBox"><span>Categoria</span><details class="multiSel" id="udCatSel"><summary><span id="udCatTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" id="udCatOpcoes"></div></details><input type="hidden" id="udCat"></div>
   <div class="rotuloCampo" id="udQuemBox"><span>Despesa compartilhada</span><details class="multiSel" id="udQuem"><summary><span>Todos</span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes"></div></details></div>
   <label>Data da compra<input id="udData" type="date"></label>
+  <div class="dois" id="udCheckBox" hidden><label>Check-in<input id="udCheckin" type="date"></label><label>Check-out<input id="udCheckout" type="date"></label></div>
   <div class="dois"><label>Moeda<select id="udMoeda"></select></label><label>Valor<input id="udValor" inputmode="numeric" autocomplete="off" placeholder="0,00"></label></div>
+  <div class="rotuloCampo" id="udPagBox"><span>Pago com</span>
+    <div class="dois linhaPag"><details class="multiSel selMeio" id="udMeio1Sel"><summary><span class="txtMeio"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" aria-label="Meio de pagamento"></div></details><input type="hidden" id="udMeio1"><input id="udValor1" class="valorUd" inputmode="numeric" autocomplete="off" placeholder="0,00" aria-label="Valor no primeiro meio" hidden></div>
+    <label class="caixaTit"><input type="checkbox" id="udDoisMeios">Usar dois meios de pagamento</label>
+    <div class="dois linhaPag" id="udMeio2Box" hidden><details class="multiSel selMeio" id="udMeio2Sel"><summary><span class="txtMeio"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" aria-label="Segundo meio de pagamento"></div></details><input type="hidden" id="udMeio2"><input id="udValor2" class="valorUd" inputmode="numeric" autocomplete="off" placeholder="0,00" aria-label="Valor no segundo meio"></div>
+  </div>
+  <label><input id="udPago" type="checkbox" checked>Pago</label>
+  <label>Obs<textarea id="udObs" maxlength="500" rows="2" placeholder="Opcional"></textarea></label>
   <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="udFechar">Fechar</button><button type="button" class="perigo" id="udExcluir" hidden>Excluir</button></div>
 </form></dialog>
 <dialog id="dMotivo"><form novalidate>
@@ -1546,13 +1565,13 @@ function htmlLancsFatura(itens) {
     return `${titulo}<button type="button" class="linha" data-lanc="${esc(p.lanc.id)}">${iconeCat(db.categorias.find((x) => x.id === p.lanc.cat) || { nome: '' })}<span class="q">${esc(p.lanc.desc)}${p.de ? `<br><small>Parcela ${p.n}/${p.de}</small>` : ''}</span><span class="valor">${brl(p.valor)}</span></button>`;
   }).join('');
 }
-// Pagar e Desfazer: iguais em Detalhes da fatura e na aba Cartoes.
+// Pagar e Desfazer: iguais em Detalhes da fatura e na aba Cartoes. Paga por inteiro, o botao diz que esta paga.
 function htmlBotoesFatura(c, ym, h) {
   const falta = restanteFatura(db, c, ym), desfaz = db.faturasPagas[chaveFatura(c.id, ym)] || parciaisDe(db, c.id, ym).length;
   const pagar = falta <= 0 ? '' : faturaPagavel(c, ym, h)
     ? `<button type="button" class="pagarFat" data-pagafat="${esc(c.id)}" data-ym="${ym}">Pagar fatura</button>`
     : `<button type="button" class="pagarFat" disabled>Pagar fatura</button><small class="liberaEm">Libera em ${dataBR(fechamentoFatura(c, ym)).slice(0, 5)}</small>`;
-  return pagar + (desfaz ? `<button type="button" class="sec gerenciar" data-desfazfat="${esc(c.id)}" data-ym="${ym}">Desfazer pagamento</button>` : '');
+  return pagar + (desfaz ? `<button type="button" class="sec gerenciar" data-desfazfat="${esc(c.id)}" data-ym="${ym}">${falta <= 0 ? 'Fatura Paga (Click para Desfazer)' : 'Desfazer pagamento'}</button>` : '');
 }
 function renderFatura(h) {
   const c = db.cartoes.find((x) => x.id === fatCartao);
@@ -2619,6 +2638,7 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
   if ('infousa' in d) { avisar('Filtro das viagens', TEXTO_FILTRO_USA); return; }
   if (d.usadesp) { abrirDespesa(d.usadesp); return; }
   if (d.udcat) { escolherUdCat(d.udcat); $('udCatSel').open = false; return; }
+  if (d.udmeio) { escolherUdMeio(d.udmeio, d.id); return; }
   if ('editviagem' in d) { abrirViagem(d.editviagem); return; }
   if (d.desarqusa) { delete usa()[d.desarqusa].find((x) => x.id === d.id).arquivadaEm; salvar(); return; }
   if (d.desarqcat) { delete db.categorias.find((x) => x.id === d.desarqcat).arquivadaEm; salvar(); return; }
@@ -3023,7 +3043,8 @@ $('uExcluir').onclick = async () => {
   const { tipo, id } = usaEd, u = usa();
   const emUso = tipo === 'categorias' ? u.despesas.some((d) => d.cat === id)
     : tipo === 'viajantes' ? u.viagens.some((v) => v.viajantes.includes(id))
-      : tipo === 'moedas' ? u.viagens.some((v) => v.moedas.includes(id)) : false;
+      : tipo === 'moedas' ? u.viagens.some((v) => v.moedas.includes(id))
+        : u.despesas.some((d) => (d.pagamentos || []).some((p) => p.meio === id));
   if (emUso) return avisar('Não é possível excluir', 'Este cadastro está em uso em uma viagem ou despesa. Use Arquivar para tirá-lo das listas sem perder o histórico.');
   if (!await modal(`Excluir ${USA_ITEM[tipo]}?`, $('uNome').value, 'Sim, excluir', 'Cancelar')) return;
   usa()[tipo] = usa()[tipo].filter((x) => x.id !== id);
@@ -3056,6 +3077,20 @@ function textoQuem(d, v) {
   const cada = fmtMoeda(Math.round(d.valor / d.quem.length), d.moeda);
   return `${d.quem.length === v.viajantes.length ? 'Todos' : d.quem.length + ' viajantes'} · ${cada} cada`;
 }
+// Caixa Detalhes (so na memoria): mostra tudo o que foi digitado em cada despesa.
+function detalhesDesp(d, u) {
+  const nome = (id) => (u.viajantes.find((p) => p.id === id) || { nome: '?' }).nome, linhas = [];
+  if (d.quem.length > 1) linhas.push(`Dividida entre ${d.quem.map((id) => esc(nome(id))).join(', ')} (${fmtMoeda(Math.round(d.valor / d.quem.length), d.moeda)} cada)`);
+  else if (d.quem.length === 1) linhas.push(`Despesa de ${esc(nome(d.quem[0]))}`);
+  const nomeMeioUsa = (id) => ([...u.contas, ...u.cartoes].find((x) => x.id === id) || { nome: '?' }).nome;
+  const meioUsa = (id) => [...u.contas, ...u.cartoes].find((x) => x.id === id);
+  if (d.pagamentos) linhas.push('Pago com ' + d.pagamentos.map((p) => (meioUsa(p.meio) ? iconeHtml(meioUsa(p.meio)) : '') + esc(nomeMeioUsa(p.meio)) + (d.pagamentos.length > 1 ? ` (${fmtMoeda(p.valor, d.moeda)})` : '')).join(' + '));
+  linhas.push(`Compra em ${dataBR(d.data)} · ${esc(moedaUsa(d.moeda).codigo)} · ${d.pago === false ? 'A pagar' : 'Pago'}`);
+  if (d.checkin || d.checkout) linhas.push(`Check-in ${d.checkin ? dataBR(d.checkin) : '-'} · Check-out ${d.checkout ? dataBR(d.checkout) : '-'}`);
+  if (d.obs) linhas.push(`Obs: ${esc(d.obs)}`);
+  return `<small class="detUd">${linhas.join('<br>')}</small>`;
+}
+$('udDetalhes').addEventListener('change', () => renderUsaDesp());
 function renderUsaDesp() {
   const v = viagemAberta(), u = usa();
   if (!v) return;
@@ -3067,18 +3102,21 @@ function renderUsaDesp() {
     <span class="valor"><small class="fraco">Total (${desp.length})</small><br><b class="neg">${fmtTotais(u, v)}</b></span>`;
   const h = hoje();
   let dia = '';
+  const det = $('udDetalhes').checked;
   $('udLista').innerHTML = desp.map((d) => {
     const c = u.categorias.find((x) => x.id === d.cat) || { nome: '?' }, quem = textoQuem(d, v);
     // Dia como no Fluxo: "30 de novembro", ou Hoje.
     const cab = d.data !== dia ? `<h3 class="dia">${d.data === h ? 'Hoje' : new Date(d.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</h3>` : '';
     dia = d.data;
-    return cab + `<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}<br><small>${esc(c.nome)}${quem ? ' · ' + quem : ''}</small></span><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span></button>`;
+    return cab + `<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></button>`;
   }).join('') || '<p class="fraco" style="margin:0">Nenhuma despesa ainda. Toque em + para lançar.</p>';
 }
 // Quem pode dividir a despesa: viajantes da viagem nao arquivados, mais os que ja estao na despesa editada.
 let udPessoas = [];
 function textoUdQuem() {
-  const sel = marcados($('udQuemBox'));
+  const sel = marcados($('udQuemBox')), nomeDe = (id) => (usa().viajantes.find((p) => p.id === id) || { nome: '?' }).nome;
+  // Viagem com um viajante so: o combo ja mostra o nome dele.
+  if (udPessoas.length === 1) { $('udQuem').querySelector('summary span').textContent = nomeDe(udPessoas[0]); return; }
   $('udQuem').querySelector('summary span').textContent = !sel.length || sel.length === udPessoas.length ? 'Todos'
     : sel.length === 1 ? (usa().viajantes.find((p) => p.id === sel[0]) || { nome: '?' }).nome : sel.length + ' viajantes';
 }
@@ -3104,7 +3142,7 @@ function abrirDespesa(id) {
   udPessoas = pessoas.map((p) => p.id);
   $('udQuemBox').hidden = !pessoas.length;
   $('udQuem').open = false;
-  $('udQuem').querySelector('.multiOpcoes').innerHTML = OPC_TODOS + pessoas.map((p) => `<label>${fotoViajante(p)}<span class="q">${esc(p.nome)}</span><input type="checkbox" value="${esc(p.id)}"${sel.includes(p.id) && sel.length < pessoas.length ? ' checked' : ''}></label>`).join('');
+  $('udQuem').querySelector('.multiOpcoes').innerHTML = OPC_TODOS + pessoas.map((p) => `<label>${fotoViajante(p)}<span class="q">${esc(p.nome)}</span><input type="checkbox" value="${esc(p.id)}"${(sel.includes(p.id) && sel.length < pessoas.length) || pessoas.length === 1 ? ' checked' : ''}></label>`).join('');
   ajustarTodos($('udQuem').querySelector('.multiOpcoes'));
   textoUdQuem();
   // Data: hoje, ou o inicio da viagem se hoje estiver fora dela.
@@ -3113,6 +3151,25 @@ function abrirDespesa(id) {
   $('udMoeda').innerHTML = moedas.map((m) => `<option value="${esc(m)}">${esc(moedaUsa(m).codigo)} ${esc(moedaUsa(m).simbolo)}</option>`).join('');
   $('udMoeda').value = d ? d.moeda : moedas.includes(v.base) ? v.base : moedas[0];
   $('udValor').value = d ? fmtValorUd(d.valor) : '';
+  $('udObs').value = (d && d.obs) || '';
+  $('udCheckin').value = (d && d.checkin) || '';
+  $('udCheckout').value = (d && d.checkout) || '';
+  $('udCheckout').min = $('udCheckin').value;
+  // Despesa nova vem como paga; as gravadas antes da caixa Pago contam como pagas.
+  $('udPago').checked = !d || d.pago !== false;
+  // Pago com: contas e cartoes da area Travel, sem os arquivados (o da despesa editada continua).
+  const pags = (d && d.pagamentos) || [], usados = pags.map((p) => p.meio);
+  const meios = [...u.contas.map((x) => ({ ...x, rot: 'Conta' })), ...u.cartoes.map((x) => ({ ...x, rot: 'Cartão' }))].filter((x) => !x.arquivadaEm || usados.includes(x.id));
+  // Lista propria para mostrar o logo do banco ou a bandeira, como no combo das categorias.
+  [1, 2].forEach((n) => {
+    $(`udMeio${n}Sel`).querySelector('.multiOpcoes').innerHTML = `<button type="button" class="linha" data-udmeio="${n}" data-id=""><span class="q">Não informado</span></button>`
+      + meios.map((x) => `<button type="button" class="linha" data-udmeio="${n}" data-id="${esc(x.id)}">${iconeHtml(x)}<span class="q">${x.rot}: ${esc(x.nome)}</span></button>`).join('');
+    escolherUdMeio(n, pags[n - 1] ? pags[n - 1].meio : '');
+  });
+  $('udValor1').value = pags[1] ? fmtValorUd(pags[0].valor) : '';
+  $('udValor2').value = pags[1] ? fmtValorUd(pags[1].valor) : '';
+  $('udDoisMeios').checked = pags.length === 2;
+  mostrarDoisMeios();
   $('udExcluir').hidden = !d;
   $('dUsaDesp').showModal();
   if (!d) $('udDesc').focus();
@@ -3121,8 +3178,38 @@ function escolherUdCat(id) {
   const c = usa().categorias.find((x) => x.id === id);
   $('udCat').value = id;
   $('udCatTxt').innerHTML = c ? `${iconeCat(c, 'peq')}<span>${esc(c.nome)}</span>` : '';
+  $('udCheckBox').hidden = !temCheckin(c);
 }
+// Hotel, aereo e carro tem check-in e check-out: pelo nome da categoria ou pelo icone dela.
+function temCheckin(c) {
+  if (!c) return false;
+  const nome = c.nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  return /hotel|hosped|aereo|aviao|voo|passagem|carro|aluguel/.test(nome) || ['hotel', 'aviao', 'carro'].includes(c.simbolo);
+}
+function escolherUdMeio(n, id) {
+  const x = [...usa().contas, ...usa().cartoes].find((m) => m.id === id);
+  $(`udMeio${n}`).value = x ? id : '';
+  $(`udMeio${n}Sel`).querySelector('.txtMeio').innerHTML = x ? `${iconeHtml(x)}<span>${esc(x.nome)}</span>` : '<span>Não informado</span>';
+  $(`udMeio${n}Sel`).open = false;
+}
+function mostrarDoisMeios() {
+  const dois = $('udDoisMeios').checked;
+  $('udMeio2Box').hidden = $('udValor1').hidden = !dois;
+}
+$('udDoisMeios').addEventListener('change', mostrarDoisMeios);
+document.querySelectorAll('.valorUd').forEach((el) => el.addEventListener('input', () => { el.value = fmtValorUd(Math.min(centavos(el), 99999999999)); }));
+// Ao digitar o primeiro valor, o segundo vem com o que falta para o total.
+$('udValor1').addEventListener('input', () => {
+  const falta = centavos($('udValor')) - centavos($('udValor1'));
+  $('udValor2').value = falta > 0 ? fmtValorUd(falta) : '';
+});
 $('udMais').onclick = () => abrirDespesa(null);
+// O check-out comeca no dia do check-in e nao aceita data anterior.
+$('udCheckin').addEventListener('change', () => {
+  const ini = $('udCheckin').value;
+  $('udCheckout').min = ini;
+  if (ini && (!$('udCheckout').value || $('udCheckout').value < ini)) $('udCheckout').value = ini;
+});
 $('udOlho').onclick = $('uOlho').onclick = () => $('hOlho').click();
 $('udFechar').onclick = () => $('dUsaDesp').close();
 $('fUsaDesp').onsubmit = (e) => {
@@ -3131,9 +3218,21 @@ $('fUsaDesp').onsubmit = (e) => {
   if (!desc) return avisar('Falta informação', 'Informe o nome da despesa.');
   if (!data) return avisar('Falta informação', 'Informe a data da compra.');
   if (!valor) return avisar('Falta informação', 'Informe o valor.');
+  // Pago com: um meio leva o valor inteiro; dois meios precisam somar o valor da despesa.
+  const m1 = $('udMeio1').value, m2 = $('udMeio2').value, v1 = centavos($('udValor1')), v2 = centavos($('udValor2'));
+  let pagamentos;
+  if ($('udDoisMeios').checked) {
+    if (!m1 || !m2) return avisar('Falta informação', 'Escolha os dois meios de pagamento.');
+    if (m1 === m2) return avisar('Meios iguais', 'Escolha dois meios de pagamento diferentes.');
+    if (!v1 || !v2) return avisar('Falta informação', 'Informe o valor pago em cada meio.');
+    if (v1 + v2 !== valor) return avisar('Valores não batem', `A soma dos dois meios (${fmtMoeda(v1 + v2, $('udMoeda').value)}) precisa ser igual ao valor da despesa (${fmtMoeda(valor, $('udMoeda').value)}). Nada foi gravado.`);
+    pagamentos = [{ meio: m1, valor: v1 }, { meio: m2, valor: v2 }];
+  } else if (m1) pagamentos = [{ meio: m1, valor }];
+  const comCheck = !$('udCheckBox').hidden, checkin = comCheck && $('udCheckin').value || undefined, checkout = comCheck && $('udCheckout').value || undefined;
+  if (checkin && checkout && checkout < checkin) return avisar('Datas inválidas', 'O check-out não pode ser antes do check-in.');
   // Nenhum marcado ou Todos: divide entre todos os viajantes da viagem.
   const sel = marcados($('udQuemBox')), quem = $('udQuemBox').hidden ? [] : sel.length ? sel : [...udPessoas];
-  const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem };
+  const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem, pago: $('udPago').checked, obs: $('udObs').value.trim() || undefined, checkin, checkout, pagamentos };
   const atual = usa().despesas.find((x) => x.id === despEd);
   if (atual) Object.assign(atual, dados); else usa().despesas.push({ id: novoId(), ...dados });
   $('dUsaDesp').close();

@@ -741,7 +741,13 @@ function usaValido(u) {
   return itens(u.viagens, (x) => data(x.inicio) && data(x.fim) && jpeg(x.fundo, 800000) && ids(x.moedas, u.moedas) && x.moedas.includes(x.base) && ids(x.viajantes, u.viajantes)
       && !!x.cot && typeof x.cot === 'object' && Object.entries(x.cot).every(([m, c]) => tem(u.moedas, m) && Number.isFinite(c) && c > 0))
     && Array.isArray(u.despesas) && u.despesas.every((d) => d && typeof d.id === 'string' && typeof d.desc === 'string' && d.desc.length <= 60 && tem(u.viagens, d.viagem)
-      && tem(u.categorias, d.cat) && tem(u.moedas, d.moeda) && /^\d{4}-\d{2}-\d{2}$/.test(d.data) && Number.isInteger(d.valor) && d.valor > 0 && ids(d.quem, u.viajantes))
+      && tem(u.categorias, d.cat) && tem(u.moedas, d.moeda) && /^\d{4}-\d{2}-\d{2}$/.test(d.data) && Number.isInteger(d.valor) && d.valor > 0 && ids(d.quem, u.viajantes)
+      && (d.obs === undefined || (typeof d.obs === 'string' && d.obs.length <= 500)) && (d.pago === undefined || typeof d.pago === 'boolean')
+      && data(d.checkin) && data(d.checkout) && !(d.checkin && d.checkout && d.checkout < d.checkin)
+      // Pago com: um ou dois meios (contas ou cartoes da area), diferentes, somando o valor da despesa.
+      && (d.pagamentos === undefined || (Array.isArray(d.pagamentos) && d.pagamentos.length >= 1 && d.pagamentos.length <= 2
+        && d.pagamentos.every((p) => p && (tem(u.contas, p.meio) || tem(u.cartoes, p.meio)) && Number.isInteger(p.valor) && p.valor > 0)
+        && new Set(d.pagamentos.map((p) => p.meio)).size === d.pagamentos.length && d.pagamentos.reduce((a, p) => a + p.valor, 0) === d.valor)))
     && itens(u.contas, (x) => iconeValido(x.icone))
     && itens(u.cartoes, (x) => iconeValido(x.icone) && (x.tipo === undefined || x.tipo === 'F' || x.tipo === 'V') && finaisValidos(x))
     && itens(u.viajantes, (x) => jpeg(x.foto, 200000) && (x.inicial === undefined || typeof x.inicial === 'boolean'))

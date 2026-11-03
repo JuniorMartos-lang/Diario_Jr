@@ -165,6 +165,21 @@ assert.ok(c.backupValido(JSON.parse(JSON.stringify(dpp))));
   assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], cat: 'sumiu' }] } }));
   assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], quem: ['sumiu'] }] } }));
   assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], valor: 0 }] } }));
+  assert.ok(c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], obs: 'Pago em dinheiro' }] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], obs: 'x'.repeat(501) }] } }));
+  assert.ok(c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], pago: false }] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], pago: 'sim' }] } }));
+  assert.ok(c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], checkin: '2027-01-11', checkout: '2027-01-14' }] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], checkin: '2027-01-14', checkout: '2027-01-11' }] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], checkin: '14/01/2027' }] } }));
+  // Pago com: um meio com o valor inteiro, ou dois que somam o valor
+  const pag = (pagamentos) => c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], pagamentos }] } });
+  assert.ok(pag([{ meio: 'u1', valor: 10000 }]));
+  assert.ok(pag([{ meio: 'u1', valor: 6000 }, { meio: 'u2', valor: 4000 }]));
+  assert.ok(!pag([{ meio: 'u1', valor: 6000 }, { meio: 'u2', valor: 3000 }]));
+  assert.ok(!pag([{ meio: 'u1', valor: 5000 }, { meio: 'u1', valor: 5000 }]));
+  assert.ok(!pag([{ meio: 'sumiu', valor: 10000 }]));
+  assert.ok(!pag([]));
   assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, viagens: [viag({ base: 'EUR' })] } }));
   assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, viagens: [viag({ cot: { BRL: -1 } })] } }));
   assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, moedas: [{ id: 'x', nome: 'X', codigo: 'xx', simbolo: 'X' }] } }));
@@ -776,7 +791,8 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   }
   // Area USA inteira (viagens com imagem, contas, cartoes, viajantes, categorias) passa pelos dois tipos de backup
   const jpg = 'data:image/jpeg;base64,/9j/AAAA', svg = 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=';
-  const comUsa = { ...JSON.parse(JSON.stringify(dp)), usa: { moedas: c.MOEDAS_PADRAO, despesas: [{ id: 'd1', viagem: 'v1', desc: 'Parque', cat: 'u4', data: '2027-04-05', moeda: 'BRL', valor: 12345, quem: ['u3'] }],
+  const comUsa = { ...JSON.parse(JSON.stringify(dp)), usa: { moedas: c.MOEDAS_PADRAO, despesas: [{ id: 'd1', viagem: 'v1', desc: 'Parque', cat: 'u4', data: '2027-04-05', moeda: 'BRL', valor: 12345, quem: ['u3'], obs: 'Ingresso de 2 dias', pago: false, checkin: '2027-04-05', checkout: '2027-04-08',
+      pagamentos: [{ meio: 'u1', valor: 10000 }, { meio: 'u2', valor: 2345 }] }],
     viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 } }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {} }],
     contas: [{ id: 'u1', nome: 'Wise', icone: svg, iconeNome: 'Wise' }], cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'V', icone: svg, iconeNome: 'Visa',
       finais: [{ n: '1234', tipo: 'V', dono: 'T' }], finaisInativos: [{ n: '5678', tipo: 'F', dono: 'A', motivo: 'Vencido', em: '2026-11-03' }] }],
