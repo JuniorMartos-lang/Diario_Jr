@@ -115,6 +115,44 @@ let fp = c.fluxoMes(dpp, '2026-11', '2026-11-02');
 assert.deepStrictEqual([fp.saidas, fp.prevSaidas, fp.previsao], [4000, 10000, 90000]);
 assert.deepStrictEqual(c.linhasFluxo(dpp, '2026-11', 'fluxo').map((x) => [x.valor, x.pago]), [[4000, true], [6000, false]]);
 assert.ok(c.backupValido(JSON.parse(JSON.stringify(dpp))));
+// Area USA: opcional, com cadastros proprios.
+{ const foto = 'data:image/jpeg;base64,AAAA';
+  const viag = (x) => ({ id: 'v1', nome: 'Orlando', moedas: ['USD'], base: 'USD', viajantes: [], cot: {}, ...x });
+  const u = { moedas: c.MOEDAS_PADRAO, despesas: [], viagens: [viag({ fundo: foto })], contas: [{ id: 'u1', nome: 'Wise' }], cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'V' }],
+    viajantes: [{ id: 'u3', nome: 'Ana', foto }], categorias: [{ id: 'u4', nome: 'Parques', simbolo: 'etiqueta', cor: '#1b76c9' }] };
+  assert.ok(c.backupValido({ ...dpp, usa: u }));
+  assert.ok(c.usaValido(undefined));
+  assert.ok(c.backupValido({ ...dpp, usa: { ...u, viagens: [viag({ inicio: '2027-01-10', fim: '2027-01-20' }), viag({ id: 'v2', nome: 'NY' })] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...u, viagens: [viag({ inicio: '10/01/2027' })] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...u, viagens: undefined } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...u, cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'X' }] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...u, viagens: [viag({ fundo: 'javascript:alert(1)' })] } }));
+  // Despesas: viagem, categoria, moeda e viajantes precisam existir; base precisa estar nas moedas da viagem
+  const comDesp = { ...u, viagens: [viag({ moedas: ['USD', 'BRL'], viajantes: ['u3'] })],
+    despesas: [{ id: 'd1', viagem: 'v1', desc: 'Parque', cat: 'u4', data: '2027-01-11', moeda: 'USD', valor: 10000, quem: ['u3'] }, { id: 'd2', viagem: 'v1', desc: 'Lanche', cat: 'u4', data: '2027-01-11', moeda: 'BRL', valor: 5000, quem: [] }] };
+  assert.ok(c.backupValido({ ...dpp, usa: comDesp }));
+  assert.deepStrictEqual(c.totaisViagem(comDesp, comDesp.viagens[0]), [{ moeda: 'USD', valor: 10000 }, { moeda: 'BRL', valor: 5000 }]);
+  assert.deepStrictEqual(c.totaisViagem({ ...comDesp, despesas: [] }, comDesp.viagens[0]), [{ moeda: 'USD', valor: 0 }]);
+  // Aba USA: soma de viagens por moeda, finalizada depois do fim e filtro pela data de inicio
+  const vB = viag({ id: 'v2', nome: 'NY', moedas: ['BRL'], base: 'BRL', inicio: '2027-02-01', fim: '2027-02-10' });
+  const comDuas = { ...comDesp, viagens: [{ ...comDesp.viagens[0], inicio: '2027-01-10', fim: '2027-01-20' }, vB],
+    despesas: [...comDesp.despesas, { id: 'd3', viagem: 'v2', desc: 'Taxi', cat: 'u4', data: '2027-02-02', moeda: 'BRL', valor: 700, quem: [] }] };
+  assert.deepStrictEqual(c.totaisViagens(comDuas, comDuas.viagens), [{ moeda: 'USD', valor: 10000 }, { moeda: 'BRL', valor: 5700 }]);
+  assert.ok(!c.viagemFinalizada(vB, '2027-02-10') && c.viagemFinalizada(vB, '2027-02-11') && !c.viagemFinalizada(viag({}), '2099-01-01'));
+  const ids = (l) => l.map((v) => v.id);
+  assert.deepStrictEqual(ids(c.filtrarViagens(comDuas.viagens, { ids: [], ini: '', fim: '' })), ['v1', 'v2']);
+  assert.deepStrictEqual(ids(c.filtrarViagens(comDuas.viagens, { ids: ['v2'], ini: '', fim: '' })), ['v2']);
+  assert.deepStrictEqual(ids(c.filtrarViagens(comDuas.viagens, { ids: [], ini: '2027-01-15', fim: '2027-02-01' })), ['v2']);
+  assert.deepStrictEqual(ids(c.filtrarViagens(comDuas.viagens, { ids: [], ini: '', fim: '2027-01-31' })), ['v1']);
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], cat: 'sumiu' }] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], quem: ['sumiu'] }] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, despesas: [{ ...comDesp.despesas[0], valor: 0 }] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, viagens: [viag({ base: 'EUR' })] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, viagens: [viag({ cot: { BRL: -1 } })] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...comDesp, moedas: [{ id: 'x', nome: 'X', codigo: 'xx', simbolo: 'X' }] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...u, viajantes: [{ id: 'u3', nome: 'Ana', foto: 'data:image/svg+xml;base64,AAAA' }] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...u, viajantes: [{ id: 'u3', nome: 'Ana', inicial: 'sim' }] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...u, categorias: undefined } })); }
 const comLimP = { ...nu, limite: 50000 };
 assert.strictEqual(c.limiteDisponivel(dpp, comLimP), 50000 - 6000 - 20000);
 assert.strictEqual(c.faturaAtual(dpp, nu, '2026-11-02').valor, 6000);
@@ -716,6 +754,23 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.ok(c.backupValido(volta));
     assert.deepStrictEqual(volta.cartoes[0].finais, comFinais.cartoes[0].finais);
   }
+  // Area USA inteira (viagens com imagem, contas, cartoes, viajantes, categorias) passa pelos dois tipos de backup
+  const jpg = 'data:image/jpeg;base64,/9j/AAAA', svg = 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=';
+  const comUsa = { ...JSON.parse(JSON.stringify(dp)), usa: { moedas: c.MOEDAS_PADRAO, despesas: [{ id: 'd1', viagem: 'v1', desc: 'Parque', cat: 'u4', data: '2027-04-05', moeda: 'BRL', valor: 12345, quem: ['u3'] }],
+    viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 } }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {} }],
+    contas: [{ id: 'u1', nome: 'Wise', icone: svg, iconeNome: 'Wise' }], cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'V', icone: svg, iconeNome: 'Visa' }],
+    viajantes: [{ id: 'u3', nome: 'Ana', foto: jpg, inicial: true }], categorias: [{ id: 'u4', nome: 'Parques', simbolo: 'carro', cor: '#2f8486' }] } };
+  for (const arq of [await c.cifrarBackup(comUsa, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comUsa, gApp)]) {
+    const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
+    const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-03');
+    assert.ok(c.backupValido(volta));
+    assert.deepStrictEqual(volta.usa, comUsa.usa);
+  }
+  // Viagem unica da 1.46.1 vira a lista de viagens, sem perder nada
+  const velho = c.migrar({ ...JSON.parse(JSON.stringify(dp)), usa: { viagem: 'Orlando', inicio: '2027-04-04', fundo: jpg, contas: [], cartoes: [], viajantes: [], categorias: [] } }, '2026-11-03');
+  assert.deepStrictEqual(velho.usa, { contas: [], cartoes: [], viajantes: [], categorias: [], moedas: c.MOEDAS_PADRAO, despesas: [],
+    viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: undefined, fundo: jpg, moedas: ['USD'], base: 'USD', viajantes: [], cot: {} }] });
+  assert.ok(c.backupValido(JSON.parse(JSON.stringify(velho))));
   // Backup antigo continua abrindo com a senha antiga depois que a senha do app muda
   const gNova = await c.protegerSenha('senha-nova-22');
   await assert.rejects(c.decifrarBackup(bkApp, 'senha-nova-22'));

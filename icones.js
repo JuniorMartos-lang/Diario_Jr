@@ -88,6 +88,32 @@ const SIMBOLOS = {
   caixa: ['Caixa', '<rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/>'],
   estrela: ['Outros','<path d="M12 3l2.8 5.8 6.200.9-4.5 4.400 1 6.300-5.5-3-5.5 3 1-6.300L3 9.700l6.200-.9z"/>'],
 };
+// Icones de viagem: so aparecem na escolha das categorias da area USA.
+const SIMBOLOS_APP = Object.keys(SIMBOLOS);
+Object.assign(SIMBOLOS, {
+  aviao: ['Avião', '<path d="M12 2c-.9 0-1.5.9-1.5 2v5.5L3 14v2l7.5-2.5V19L8 20.5V22l4-1 4 1v-1.5L13.5 19v-5.5L21 16v-2l-7.5-4.5V4c0-1.1-.6-2-1.5-2z"/>'],
+  hotel: ['Hotel', '<path d="M3 19V5M3 15h18v4M21 15v-3a3 3 0 0 0-3-3h-8v6"/><circle cx="6.5" cy="12" r="1.5"/>'],
+  mala: ['Mala', '<rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 7V4h6v3M9 11v5M15 11v5M8 20v1.5M16 20v1.5"/>'],
+  castelo: ['Parque temático', '<path d="M4 21V10h3v2h2v-2h2V6l1-3 1 3v4h2v2h2v-2h3v11zM10 21v-4a2 2 0 0 1 4 0v4"/>'],
+  roda: ['Parque de diversões', '<circle cx="12" cy="10" r="6"/><path d="M12 4v12M6 10h12M7.8 5.8l8.4 8.4M16.2 5.8l-8.4 8.4M8.5 21l3.5-5 3.5 5M7 21h10"/>'],
+  camera: ['Passeios e fotos', '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>'],
+  mapa: ['Tours', '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/>'],
+  praia: ['Praia', '<path d="M3 11a9 7 0 0 1 18 0zM12 11l-2 10M5 21h14"/>'],
+  navio: ['Cruzeiro', '<path d="M3 16l2 5h14l2-5zM5 16v-5h14v5M8 11V7h8v4M12 4v3"/>'],
+  taxi: ['Táxi e aplicativo', '<path d="M4 17v-4l2-5h12l2 5v4M4 13h16M3 17h18v2H3zM10 8V5.5h4V8"/><circle cx="7.5" cy="15" r=".6"/><circle cx="16.5" cy="15" r=".6"/>'],
+  metro: ['Metrô e trem', '<rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 10h12M9 13.5h.01M15 13.5h.01M8 21l2-4M16 21l-2-4"/>'],
+  estacionamento: ['Estacionamento', '<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M10 17V7h3a3 3 0 0 1 0 6h-3"/>'],
+  lanche: ['Lanche', '<path d="M4 10a8 5 0 0 1 16 0zM3 13.5h18M4 17h16v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/>'],
+  cafe: ['Café', '<path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 3v3M12 3v3"/>'],
+  bebida: ['Bebidas', '<path d="M5 4h14l-7 8zM12 12v8M8 20h8"/>'],
+  sacola: ['Compras', '<path d="M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2"/>'],
+  seguro: ['Seguro viagem', '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'],
+  dolar: ['Dinheiro em espécie', '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>'],
+  cambio: ['Câmbio', '<path d="M4 8h13l-3-3M20 16H7l3 3"/>'],
+  moedas: ['Moedas e gorjetas', '<ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M5 6v4c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6M5 10v4c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-4M5 14v4c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-4"/>'],
+});
+const SIMBOLOS_VIAGEM = ['aviao', 'hotel', 'mala', 'castelo', 'roda', 'lazer', 'camera', 'mapa', 'praia', 'navio', 'carro', 'taxi', 'onibus', 'metro', 'combustivel', 'estacionamento',
+  'comida', 'lanche', 'cafe', 'bebida', 'mercado', 'sacola', 'roupa', 'presente', 'saude', 'seguro', 'telefone', 'internet', 'dolar', 'moeda', 'cambio', 'moedas', 'cartao', 'carteira', 'imposto', 'estrela'];
 // Texto branco sobre estas cores tem contraste de pelo menos 3:1.
 const CORES_CATEGORIA = ['#1b76c9', '#0e7490', '#2f8486', '#2d7d46', '#a16207', '#c8641e', '#c0262d', '#b0327a', '#7a3e9d', '#4f5b93', '#6b5344', '#475569'];
 // Categorias que ja existem ou vem prontas comecam com uma aparencia coerente com o nome.

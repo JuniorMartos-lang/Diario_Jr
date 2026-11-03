@@ -614,6 +614,17 @@ function migrar(d, hoje) {
     }
     novo.lancs = lista;
   }
+  // Ate a 1.46.1 a area USA tinha uma viagem so, com os campos soltos.
+  if (novo.usa && typeof novo.usa === 'object' && !novo.usa.viagens) {
+    const { viagem, inicio, fim, fundo, ...resto } = novo.usa;
+    novo.usa = { ...resto, viagens: viagem ? [{ id: 'v1', nome: viagem, inicio, fim, fundo }] : [] };
+  }
+  // 1.47: moedas, despesas e, em cada viagem, viajantes, moedas, moeda base e cotacoes.
+  if (novo.usa && typeof novo.usa === 'object' && Array.isArray(novo.usa.viagens)) {
+    const moedas = novo.usa.moedas || MOEDAS_PADRAO.map((m) => ({ ...m }));
+    novo.usa = { ...novo.usa, moedas, despesas: novo.usa.despesas || [],
+      viagens: novo.usa.viagens.map((v) => (!v || v.moedas ? v : { ...v, moedas: ['USD'], base: 'USD', viajantes: v.viajantes || [], cot: v.cot || {} })) };
+  }
   return novo;
 }
 
@@ -686,11 +697,55 @@ function perfilValido(p) {
     && (p.foto === undefined || (typeof p.foto === 'string' && p.foto.length <= 200000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(p.foto)));
 }
 
+// Area USA: moedas que ja vem cadastradas. O id e o codigo, para conversoes acharem a mesma moeda.
+const MOEDAS_PADRAO = [['BRL', 'Real Brasileiro', 'R$'], ['USD', 'Dólar Americano', 'US$'], ['EUR', 'Euro', '€'], ['GBP', 'Libra Esterlina', '£'],
+  ['JPY', 'Iene Japonês', '¥'], ['CNY', 'Yuan Chinês', 'CN¥'], ['CAD', 'Dólar Canadense', 'C$'], ['AUD', 'Dólar Australiano', 'A$'], ['CHF', 'Franco Suíço', 'CHF'],
+  ['ARS', 'Peso Argentino', 'AR$'], ['MXN', 'Peso Mexicano', 'MX$'], ['CLP', 'Peso Chileno', 'CL$'], ['HKD', 'Dólar de Hong Kong', 'HK$'],
+  ['SGD', 'Dólar de Singapura', 'S$'], ['KRW', 'Won Sul-Coreano', '₩']].map(([codigo, nome, simbolo]) => ({ id: codigo, codigo, nome, simbolo }));
+// Total da viagem por moeda, sem conversao (pedido do usuario): a base sempre aparece e vem primeiro.
+function totaisViagem(u, v) {
+  const t = new Map([[v.base, 0]]);
+  for (const d of u.despesas) if (d.viagem === v.id) t.set(d.moeda, (t.get(d.moeda) || 0) + d.valor);
+  return [...t].map(([moeda, valor]) => ({ moeda, valor }));
+}
+
+// Soma de varias viagens, ainda separada por moeda.
+function totaisViagens(u, viagens) {
+  const t = new Map();
+  for (const v of viagens) for (const x of totaisViagem(u, v)) t.set(x.moeda, (t.get(x.moeda) || 0) + x.valor);
+  return [...t].map(([moeda, valor]) => ({ moeda, valor }));
+}
+// Viagem finalizada: a partir do dia seguinte ao fim. Sem data de fim, fica em aberto.
+const viagemFinalizada = (v, hoje) => !!v.fim && v.fim < hoje;
+// Filtro da aba USA: viagens escolhidas (nenhuma = todas) e data de inicio entre ini e fim.
+const filtrarViagens = (viagens, f) => viagens.filter((v) => (!f.ids.length || f.ids.includes(v.id))
+  && (!f.ini || (v.inicio && v.inicio >= f.ini)) && (!f.fim || (v.inicio && v.inicio <= f.fim)));
+
+// Area USA: cadastros proprios, sem ligacao com contas, cartoes e lancamentos do resto do app.
+function usaValido(u) {
+  if (u === undefined) return true;
+  const data = (v) => v === undefined || /^\d{4}-\d{2}-\d{2}$/.test(v);
+  const jpeg = (v, max) => v === undefined || (typeof v === 'string' && v.length <= max && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(v));
+  const itens = (l, ok) => Array.isArray(l) && l.every((x) => x && typeof x.id === 'string' && typeof x.nome === 'string' && x.nome.length <= 60 && ok(x));
+  if (!u || typeof u !== 'object' || !itens(u.moedas, (x) => /^[A-Z]{3}$/.test(x.codigo) && typeof x.simbolo === 'string' && x.simbolo.length >= 1 && x.simbolo.length <= 5)
+    || !itens(u.viajantes, () => true) || !itens(u.categorias, () => true)) return false;
+  const tem = (lista, id) => lista.some((x) => x.id === id);
+  const ids = (l, lista) => Array.isArray(l) && l.every((id) => tem(lista, id));
+  return itens(u.viagens, (x) => data(x.inicio) && data(x.fim) && jpeg(x.fundo, 800000) && ids(x.moedas, u.moedas) && x.moedas.includes(x.base) && ids(x.viajantes, u.viajantes)
+      && !!x.cot && typeof x.cot === 'object' && Object.entries(x.cot).every(([m, c]) => tem(u.moedas, m) && Number.isFinite(c) && c > 0))
+    && Array.isArray(u.despesas) && u.despesas.every((d) => d && typeof d.id === 'string' && typeof d.desc === 'string' && d.desc.length <= 60 && tem(u.viagens, d.viagem)
+      && tem(u.categorias, d.cat) && tem(u.moedas, d.moeda) && /^\d{4}-\d{2}-\d{2}$/.test(d.data) && Number.isInteger(d.valor) && d.valor > 0 && ids(d.quem, u.viajantes))
+    && itens(u.contas, (x) => iconeValido(x.icone))
+    && itens(u.cartoes, (x) => iconeValido(x.icone) && (x.tipo === 'F' || x.tipo === 'V'))
+    && itens(u.viajantes, (x) => jpeg(x.foto, 200000) && (x.inicial === undefined || typeof x.inicial === 'boolean'))
+    && itens(u.categorias, (x) => /^[a-z]+$/.test(x.simbolo) && /^#[0-9a-f]{6}$/i.test(x.cor));
+}
+
 // Barreira da restauracao: um arquivo fora deste formato nao pode substituir os dados.
 function backupValido(d) {
   const inteiro = (v) => Number.isInteger(v);
   const data = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
-  if (!d || typeof d !== 'object' || !perfilValido(d.perfil) || !Array.isArray(d.categorias) || !Array.isArray(d.cartoes) || !Array.isArray(d.parciais)
+  if (!d || typeof d !== 'object' || !perfilValido(d.perfil) || !usaValido(d.usa) || !Array.isArray(d.categorias) || !Array.isArray(d.cartoes) || !Array.isArray(d.parciais)
     || !Array.isArray(d.lancs) || !Array.isArray(d.contasBanco) || !d.contasBanco.length || !Array.isArray(d.series)
     || !d.faturasPagas || typeof d.faturasPagas !== 'object' || Array.isArray(d.faturasPagas)) return false;
   const conta = (id) => d.contasBanco.some((c) => c.id === id);
@@ -716,6 +771,6 @@ function backupValido(d) {
 if (typeof module !== 'undefined') {
   module.exports = {
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }
