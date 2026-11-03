@@ -92,6 +92,12 @@ assert.deepStrictEqual(dp.lancs.map((x) => x.id), ['p-0', 'p-1']);
 c.excluirLanc(dp, 'p-1', 'proximas');
 assert.deepStrictEqual(dp.lancs.map((x) => x.id), ['p-0']);
 assert.ok(c.backupValido(JSON.parse(JSON.stringify(dp))));
+// Finais do cartao no backup: ate 4, cada um com 4 numeros
+{ const b = JSON.parse(JSON.stringify(dp)); const k = b.cartoes[0];
+  k.finais = [{ n: '1234', tipo: 'F' }, { n: '0001', tipo: 'V' }]; assert.ok(c.backupValido(b));
+  k.finais = [{ n: '123', tipo: 'F' }]; assert.ok(!c.backupValido(b));
+  k.finais = ['1111', '2222', '3333', '4444', '5555'].map((n) => ({ n, tipo: 'F' })); assert.ok(!c.backupValido(b));
+  k.finais = [{ n: '1234', tipo: 'X' }]; assert.ok(!c.backupValido(b)); }
 
 // Pagamento parcial: o resto fica em aberto na mesma fatura
 let dpp = parcelar({ data: '2026-10-10', valor: 30000, meio: 'nu', pago: true }, 'mensal', 3);
