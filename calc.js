@@ -296,6 +296,26 @@ function resumoAPagar(db, f, hoje) {
   return itens.sort((a, b) => a.venc.localeCompare(b.venc));
 }
 
+// Parcelamentos: so gastos com parcelas (de > 1), em conta ou cartao; contas fixas ficam de fora.
+const parcelasDeGasto = (db) => lancsVisiveis(db).filter((l) => l.tipo === 'S' && l.de > 1);
+// Por conta ou cartao, o que ainda vem deste mes em diante: total, quantidade e data da ultima parcela.
+function resumoParcelamentos(db, hoje) {
+  const grupos = new Map();
+  for (const l of parcelasDeGasto(db)) {
+    if (l.data.slice(0, 7) < hoje.slice(0, 7)) continue;
+    if (!grupos.has(l.meio)) grupos.set(l.meio, { meio: l.meio, total: 0, n: 0, ultima: l.data });
+    const g = grupos.get(l.meio);
+    g.total += l.valor; g.n += 1;
+    if (l.data > g.ultima) g.ultima = l.data;
+  }
+  return [...grupos.values()].sort((a, b) => b.total - a.total);
+}
+// Parcelas com data entre ini e fim (AAAA-MM-DD), das contas e cartoes escolhidos (lista vazia: todos).
+function parcelasNoPeriodo(db, ini, fim, meios) {
+  return parcelasDeGasto(db).filter((l) => l.data >= ini && l.data <= fim && (!meios.length || meios.includes(l.meio)))
+    .sort((a, b) => a.data.localeCompare(b.data) || a.desc.localeCompare(b.desc));
+}
+
 // Tudo o que falta pagar ate o fim do mes, incluindo o que ficou atrasado de meses anteriores.
 function aPagar(db, ym) {
   const itens = pendentes(db, 'S', ym);
@@ -687,6 +707,6 @@ function backupValido(d) {
 if (typeof module !== 'undefined') {
   module.exports = {
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, gastosPorMeio, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, ativoEm, svgParaIcone, iconeValido, gastosPorMeio, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }
