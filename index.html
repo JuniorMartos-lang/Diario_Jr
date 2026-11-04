@@ -220,6 +220,9 @@
   .filtroUsa { margin-bottom: 4px; }
   .filtroUsa .multiSel summary { margin-left: 0; border-top: 0; }
   .filtroUsa .rotuloInfo { display: flex; align-items: center; justify-content: space-between; }
+  /* Lista de viagens: nome, periodo e custos em linhas proprias, para nome longo nao cortar no celular. */
+  .linhaViag { display: block; margin-top: 2px; overflow-wrap: anywhere; }
+  .corpoUsa b { overflow-wrap: anywhere; }
   .corpoUsa > .linha:first-child { border-top: 0; }
   .corpoUsa .usaGrade .usaCard { box-shadow: none; border: 1px solid var(--linha); }
   /* Grade pronta para mais de uma viagem: hoje ha uma, que ocupa meia largura. */
@@ -611,7 +614,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.51.3 · 03/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.51.5 · 04/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -2836,7 +2839,7 @@ function renderUsa() {
   const viajantes = (v) => u.viajantes.filter((p) => v.viajantes.includes(p.id)).map(fotoViajante).join('');
   const porInicio = (a, b) => (a.inicio || '9999').localeCompare(b.inicio || '9999');
   const htmlViagens = (lista, vazio, emLista) => (!lista.length ? `<p class="fraco" style="margin:0">${vazio}</p>` : emLista
-    ? `<div>${lista.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}">${icoViagem(v)}<span class="q"><b>${esc(v.nome)}</b><br><small>${datasViagem(v)}</small></span><span class="valor">${total(v)}</span>${SETA}</button>`).join('')}</div>`
+    ? `<div>${lista.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}">${icoViagem(v)}<span class="q"><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small></span>${SETA}</button>`).join('')}</div>`
     : `<div class="usaGrade">${lista.map((v) => `<button type="button" class="card usaCard" data-usaviagem="${esc(v.id)}"><div class="usaFoto"${v.fundo ? ` style="background-image:url('${v.fundo}')"` : ''}><div class="usaViaj">${viajantes(v)}</div></div>
       <div class="txt"><b>${esc(v.nome)}</b><small>${datasViagem(v)}</small><small>${total(v)}</small></div></button>`).join('')}</div>`);
   const h = hoje(), todas = [...u.viagens].sort(porInicio);
@@ -2854,7 +2857,7 @@ function renderUsa() {
   corpo('fin').innerHTML = htmlViagens(filtrar('fin', todas.filter((v) => viagemFinalizada(v, h))), 'Nenhuma viagem finalizada.', usaSec.fin.lista);
   const filtradas = filtrar('cus', todas);
   corpo('cus').innerHTML = !filtradas.length ? '<p class="fraco" style="margin:0">Nenhuma viagem no filtro.</p>'
-    : filtradas.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}"><span class="q">${esc(v.nome)}<br><small>${datasViagem(v)}</small></span><span class="valor">${total(v)}</span></button>`).join('')
+    : filtradas.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}"><span class="q"><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small></span></button>`).join('')
       + `<div class="linha"><b class="q">Total</b><b class="valor">${totaisViagens(u, filtradas).map((t) => fmtMoeda(t.valor, t.moeda)).join(' + ')}</b></div>`;
   // Viajantes marcados para aparecer no alto da aba, ao lado do titulo.
   $('uFotosTopo').innerHTML = u.viajantes.filter((p) => p.inicial && !p.arquivadaEm).map((p) => `<span title="${esc(p.nome)}">${fotoViajante(p)}</span>`).join('');
