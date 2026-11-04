@@ -249,6 +249,11 @@
   #udPagBox .caixaTit { margin: 2px 0 4px; font-weight: 500; }
   .udTopo { display: flex; justify-content: flex-end; margin-bottom: 4px; }
   .detUd { display: block; margin-top: 4px; color: var(--mut); white-space: pre-line; overflow-wrap: anywhere; }
+  .udCabeca { padding: 10px; }
+  .udCapa { height: 150px; border-radius: 14px; padding: 12px; display: flex; align-items: center; justify-content: center; text-align: center; background: #1e3a5f center / cover no-repeat; }
+  .udCapa h2 { margin: 0; color: #fff; font-size: 24px; text-shadow: 0 1px 4px rgba(0, 0, 0, .7); overflow-wrap: anywhere; }
+  .udInfo { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 4px 0; font-size: 13px; color: var(--mut); }
+  .udInfo .valor { text-align: right; }
   .viagemSel { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 14px; border-radius: 12px; background: var(--campo); }
   .viagemSel .q { flex: 1; min-width: 0; overflow-wrap: anywhere; }
   .viagemSel .valor { text-align: right; }
@@ -574,7 +579,8 @@
 
   <section id="s-usadesp" hidden>
     <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="udTitulo" class="tituloIco"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 7V4h6v3M9 11v5M15 11v5M8 20v1.5M16 20v1.5"/></svg><span>Despesas de Viagem</span></h2></div>
-    <div class="seletorFluxo"><span class="saldoTopo">Viagem<button type="button" class="olhoSaldo" id="udOlho" aria-pressed="false" aria-label="Ocultar valores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span><div class="viagemSel" id="udResumo"></div></div>
+    <div class="card udCabeca"><div class="udCapa" id="udCapa"><h2 id="udCapaNome"></h2></div>
+      <div class="udInfo"><span class="saldoTopo"><span id="udDatas"></span><button type="button" class="olhoSaldo" id="udOlho" aria-pressed="false" aria-label="Ocultar valores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span><span class="valor"><small class="fraco" id="udQtd"></small><br><b class="neg" id="udTotal"></b></span></div></div>
     <div class="card"><div class="udTopo"><label class="caixaTit"><input type="checkbox" id="udDetalhes">Detalhes</label></div><div id="udLista"></div></div>
     <button type="button" id="udMais" aria-label="Nova despesa">+</button>
   </section>
@@ -605,7 +611,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.51.1 · 03/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.51.3 · 03/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -3098,8 +3104,12 @@ function renderUsaDesp() {
   $('udOlho').setAttribute('aria-pressed', valoresOcultos);
   $('udOlho').setAttribute('aria-label', valoresOcultos ? 'Mostrar valores' : 'Ocultar valores');
   const desp = u.despesas.filter((d) => d.viagem === v.id).sort((a, b) => b.data.localeCompare(a.data));
-  $('udResumo').innerHTML = `${icoViagem(v)}<span class="q">${esc(v.nome)}<br><small class="fraco">${datasViagem(v)}</small></span>
-    <span class="valor"><small class="fraco">Total (${desp.length})</small><br><b class="neg">${fmtTotais(u, v)}</b></span>`;
+  // Faixa com a foto da viagem e o nome em destaque; sem foto, a faixa fica na cor do app.
+  $('udCapa').style.backgroundImage = v.fundo ? `linear-gradient(rgba(0, 0, 0, .35), rgba(0, 0, 0, .35)), url("${v.fundo}")` : '';
+  $('udCapaNome').textContent = v.nome;
+  $('udDatas').textContent = datasViagem(v);
+  $('udQtd').textContent = `Total (${desp.length})`;
+  $('udTotal').textContent = fmtTotais(u, v);
   const h = hoje();
   let dia = '';
   const det = $('udDetalhes').checked;
