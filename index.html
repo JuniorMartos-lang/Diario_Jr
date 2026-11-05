@@ -279,6 +279,8 @@
   .tipoViag { display: inline-block; margin-bottom: 4px; padding: 1px 9px; border-radius: 999px; color: #fff; font-weight: 700; font-size: 11px; }
   .tipoViag.corp { background: #1d4ed8; }
   .tipoViag.pes { background: #15803d; }
+  .tipoViag.aberta { background: #b45309; }
+  .tipoViag.fim { background: #5a6b76; }
   .usaCard small { display: block; color: var(--mut); margin-top: 2px; }
   .usaViaj { display: flex; flex-wrap: wrap; gap: 4px; }
   .usaViaj .ico { width: 28px; height: 28px; border: 2px solid #fff; }
@@ -625,7 +627,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.52.2 · 05/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.52.4 · 05/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -2864,12 +2866,13 @@ function renderUsa() {
   $('uCatsArq').innerHTML = arq('categorias', (c) => iconeCat(c));
   $('uMoedasArq').innerHTML = arq('moedas', icoMoeda);
   const total = (v) => fmtTotais(u, v);
+  const pilTipo = (v) => `<span class="tipoViag ${v.corporativa ? 'corp' : 'pes'}">${v.corporativa ? 'Corporativa' : 'Pessoal'}</span>`;
   const viajantes = (v) => u.viajantes.filter((p) => v.viajantes.includes(p.id)).map(fotoViajante).join('');
   const porInicio = (a, b) => (a.inicio || '9999').localeCompare(b.inicio || '9999');
   const htmlViagens = (lista, vazio, emLista) => (!lista.length ? `<p class="fraco" style="margin:0">${vazio}</p>` : emLista
-    ? `<div>${lista.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}">${icoViagem(v)}<span class="q"><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small></span>${SETA}</button>`).join('')}</div>`
+    ? `<div>${lista.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}">${icoViagem(v)}<span class="q">${pilTipo(v)}<br><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small></span>${SETA}</button>`).join('')}</div>`
     : `<div class="usaGrade">${lista.map((v) => `<button type="button" class="card usaCard" data-usaviagem="${esc(v.id)}"><div class="usaFoto"${v.fundo ? ` style="background-image:url('${v.fundo}')"` : ''}><div class="usaViaj">${viajantes(v)}</div></div>
-      <div class="txt"><span class="tipoViag ${v.corporativa ? 'corp' : 'pes'}">${v.corporativa ? 'Corporativa' : 'Pessoal'}</span><b>${esc(v.nome)}</b><small>${datasViagem(v)}</small><small>${total(v)}</small></div></button>`).join('')}</div>`);
+      <div class="txt">${pilTipo(v)}<b>${esc(v.nome)}</b><small>${datasViagem(v)}</small><small>${total(v)}</small></div></button>`).join('')}</div>`);
   const h = hoje(), todas = [...u.viagens].sort(porInicio);
   // Cada secao tem o seu filtro; a lista do combo traz so as viagens daquela secao.
   const filtrar = (id, base) => {
@@ -2885,7 +2888,7 @@ function renderUsa() {
   corpo('fin').innerHTML = htmlViagens(filtrar('fin', todas.filter((v) => viagemFinalizada(v, h))), 'Nenhuma viagem finalizada.', usaSec.fin.lista);
   const filtradas = filtrar('cus', todas);
   corpo('cus').innerHTML = !filtradas.length ? '<p class="fraco" style="margin:0">Nenhuma viagem no filtro.</p>'
-    : filtradas.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}"><span class="q"><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small>${htmlCorpPes(u, v)}</span></button>`).join('')
+    : filtradas.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}"><span class="q">${viagemFinalizada(v, h) ? '<span class="tipoViag fim">Encerrada</span>' : '<span class="tipoViag aberta">Em aberto</span>'} ${pilTipo(v)}<br><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small>${htmlCorpPes(u, v)}</span></button>`).join('')
       + `<div class="linha"><b class="q">Total</b><b class="valor">${totaisViagens(u, filtradas).map((t) => fmtMoeda(t.valor, t.moeda)).join(' + ')}</b></div>`;
   // Viajantes marcados para aparecer no alto da aba, ao lado do titulo.
   $('uFotosTopo').innerHTML = u.viajantes.filter((p) => p.inicial && !p.arquivadaEm).map((p) => `<span title="${esc(p.nome)}">${fotoViajante(p)}</span>`).join('');
