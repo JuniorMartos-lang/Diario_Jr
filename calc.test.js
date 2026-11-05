@@ -913,5 +913,9 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   };
   assert.deepStrictEqual(c.resgatesDoMes(dbRg, '2026-11', 'cc'), { total: 800, n: 2 });
   assert.deepStrictEqual(c.resgatesDoMes(dbRg, '2026-11', ''), { total: 870, n: 3 });
+  // Fluxo por periodo: resgates a parte das entradas; saidas pagas ou nao; transferencia fica fora
+  dbRg.lancs.push({ id: 'f', tipo: 'S', data: '2026-11-05', valor: 200, meio: 'cc', cat: 'sx', pago: false }, { id: 'g', tipo: 'T', data: '2026-11-05', valor: 5000, meio: 'cc', destino: 'pp', pago: true });
+  assert.deepStrictEqual(c.fluxoPeriodo(dbRg, '2026-11', '2026-11'), { entradas: 999, resgates: 870, saidas: 200 });
+  assert.deepStrictEqual(c.fluxoPeriodo(dbRg, '2026-10', '2026-11'), { entradas: 999, resgates: 910, saidas: 200 });
   console.log('calc.js: todos os testes passaram');
 })().catch((e) => { console.error(e); process.exit(1); });
