@@ -151,6 +151,15 @@ assert.ok(c.backupValido(JSON.parse(JSON.stringify(dpp))));
   assert.ok(c.backupValido({ ...dpp, usa: comDesp }));
   assert.deepStrictEqual(c.totaisViagem(comDesp, comDesp.viagens[0]), [{ moeda: 'USD', valor: 10000 }, { moeda: 'BRL', valor: 5000 }]);
   assert.deepStrictEqual(c.totaisViagem({ ...comDesp, despesas: [] }, comDesp.viagens[0]), [{ moeda: 'USD', valor: 0 }]);
+  // Por categoria: uma lista por moeda, maior primeiro, e a soma bate com o total da viagem
+  const porCat = { ...comDesp, despesas: [...comDesp.despesas, { ...comDesp.despesas[0], id: 'd3', cat: 'u5', valor: 30000 }] };
+  assert.deepStrictEqual(c.categoriasViagem(porCat, porCat.viagens[0]), [
+    { moeda: 'USD', total: 40000, lista: [{ cat: 'u5', valor: 30000, pct: 75 }, { cat: 'u4', valor: 10000, pct: 25 }] },
+    { moeda: 'BRL', total: 5000, lista: [{ cat: 'u4', valor: 5000, pct: 100 }] }]);
+  assert.deepStrictEqual(c.categoriasViagem({ ...comDesp, despesas: [] }, comDesp.viagens[0]), [], 'sem despesas, nada');
+  const porCatP = { ...porCat, despesas: porCat.despesas.map((d) => (d.id === 'd3' ? { ...d, natureza: 'P' } : d)) };
+  assert.deepStrictEqual(c.categoriasViagem(porCatP, porCatP.viagens[0], 'P'), [{ moeda: 'USD', total: 30000, lista: [{ cat: 'u5', valor: 30000, pct: 100 }] }]);
+  assert.deepStrictEqual(c.categoriasViagem(porCatP, porCatP.viagens[0], 'C').map((g) => [g.moeda, g.total]), [['USD', 10000], ['BRL', 5000]]);
   // Viagem corporativa: despesa corporativa (padrao) ou pessoal, somadas em separado por moeda
   const corp = { ...comDesp, viagens: [{ ...comDesp.viagens[0], corporativa: true }], despesas: [{ ...comDesp.despesas[0] }, { ...comDesp.despesas[1], natureza: 'P' }] };
   assert.ok(c.backupValido({ ...dpp, usa: corp }));

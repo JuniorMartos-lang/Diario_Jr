@@ -171,9 +171,10 @@
   #filtroCart summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; margin: 0; padding: 8px 14px; border: 0; border-radius: 12px; background: var(--campo); list-style: none; }
   #filtroCart summary::-webkit-details-marker { display: none; }
   #filtroCartTxt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #filtroCartOpcoes { position: absolute; z-index: 5; top: calc(100% + 4px); right: 0; width: 100%; min-width: 200px; max-height: 300px; overflow-y: auto; padding: 4px 12px; border-radius: 12px; background: var(--card); box-shadow: 0 4px 16px rgba(0, 0, 0, .25); }
+  #filtroCartOpcoes { position: absolute; z-index: 5; top: calc(100% + 4px); right: 0; width: 100%; min-width: 270px; max-height: 300px; overflow-y: auto; padding: 4px 12px; border-radius: 12px; background: var(--card); box-shadow: 0 4px 16px rgba(0, 0, 0, .25); }
   #filtroCartOpcoes label { display: flex; align-items: center; min-height: 44px; margin: 0; color: var(--txt); font-size: 15px; overflow-wrap: anywhere; }
   #filtroCartOpcoes input { flex: none; }
+  #filtroCartOpcoes .ico { flex: none; margin: 0 8px 0 4px; }
   .topoGraf { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--mut); margin: 12px 0 4px; }
   .legenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 4px 0 10px; }
   .grafico { display: flex; align-items: stretch; height: 150px; border-top: 1px dashed var(--linha); border-bottom: 1px solid var(--mut); }
@@ -608,6 +609,8 @@
     <div class="card udCabeca"><div class="udCapa" id="udCapa"><h2 id="udCapaNome"></h2></div>
       <div class="udInfo"><span class="saldoTopo"><span id="udDatas"></span><button type="button" class="olhoSaldo" id="udOlho" aria-pressed="false" aria-label="Ocultar valores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span><span class="valor"><small class="fraco" id="udQtd"></small><br><b class="neg" id="udTotal"></b></span></div><div class="udCorp" id="udCorp"></div></div>
     <div class="card"><div class="udTopo"><label class="caixaTit"><input type="checkbox" id="udDetalhes">Detalhes</label></div><div id="udLista"></div></div>
+    <div class="card"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.4 6.4"/></svg><span>Total por categoria</span></h2><div id="udCats"></div></div>
+    <div class="card" id="udCatsC"></div><div class="card" id="udCatsP"></div>
     <button type="button" id="udMais" aria-label="Nova despesa">+</button>
   </section>
 
@@ -637,7 +640,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.53.0 · 05/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.54.1 · 05/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1831,7 +1834,7 @@ function renderFiltroCartoes(ativos, marcados) {
   $('filtroCart').hidden = !ativos.length;
   $('filtroCartTxt').textContent = !marcados.length ? 'Todos os cartões' : marcados.length === 1 ? marcados[0].nome : marcados.length + ' cartões';
   $('filtroCartOpcoes').innerHTML = `<label><input type="checkbox" value=""${marcados.length ? '' : ' checked'}>Todos os cartões</label>`
-    + ativos.map((c) => `<label><input type="checkbox" value="${esc(c.id)}"${marcados.includes(c) ? ' checked' : ''}>${esc(nomeExib(c))}</label>`).join('');
+    + ativos.map((c) => `<label><input type="checkbox" value="${esc(c.id)}"${marcados.includes(c) ? ' checked' : ''}>${iconeHtml(c)}${esc(nomeExib(c))}</label>`).join('');
 }
 function htmlAtrasadas(lista) {
   if (!lista.length) return '';
@@ -3198,6 +3201,23 @@ function renderUsaDesp() {
     dia = d.data;
     return cab + `<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>`;
   }).join('') || '<p class="fraco" style="margin:0">Nenhuma despesa ainda. Toque em + para lançar.</p>';
+  // Por categoria, uma parte por moeda (base primeiro); o total de cada moeda e o mesmo do alto da tela.
+  $('udCats').innerHTML = htmlCatsViagem(u, v);
+  // Viagem corporativa: o mesmo agrupamento so das despesas corporativas e so das pessoais.
+  for (const [nat, el, tit] of [['C', 'udCatsC', 'Corporativo por categoria'], ['P', 'udCatsP', 'Pessoal por categoria']]) {
+    $(el).hidden = !v.corporativa;
+    if (v.corporativa) $(el).innerHTML = `<h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.4 6.4"/></svg><span>${tit}</span></h2>${htmlCatsViagem(u, v, nat)}`;
+  }
+}
+function htmlCatsViagem(u, v, nat) {
+  const grupos = categoriasViagem(u, v, nat);
+  return grupos.map((g) => `${grupos.length > 1 ? `<h3 class="dia">${esc(moedaUsa(g.moeda).nome || g.moeda)} (${esc(moedaUsa(g.moeda).simbolo)})</h3>` : ''}`
+    + g.lista.map((x) => {
+      const c = u.categorias.find((k) => k.id === x.cat) || { nome: '?' };
+      return `<div class="linha" style="display:block"><div style="display:flex;justify-content:space-between;gap:10px"><span class="q">${iconeCat(c)}${esc(c.nome)}</span><span class="valor">${fmtMoeda(x.valor, g.moeda)} <small>${Math.round(x.pct)}%</small></span></div><div class="barra"><i style="width:${x.pct}%"></i></div></div>`;
+    }).join('')
+    + `<div class="linha"><b class="q">Total${grupos.length > 1 ? ' em ' + esc(moedaUsa(g.moeda).simbolo) : ''}</b><b class="valor neg">${fmtMoeda(g.total, g.moeda)}</b></div>`).join('')
+    || '<p class="fraco" style="margin:0">Nenhuma despesa.</p>';
 }
 // Quem pode dividir a despesa: viajantes da viagem nao arquivados, mais os que ja estao na despesa editada.
 let udPessoas = [];

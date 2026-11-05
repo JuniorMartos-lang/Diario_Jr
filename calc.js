@@ -724,6 +724,17 @@ function totaisViagem(u, v, natureza) {
   return [...t].map(([moeda, valor]) => ({ moeda, valor }));
 }
 
+// Por categoria, separado por moeda como o total da viagem; o total de cada moeda bate com totaisViagem.
+// Com natureza ('C' ou 'P'), so as despesas corporativas ou pessoais.
+function categoriasViagem(u, v, natureza) {
+  return totaisViagem(u, v, natureza).filter((t) => t.valor).map((t) => {
+    const cats = new Map();
+    for (const d of u.despesas) if (d.viagem === v.id && d.moeda === t.moeda && (!natureza || naturezaDesp(d) === natureza)) cats.set(d.cat, (cats.get(d.cat) || 0) + d.valor);
+    const lista = [...cats].map(([cat, valor]) => ({ cat, valor, pct: valor / t.valor * 100 })).sort((a, b) => b.valor - a.valor);
+    return { moeda: t.moeda, total: t.valor, lista };
+  });
+}
+
 // Soma de varias viagens, ainda separada por moeda.
 function totaisViagens(u, viagens) {
   const t = new Map();
@@ -799,6 +810,6 @@ function backupValido(d) {
 if (typeof module !== 'undefined') {
   module.exports = {
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }
