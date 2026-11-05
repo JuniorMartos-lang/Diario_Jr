@@ -151,6 +151,13 @@ assert.ok(c.backupValido(JSON.parse(JSON.stringify(dpp))));
   assert.ok(c.backupValido({ ...dpp, usa: comDesp }));
   assert.deepStrictEqual(c.totaisViagem(comDesp, comDesp.viagens[0]), [{ moeda: 'USD', valor: 10000 }, { moeda: 'BRL', valor: 5000 }]);
   assert.deepStrictEqual(c.totaisViagem({ ...comDesp, despesas: [] }, comDesp.viagens[0]), [{ moeda: 'USD', valor: 0 }]);
+  // Viagem corporativa: despesa corporativa (padrao) ou pessoal, somadas em separado por moeda
+  const corp = { ...comDesp, viagens: [{ ...comDesp.viagens[0], corporativa: true }], despesas: [{ ...comDesp.despesas[0] }, { ...comDesp.despesas[1], natureza: 'P' }] };
+  assert.ok(c.backupValido({ ...dpp, usa: corp }));
+  assert.deepStrictEqual(c.totaisViagem(corp, corp.viagens[0], 'C'), [{ moeda: 'USD', valor: 10000 }]);
+  assert.deepStrictEqual(c.totaisViagem(corp, corp.viagens[0], 'P'), [{ moeda: 'USD', valor: 0 }, { moeda: 'BRL', valor: 5000 }]);
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...corp, despesas: [{ ...comDesp.despesas[0], natureza: 'X' }] } }));
+  assert.ok(!c.backupValido({ ...dpp, usa: { ...corp, viagens: [{ ...corp.viagens[0], corporativa: 'sim' }] } }));
   // Aba USA: soma de viagens por moeda, finalizada depois do fim e filtro pela data de inicio
   const vB = viag({ id: 'v2', nome: 'NY', moedas: ['BRL'], base: 'BRL', inicio: '2027-02-01', fim: '2027-02-10' });
   const comDuas = { ...comDesp, viagens: [{ ...comDesp.viagens[0], inicio: '2027-01-10', fim: '2027-01-20' }, vB],
@@ -792,8 +799,8 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   // Area USA inteira (viagens com imagem, contas, cartoes, viajantes, categorias) passa pelos dois tipos de backup
   const jpg = 'data:image/jpeg;base64,/9j/AAAA', svg = 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=';
   const comUsa = { ...JSON.parse(JSON.stringify(dp)), usa: { moedas: c.MOEDAS_PADRAO, despesas: [{ id: 'd1', viagem: 'v1', desc: 'Parque', cat: 'u4', data: '2027-04-05', moeda: 'BRL', valor: 12345, quem: ['u3'], obs: 'Ingresso de 2 dias', pago: false, checkin: '2027-04-05', checkout: '2027-04-08',
-      pagamentos: [{ meio: 'u1', valor: 10000 }, { meio: 'u2', valor: 2345 }] }],
-    viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 } }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {} }],
+      pagamentos: [{ meio: 'u1', valor: 10000 }, { meio: 'u2', valor: 2345 }], natureza: 'P' }],
+    viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 }, corporativa: true }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {} }],
     contas: [{ id: 'u1', nome: 'Wise', icone: svg, iconeNome: 'Wise' }], cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'V', icone: svg, iconeNome: 'Visa',
       finais: [{ n: '1234', tipo: 'V', dono: 'T' }], finaisInativos: [{ n: '5678', tipo: 'F', dono: 'A', motivo: 'Vencido', em: '2026-11-03' }] }],
     viajantes: [{ id: 'u3', nome: 'Ana', foto: jpg, inicial: true }], categorias: [{ id: 'u4', nome: 'Parques', simbolo: 'carro', cor: '#2f8486', arquivadaEm: '2026-11-03' }] } };

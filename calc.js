@@ -710,9 +710,12 @@ const MOEDAS_PADRAO = [['BRL', 'Real Brasileiro', 'R$'], ['USD', 'Dólar America
   ['ARS', 'Peso Argentino', 'AR$'], ['MXN', 'Peso Mexicano', 'MX$'], ['CLP', 'Peso Chileno', 'CL$'], ['HKD', 'Dólar de Hong Kong', 'HK$'],
   ['SGD', 'Dólar de Singapura', 'S$'], ['KRW', 'Won Sul-Coreano', '₩']].map(([codigo, nome, simbolo]) => ({ id: codigo, codigo, nome, simbolo }));
 // Total da viagem por moeda, sem conversao (pedido do usuario): a base sempre aparece e vem primeiro.
-function totaisViagem(u, v) {
+// natureza: 'C' (corporativa) ou 'P' (pessoal) so soma aquele tipo; sem ela, soma tudo.
+// Despesa sem natureza, numa viagem corporativa, conta como corporativa.
+const naturezaDesp = (d) => d.natureza || 'C';
+function totaisViagem(u, v, natureza) {
   const t = new Map([[v.base, 0]]);
-  for (const d of u.despesas) if (d.viagem === v.id) t.set(d.moeda, (t.get(d.moeda) || 0) + d.valor);
+  for (const d of u.despesas) if (d.viagem === v.id && (!natureza || naturezaDesp(d) === natureza)) t.set(d.moeda, (t.get(d.moeda) || 0) + d.valor);
   return [...t].map(([moeda, valor]) => ({ moeda, valor }));
 }
 
@@ -739,10 +742,11 @@ function usaValido(u) {
   const tem = (lista, id) => lista.some((x) => x.id === id);
   const ids = (l, lista) => Array.isArray(l) && l.every((id) => tem(lista, id));
   return itens(u.viagens, (x) => data(x.inicio) && data(x.fim) && jpeg(x.fundo, 800000) && ids(x.moedas, u.moedas) && x.moedas.includes(x.base) && ids(x.viajantes, u.viajantes)
-      && !!x.cot && typeof x.cot === 'object' && Object.entries(x.cot).every(([m, c]) => tem(u.moedas, m) && Number.isFinite(c) && c > 0))
+      && !!x.cot && typeof x.cot === 'object' && Object.entries(x.cot).every(([m, c]) => tem(u.moedas, m) && Number.isFinite(c) && c > 0)
+      && (x.corporativa === undefined || typeof x.corporativa === 'boolean'))
     && Array.isArray(u.despesas) && u.despesas.every((d) => d && typeof d.id === 'string' && typeof d.desc === 'string' && d.desc.length <= 60 && tem(u.viagens, d.viagem)
       && tem(u.categorias, d.cat) && tem(u.moedas, d.moeda) && /^\d{4}-\d{2}-\d{2}$/.test(d.data) && Number.isInteger(d.valor) && d.valor > 0 && ids(d.quem, u.viajantes)
-      && (d.obs === undefined || (typeof d.obs === 'string' && d.obs.length <= 500)) && (d.pago === undefined || typeof d.pago === 'boolean')
+      && (d.obs === undefined || (typeof d.obs === 'string' && d.obs.length <= 500)) && (d.pago === undefined || typeof d.pago === 'boolean') && (d.natureza === undefined || d.natureza === 'C' || d.natureza === 'P')
       && data(d.checkin) && data(d.checkout) && !(d.checkin && d.checkout && d.checkout < d.checkin)
       // Pago com: um ou dois meios (contas ou cartoes da area), diferentes, somando o valor da despesa.
       && (d.pagamentos === undefined || (Array.isArray(d.pagamentos) && d.pagamentos.length >= 1 && d.pagamentos.length <= 2
