@@ -290,6 +290,13 @@ const semT = c.fluxoMes(db, '2026-10', '2026-10-31');
 db.lancs.push({ id: 12, tipo: 'T', data: '2026-10-12', valor: 50000, meio: 'conta', destino: 'poup', cat: null, pago: true });
 assert.deepStrictEqual(c.fluxoMes(db, '2026-10', '2026-10-31'), semT);
 
+// Atrasados: saida nao paga antes de hoje, de qualquer mes e conta; entrada, transferencia e o dia de hoje ficam fora
+db = base();
+db.lancs.push({ id: 15, tipo: 'T', desc: 'Guardar', data: '2026-10-12', valor: 100, meio: 'conta', destino: 'poup', cat: null, pago: false });
+assert.deepStrictEqual(c.atrasados(db, '2026-11-20').map((x) => [x.desc, x.valor]), [['Fatura Nu', 10000], ['Luz', 25000]]);
+db.lancs.find((l) => l.id === 6).pago = true;
+assert.deepStrictEqual(c.atrasados(db, '2026-11-20').map((x) => x.desc), ['Fatura Nu'], 'pago sai da lista');
+
 // Linhas do fluxo: fatura como linha, sem as compras; ordem da data mais recente
 db = base();
 db.lancs.push({ id: 13, tipo: 'T', desc: 'Guardar', data: '2026-11-12', valor: 50000, meio: 'conta', destino: 'poup', cat: null, pago: true });

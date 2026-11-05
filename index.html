@@ -65,6 +65,11 @@
   .fatValores .parValores.miuda b { font-size: 10px; }
   .fatValores .parValores b { font-size: 12px; overflow-wrap: normal; white-space: nowrap; }
   .fatValores .totalSomado { padding-top: 6px; border-top: 1px solid rgba(255,255,255,.25); }
+  /* Alerta de atrasados no canto do Saldo geral, so no Resumo; cores fixas nos dois temas. */
+  .destaque { position: relative; }
+  button.alertaAtraso { display: none; position: absolute; top: 10px; right: 12px; align-items: center; gap: 6px; min-height: 36px; padding: 4px 8px 4px 6px; border-radius: 999px; background: #c0262d; color: #fff !important; font-size: 13px; font-weight: 700; }
+  body.emResumo button.alertaAtraso:not([hidden]) { display: flex; }
+  button.alertaAtraso i { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #fff; color: #c0262d; font-style: normal; font-weight: 800; }
   #hSaldo { font-size: 30px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
   .pares { display: flex; gap: 12px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--linha); }
   .pares > div { flex: 1; min-width: 0; }
@@ -147,13 +152,13 @@
   body.emFluxo.fluxoAberto:not(.emAjustes) #mais { bottom: calc(232px + env(safe-area-inset-bottom)); }
   .lado { text-align: right; flex: none; }
   .lado small { display: block; font-size: 12px; }
-  #lLista .lado { padding: 6px 0 6px 10px; margin: -6px 0; cursor: pointer; }
+  #lLista .lado, #atLista .lado { padding: 6px 0 6px 10px; margin: -6px 0; cursor: pointer; }
   /* Situacao no Fluxo: elipse com texto branco em negrito; cores fixas nos dois temas. */
-  #lLista .lado, #udLista .lado { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-  #lLista .lado small.pilula, #udLista .lado small.pilula { display: inline-block; padding: 1px 9px; border-radius: 999px; color: #fff; font-weight: 700; font-size: 11px; }
-  #lLista .lado small.ok, #udLista .lado small.ok { background: #15803d; }
-  #lLista .lado small.atraso { background: #c0262d; }
-  #lLista .lado small.pend, #udLista .lado small.pend { background: #5a6b76; }
+  #lLista .lado, #atLista .lado, #udLista .lado { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  #lLista .lado small.pilula, #atLista .lado small.pilula, #udLista .lado small.pilula { display: inline-block; padding: 1px 9px; border-radius: 999px; color: #fff; font-weight: 700; font-size: 11px; }
+  #lLista .lado small.ok, #atLista .lado small.ok, #udLista .lado small.ok { background: #15803d; }
+  #lLista .lado small.atraso, #atLista .lado small.atraso { background: #c0262d; }
+  #lLista .lado small.pend, #atLista .lado small.pend, #udLista .lado small.pend { background: #5a6b76; }
   #udLista .lado small.corp { background: #1d4ed8; }
   #udLista .pilulas { display: flex; gap: 4px; }
   #mais, #udMais { position: fixed; z-index: 11; right: 16px; bottom: calc(72px + env(safe-area-inset-bottom)); width: 56px; height: 56px; padding: 0; font-size: 30px; line-height: 1; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
@@ -441,6 +446,7 @@
   </div>
   <div class="destaque">
     <small class="saldoTopo">Saldo geral hoje<button type="button" class="olhoSaldo" id="hOlho" aria-pressed="false" aria-label="Ocultar valores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></small>
+    <button type="button" class="alertaAtraso" id="hAtraso" data-atrasos hidden></button>
     <div id="hSaldo"></div>
     <div class="pares">
       <div><small>Gastos do mês</small><b id="hGastos"></b></div>
@@ -571,6 +577,10 @@
     </div>
     <div class="card"><div id="pdTabela"></div><button type="button" class="sec gerenciar" data-exportar="parcelas"><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button></div>
   </section>
+  <section id="s-atrasos" hidden>
+    <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Lançamentos atrasados</h2></div>
+    <div class="card"><p class="infoTela">Contas que passaram do vencimento e não foram pagas, em todas as contas e meses. Toque em uma para marcar como paga.</p><div id="atLista"></div><div class="linha" id="atTotal"></div></div>
+  </section>
   <section id="s-catdet" hidden>
     <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="cdTitulo"></h2></div>
     <div class="card"><div id="cdTabela"></div><button type="button" class="sec gerenciar" data-exportar="categoria"><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button></div>
@@ -627,7 +637,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.52.4 · 05/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.53.0 · 05/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1116,6 +1126,7 @@ function desenhar() {
   $('rResgates').innerHTML = htmlResgates(resgatesDoMes(db, mes));
   renderResumo(cats, gastos, pagar, h);
   renderFluxo(h);
+  renderAtrasos(h);
   renderRelatorio();
   renderResumos(h);
   renderCartoes(h);
@@ -1187,7 +1198,7 @@ function htmlPagarMes(pagar, h) {
 }
 
 // Telas abertas a partir do Resumo: entram da direita e voltam para ele pelo voltar.
-let fluxoDoResumo = false, catDet = null, resumoRolagem = 0;
+let fluxoDoResumo = false, catDet = null, atrasosDet = false, resumoRolagem = 0;
 function deslizar(el, classe) {
   el.classList.remove('desliza-d', 'desliza-e');
   void el.offsetWidth;
@@ -1201,6 +1212,33 @@ function abrirFluxoDoResumo(conta) {
   fluxoDoResumo = true;
   history.pushState({ fluxoResumo: true }, '');
   deslizar($('s-fluxo'), 'desliza-d');
+}
+function abrirAtrasos() {
+  resumoRolagem = scrollY;
+  atrasosDet = true;
+  history.pushState({ atrasos: true }, '');
+  document.querySelectorAll('main > section').forEach((s) => { s.hidden = s.id !== 's-atrasos'; });
+  document.body.classList.add('emAjustes');
+  $('mais').hidden = true;
+  deslizar($('s-atrasos'), 'desliza-d');
+  scrollTo(0, 0);
+}
+// Mesmas linhas do Fluxo, so com os atrasados; tocar em qualquer parte da linha paga.
+function renderAtrasos(h) {
+  const lista = atrasados(db, h), n = lista.length;
+  $('hAtraso').hidden = !n;
+  $('hAtraso').innerHTML = `<i aria-hidden="true">!</i>${n} ${n > 1 ? 'atrasados' : 'atrasado'}<span aria-hidden="true">›</span>`;
+  $('hAtraso').setAttribute('aria-label', `${n} ${n > 1 ? 'lançamentos atrasados' : 'lançamento atrasado'}. Ver lista`);
+  let dia = '';
+  $('atLista').innerHTML = lista.map((i) => {
+    const op = { day: 'numeric', month: 'long' };
+    if (i.data.slice(0, 4) !== h.slice(0, 4)) op.year = 'numeric';
+    const titulo = i.data === dia ? '' : `<h3 class="dia">${new Date(i.data + 'T12:00').toLocaleDateString('pt-BR', op)}</h3>`;
+    dia = i.data;
+    return titulo + linhaFluxo(i, h);
+  }).join('') || '<p class="fraco">Nenhum lançamento atrasado.</p>';
+  $('atTotal').hidden = !n;
+  $('atTotal').innerHTML = `<b class="q">Total atrasado (${n})</b><span class="valor neg">− ${brl(lista.reduce((a, i) => a + i.valor, 0))}</span>`;
 }
 function abrirCatDet(id) {
   resumoRolagem = scrollY;
@@ -1216,6 +1254,7 @@ function abrirCatDet(id) {
 function voltarAoResumo() {
   fluxoDoResumo = false;
   catDet = null;
+  atrasosDet = false;
   parcDet = false;
   abrirAba('resumo');
   deslizar($('s-resumo'), 'desliza-e');
@@ -2099,6 +2138,7 @@ addEventListener('popstate', (e) => {
   const st = e.state || {};
   if (usaAberta && !st.usaDesp) { fecharUsaDesp(); return; }
   if (catDet && !st.catDet) { voltarAoResumo(); return; }
+  if (atrasosDet && !st.atrasos && !lancOrigem) { voltarAoResumo(); return; }
   if (parcDet && !st.parcDet) { voltarAoResumo(); return; }
   if (resDet && !st.resDet) { fecharResDet(); return; }
   if (lancOrigem) {
@@ -2605,7 +2645,7 @@ document.addEventListener('click', async (e) => {
   if (!b) return;
   let d = b.dataset;
   // Fluxo: tocar no valor ou na situacao paga ou desfaz o pagamento, sem abrir a edicao.
-  if (e.target.closest('#lLista .lado')) {
+  if (e.target.closest('#lLista .lado, #atLista .linha')) {
     if (d.fatura) {
       const c = db.cartoes.find((x) => x.id === d.fatura), ym = d.ym;
       if (restanteFatura(db, c, ym) <= 0) d = { desfazfat: c.id, ym };
@@ -2642,6 +2682,7 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
   if (d.exportar) { exportar(d.exportar); return; }
   if (d.inforesumo) { const sec = SECOES_RES.find((x) => x.id === d.inforesumo); avisar(sec.titulo, sec.info); return; }
   if (d.catdet) { abrirCatDet(d.catdet); return; }
+  if ('atrasos' in d) { abrirAtrasos(); return; }
   if (d.parcmeio) { abrirParcDet(d.parcmeio); return; }
   if (d.limite) { abrirLimite(d.limite); return; }
   if ('limnovo' in d) { editarLimite(null); return; }
@@ -2706,9 +2747,9 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
     $('rTip').innerHTML = textoMesBal(balancoAtual.find((m) => m.ym === d.balmes));
   } else if (d.aba) {
     // Saindo pelo menu de telas abertas a partir do Resumo: tira do historico as telas empilhadas.
-    if (fluxoDoResumo || catDet || resDet || parcDet || usaAberta) {
-      const n = (fluxoDoResumo ? 1 : 0) + (catDet ? 1 : 0) + (resDet ? 1 : 0) + (parcDet ? 1 : 0) + (usaAberta ? 1 : 0) + (lancOrigem ? 1 : 0) + (fatCartao ? (history.state && history.state.lanc ? 2 : 1) : 0);
-      fluxoDoResumo = false; catDet = null; resDet = null; parcDet = false; usaAberta = null; lancOrigem = null; fatCartao = null;
+    if (fluxoDoResumo || catDet || atrasosDet || resDet || parcDet || usaAberta) {
+      const n = (fluxoDoResumo ? 1 : 0) + (catDet ? 1 : 0) + (atrasosDet ? 1 : 0) + (resDet ? 1 : 0) + (parcDet ? 1 : 0) + (usaAberta ? 1 : 0) + (lancOrigem ? 1 : 0) + (fatCartao ? (history.state && history.state.lanc ? 2 : 1) : 0);
+      fluxoDoResumo = false; catDet = null; atrasosDet = false; resDet = null; parcDet = false; usaAberta = null; lancOrigem = null; fatCartao = null;
       limparLanc();
       history.go(-n);
     }
