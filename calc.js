@@ -937,6 +937,8 @@ const googleValido = (g) => g === undefined || (!!g && typeof g === 'object' && 
   && (g.agenda === undefined || (!!g.agenda && typeof g.agenda === 'object' && typeof g.agenda.ativo === 'boolean'
     && (g.agenda.id === undefined || (typeof g.agenda.id === 'string' && g.agenda.id.length <= 300 && /^[\w.@-]+$/.test(g.agenda.id)))
     && (g.agenda.tarefas === undefined || (typeof g.agenda.tarefas === 'string' && g.agenda.tarefas.length <= 300 && /^[\w=.:@-]+$/.test(g.agenda.tarefas))))));
+// Titulo do lembrete de uma conta: nome, parcela (se for parcelada) e valor. Ex.: "IPTU 2026 (parcela 10/10) — R$ 497,20".
+const tituloLembrete = (l) => `${l.desc}${l.de > 1 ? ` (parcela ${l.parcela}/${l.de})` : ''} — ${(l.valor / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
 // Lembretes do Google Agenda: contas a pagar (gasto em conta ainda nao pago) e faturas de cartao com algo a pagar,
 // com vencimento de hoje ate o fim do mes daqui a "meses". Cada um tem uma chave fixa, que vira o id do evento.
 function lembretesAgenda(db, hoje, meses = 3) {
@@ -945,7 +947,7 @@ function lembretesAgenda(db, hoje, meses = 3) {
   const itens = [];
   for (const l of lancsVisiveis(db)) {
     if (l.tipo !== 'S' || l.pago || ehCartao(db, l.meio) || l.data < hoje || l.data > fim) continue;
-    itens.push({ chave: 'lanc:' + l.id, data: l.data, titulo: `${l.desc} — ${real(l.valor)}`, detalhe: `Conta a pagar · ${nomeDe(l.meio)}` });
+    itens.push({ chave: 'lanc:' + l.id, data: l.data, titulo: tituloLembrete(l), detalhe: `Conta a pagar · ${nomeDe(l.meio)}` });
   }
   for (const f of faturasAte(db, fim.slice(0, 7))) {
     if (f.paga || f.valor <= 0) continue;
@@ -963,7 +965,7 @@ function situacaoLembretes(db, hoje, meses = 3) {
   const m = new Map();
   for (const l of lancsVisiveis(db)) {
     if (l.tipo !== 'S' || ehCartao(db, l.meio)) continue;
-    m.set('lanc:' + l.id, { data: l.data, pago: !!l.pago, titulo: `${l.desc} — ${real(l.valor)}`, detalhe: `Conta a pagar · ${nomeDe(l.meio)}` });
+    m.set('lanc:' + l.id, { data: l.data, pago: !!l.pago, titulo: tituloLembrete(l), detalhe: `Conta a pagar · ${nomeDe(l.meio)}` });
   }
   // Pagamentos parciais vem antes do item principal da fatura; o principal (o ultimo do mes) e o que vale.
   for (const f of faturasAte(db, fim.slice(0, 7))) {

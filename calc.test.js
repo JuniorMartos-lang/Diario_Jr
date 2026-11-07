@@ -864,6 +864,10 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
         { id: 5, tipo: 'S', desc: 'Compra', data: '2026-11-10', valor: 30000, cat: 'a', meio: 'nu', pago: true },
         { id: 6, tipo: 'E', desc: 'Salario', data: '2026-11-25', valor: 900000, cat: 'a', meio: 'conta', pago: false }] }, '2026-11-07');
     assert.deepStrictEqual(c.lembretesAgenda(dbA, '2026-11-07').map((x) => [x.chave, x.data]), [['lanc:1', '2026-11-20'], ['fat:nu:2026-12', '2026-12-05']]);
+    // Conta parcelada: a parcela vai no titulo do evento e da tarefa
+    const parc = { ...dbA.lancs[0], parcela: 10, de: 10, desc: 'IPTU 2026', valor: 49720 };
+    assert.strictEqual(c.lembretesAgenda({ ...dbA, lancs: [parc] }, '2026-11-07')[0].titulo.replace(/\s/g, ' '), 'IPTU 2026 (parcela 10/10) — R$ 497,20');
+    assert.ok(!c.lembretesAgenda(dbA, '2026-11-07')[0].titulo.includes('parcela'), 'conta sem parcela fica igual');
     // Situacao para as tarefas: a conta paga e a atrasada tambem aparecem, cada uma com pago certo
     const sit = c.situacaoLembretes(dbA, '2026-11-07');
     assert.deepStrictEqual([sit.get('lanc:1').pago, sit.get('lanc:2').pago, sit.get('lanc:3').pago, sit.has('lanc:5'), sit.has('lanc:6')], [false, true, false, false, false]);
