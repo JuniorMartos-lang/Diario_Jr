@@ -776,6 +776,22 @@ const viagemFinalizada = (v, hoje) => !!v.fim && v.fim < hoje;
 const filtrarViagens = (viagens, f) => viagens.filter((v) => (!f.ids.length || f.ids.includes(v.id))
   && (!f.ini || (v.inicio && v.inicio >= f.ini)) && (!f.fim || (v.inicio && v.inicio <= f.fim)));
 
+// Compara dados antigos (um backup) com os atuais, pelos itens com id: quantos faltam nos atuais e quantos
+// existem nos dois com conteudo diferente. Serve para saber se descartar um backup perde alguma coisa.
+const LISTAS_COMPARADAS = [['lancs'], ['series'], ['contasBanco'], ['cartoes'], ['categorias'], ['usa', 'viagens'], ['usa', 'despesas'], ['usa', 'contas'], ['usa', 'cartoes'], ['usa', 'viajantes'], ['usa', 'categorias']];
+function compararDados(antigo, atual) {
+  const lista = (d, cam) => cam.reduce((o, k) => (o ? o[k] : undefined), d) || [];
+  let faltam = 0, diferentes = 0;
+  for (const cam of LISTAS_COMPARADAS) {
+    const agora = new Map(lista(atual, cam).map((x) => [x.id, JSON.stringify(x)]));
+    for (const x of lista(antigo, cam)) {
+      if (!agora.has(x.id)) faltam++;
+      else if (agora.get(x.id) !== JSON.stringify(x)) diferentes++;
+    }
+  }
+  return { faltam, diferentes };
+}
+
 // Recibos da despesa da viagem: o PDF fica no Google Drive (arq = id do arquivo) e, ate subir, so no aparelho
 // onde foi escaneado. id local, data em que foi feito, paginas e nome do arquivo no Drive.
 const recibosValidos = (l) => l === undefined || (Array.isArray(l) && l.length <= 20 && new Set(l.map((r) => r && r.id)).size === l.length
@@ -903,7 +919,7 @@ function backupValido(d) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    ehClienteGoogle, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
+    ehClienteGoogle, compararDados, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
     protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };

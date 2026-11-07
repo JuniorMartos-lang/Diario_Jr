@@ -85,6 +85,8 @@
   @media (prefers-reduced-motion: reduce) { input.chave, input.chave::before { transition: none; } }
   /* Recibos: lista no popup da despesa e dialogo do recorte. */
   #udRecLista .linha { gap: 8px; }
+  b.clipe { display: inline-flex; align-items: center; gap: 1px; vertical-align: -3px; font-weight: 800; white-space: nowrap; }
+  b.clipe svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
   #udRecLista .linha button { flex: none; min-height: 36px; padding: 4px 10px; font-size: 13px; }
   dialog#dRecibo { width: min(100vw - 16px, 520px); max-width: none; }
   .recArea { position: relative; margin: 0 auto; touch-action: none; user-select: none; -webkit-user-select: none; width: fit-content; }
@@ -686,7 +688,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.60.0 · 07/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.60.2 · 07/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -728,6 +730,7 @@
           <button type="button" class="mini" id="aSyncAgora">Sincronizar Já</button>
           <button type="button" class="mini" id="aDriveSalvar">Salvar Backup Já</button>
           <button type="button" class="mini sec" id="aDriveRestaurar">Restaurar do Google</button>
+          <button type="button" class="mini sec" id="aConflitos">Revisar backups de conflito</button>
         </div>
         <p id="aDriveMsg" class="fraco" aria-live="polite"></p>
         <label for="aGoogleCliente">ID do cliente do projeto no Google</label>
@@ -1061,6 +1064,12 @@
   <p id="dMotivoMsg" class="neg" style="min-height:20px;margin:4px 0 8px"></p>
   <div class="botoes"><button type="submit">Sim, arquivar</button><button type="button" class="sec" id="dMotivoNao">Cancelar</button></div>
 </form></dialog>
+<dialog id="dConflitos">
+  <h3>Backups de conflito</h3>
+  <p class="fraco">Versões guardadas quando o app perguntou "Dados diferentes". Comparadas com os dados atuais: "faltam" são itens (lançamentos, despesas, contas...) que só existem no backup; "diferentes", itens que existem nos dois com valores diferentes.</p>
+  <div id="dConfLista"></div>
+  <div class="botoes"><button type="button" class="sec" id="dConfFechar">Fechar</button></div>
+</dialog>
 <dialog id="dDrive">
   <h3>Backups no Google Drive</h3>
   <p class="fraco">Toque no backup que quer restaurar. O mais recente vem primeiro.</p>
@@ -2889,6 +2898,57 @@ $('aDriveRestaurar').onclick = async () => {
   }
 };
 $('dDriveFechar').onclick = () => $('dDrive').close();
+// Backups de conflito: os que nao tem nada a mais que os dados atuais vao direto para a lixeira do Drive;
+// os outros aparecem com o que tem a mais, para a pessoa restaurar ou mandar para a lixeira.
+let conflitos = [];
+async function lerConflito(f) {
+  const o = JSON.parse(await (await drive(`/drive/v3/files/${encodeURIComponent(f.id)}?alt=media`)).text());
+  return migrar(sync.chave && o.versao === 1 && o.iteracoes === 600000 ? await decifrarComChave(o, sync.chave).catch(() => null) : null, hoje());
+}
+const lixeiraDrive = (id) => drive(`/drive/v3/files/${encodeURIComponent(id)}?fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }) });
+$('aConflitos').onclick = async () => {
+  try { await tokenGoogle(); } catch (err) { return avisar('Google Drive', err.message); }
+  if (!sync.chave) return avisar('Backups de conflito', 'Ligue a sincronização neste aparelho para abrir os backups de conflito.');
+  $('aDriveMsg').textContent = 'Comparando os backups de conflito...';
+  try {
+    const q = encodeURIComponent(`'${await pastaDrive()}' in parents and name contains '-conflito-' and trashed=false`);
+    const { files } = await (await drive(`/drive/v3/files?q=${q}&orderBy=createdTime desc&pageSize=200&fields=files(id,name,createdTime)`)).json();
+    let lixo = 0;
+    conflitos = [];
+    for (const f of files) {
+      let d = null;
+      try { d = await lerConflito(f); } catch { d = null; }
+      const cmp = d ? compararDados(d, db) : null;
+      // Sem nada a mais: a versao do Drive descartada (mais antiga) sem itens faltando, ou igual em tudo.
+      if (cmp && cmp.faltam === 0 && (cmp.diferentes === 0 || f.name.includes('-conflito-drive'))) { await lixeiraDrive(f.id); lixo++; } else conflitos.push({ ...f, cmp });
+    }
+    $('aDriveMsg').textContent = '';
+    if (!conflitos.length) return avisar('Backups de conflito', lixo ? `${lixo} ${lixo > 1 ? 'backups foram' : 'backup foi'} para a lixeira do Google Drive: nenhum tinha nada que falte nos dados atuais.` : 'Não há backups de conflito.');
+    mostrarConflitos(lixo);
+  } catch (err) {
+    $('aDriveMsg').textContent = '';
+    avisar('Não foi possível revisar os backups', err.message);
+  }
+};
+function mostrarConflitos(lixo) {
+  $('dConfLista').innerHTML = (lixo ? `<p class="fraco">${lixo} ${lixo > 1 ? 'backups sem nada a mais foram' : 'backup sem nada a mais foi'} para a lixeira do Google Drive.</p>` : '')
+    + conflitos.map((f) => `<div class="linha"><span class="q">${new Date(f.createdTime).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}<br><small class="fraco">${f.cmp ? `Faltam ${f.cmp.faltam} · diferentes ${f.cmp.diferentes}` : 'Não foi possível abrir'}${f.name.includes('-conflito-aparelho') ? ' · versão do aparelho' : ' · versão do Drive'}</small></span>`
+      + `<button type="button" class="sec" data-confrest="${esc(f.id)}" data-nome="${esc(f.name)}">Restaurar</button><button type="button" class="perigo" data-conflixo="${esc(f.id)}">Lixeira</button></div>`).join('')
+    || '<p class="fraco">Nenhum backup de conflito sobrando.</p>';
+  if (!$('dConflitos').open) $('dConflitos').showModal();
+}
+$('dConfFechar').onclick = () => $('dConflitos').close();
+$('dConfLista').onclick = async (e) => {
+  const rest = e.target.closest('[data-confrest]'), lx = e.target.closest('[data-conflixo]');
+  if (lx) {
+    try { await lixeiraDrive(lx.dataset.conflixo); } catch (err) { return avisar('Não foi possível', err.message); }
+    conflitos = conflitos.filter((f) => f.id !== lx.dataset.conflixo);
+    mostrarConflitos(0);
+  } else if (rest) {
+    $('dConflitos').close();
+    try { restaurarTexto(await (await drive(`/drive/v3/files/${encodeURIComponent(rest.dataset.confrest)}?alt=media`)).text(), rest.dataset.nome); } catch (err) { avisar('Não foi possível baixar o backup', err.message); }
+  }
+};
 
 // Sincronizacao com o Google Drive: os dados continuam no aparelho (funciona sem internet) e uma copia cifrada
 // fica em "Controle Diário/Dados/dados-controle-diario.txt". Ao abrir, o app traz o que outro aparelho mudou;
@@ -2908,7 +2968,7 @@ async function pastaDados() {
 }
 async function arquivoDados() {
   const q = encodeURIComponent(`name='${ARQ_DADOS}' and '${await pastaDados()}' in parents and trashed=false`);
-  const { files } = await (await drive(`/drive/v3/files?q=${q}&orderBy=modifiedTime desc&fields=files(id,version,modifiedTime)`)).json();
+  const { files } = await (await drive(`/drive/v3/files?q=${q}&orderBy=modifiedTime desc&fields=files(id,modifiedTime,appProperties)`)).json();
   return files[0] || null;
 }
 async function baixarDados(id) {
@@ -2917,25 +2977,27 @@ async function baixarDados(id) {
   if (!backupValido(d)) throw new Error('O arquivo de dados do Drive não é válido. Nada foi alterado.');
   return d;
 }
+// Cada envio grava no arquivo do Drive a marca (rev) dos dados enviados. Se a marca do Drive for a que este
+// aparelho enviou ou recebeu por ultimo, ninguem mais mexeu. (O numero de versao do Google muda sozinho, por
+// isso nao serve para isso.)
+const revDe = (arq) => (arq && arq.appProperties && arq.appProperties.rev) || '';
 async function enviarDados(id) {
-  const texto = JSON.stringify(db), arq = new Blob([JSON.stringify(await cifrarComChave(db, sync.chave, sync.sal))], { type: 'text/plain' });
-  const r = id
-    ? await (await drive(`/upload/drive/v3/files/${encodeURIComponent(id)}?uploadType=media&fields=id,version`, { method: 'PATCH', body: arq })).json()
-    : await (async () => {
-      const fd = new FormData();
-      fd.append('metadata', new Blob([JSON.stringify({ name: ARQ_DADOS, parents: [await pastaDados()] })], { type: 'application/json' }));
-      fd.append('file', arq);
-      return (await drive('/upload/drive/v3/files?uploadType=multipart&fields=id,version', { method: 'POST', body: fd })).json();
-    })();
-  Object.assign(sync, { arquivo: r.id, versao: r.version, assin: assinatura(texto), ultimaEm: new Date().toISOString() });
+  const texto = JSON.stringify(db), rev = assinatura(texto), arq = new Blob([JSON.stringify(await cifrarComChave(db, sync.chave, sync.sal))], { type: 'text/plain' });
+  const fd = new FormData();
+  fd.append('metadata', new Blob([JSON.stringify(id ? { appProperties: { rev } } : { name: ARQ_DADOS, parents: [await pastaDados()], appProperties: { rev } })], { type: 'application/json' }));
+  fd.append('file', arq);
+  const r = await (await drive(id ? `/upload/drive/v3/files/${encodeURIComponent(id)}?uploadType=multipart&fields=id` : '/upload/drive/v3/files?uploadType=multipart&fields=id', { method: id ? 'PATCH' : 'POST', body: fd })).json();
+  Object.assign(sync, { arquivo: r.id, rev, assin: rev, ultimaEm: new Date().toISOString() });
+  delete sync.versao;
 }
-function aplicarDados(d, versao) {
+function aplicarDados(d, rev) {
   db = d;
   completarSeries(db, addMes(hoje().slice(0, 7), MESES_FRENTE));
   limparLanc(); limparConta(); limparCartao(); limparCat();
   try { localStorage.setItem(CHAVE, JSON.stringify(db)); } catch {}
   // A assinatura e a do que veio do Drive: se completarSeries criou ocorrencias, elas sobem no proximo envio.
-  Object.assign(sync, { versao, assin: assinatura(JSON.stringify(d)), ultimaEm: new Date().toISOString() });
+  Object.assign(sync, { rev, assin: assinatura(JSON.stringify(d)), ultimaEm: new Date().toISOString() });
+  delete sync.versao;
   render();
 }
 // Guarda a versao que vai ser descartada como backup comum na pasta "Controle Diário".
@@ -2949,18 +3011,22 @@ async function sincronizar() {
   if (!navigator.onLine || !tokenValido()) return mostrarSync();
   sincronizando = true; syncErro = ''; mostrarSync();
   try {
-    const arq = await arquivoDados();
+    const arq = await arquivoDados(), revDrive = revDe(arq);
+    // Arquivo gravado antes da marca (versao 1.60.1 ou anterior) num aparelho que ja sincronizava: confia nele uma vez.
+    const legado = arq && !revDrive && sync.versao !== undefined && !sync.rev;
     if (!arq) await enviarDados(null);
-    else if (arq.version === sync.versao) { if (mudouAqui()) await enviarDados(arq.id); }
+    else if (legado || (revDrive && revDrive === sync.rev)) { if (mudouAqui() || legado) await enviarDados(arq.id); }
     else {
       const remoto = await baixarDados(arq.id);
       // Aparelho novo, ainda sem nada: recebe os dados do Drive sem perguntar.
       const vazio = !db.lancs.length && !(db.usa && db.usa.viagens.length) && db.contasBanco.length <= 1;
-      if (!mudouAqui() || (!sync.versao && vazio)) aplicarDados(remoto, arq.version);
+      // Mesmo conteudo dos dois lados: nada a perguntar.
+      if (JSON.stringify(remoto) === JSON.stringify(db)) Object.assign(sync, { rev: revDrive, assin: assinatura(JSON.stringify(db)), ultimaEm: new Date().toISOString() });
+      else if (!mudouAqui() || (!sync.rev && sync.versao === undefined && vazio)) aplicarDados(remoto, revDrive);
       else {
         const quando = new Date(arq.modifiedTime).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
         const usarDrive = await modal('Dados diferentes', `Os dados deste aparelho e os do Google Drive (gravados em ${quando}) mudaram desde a última sincronização.\n\nEscolha quais ficam valendo. A outra versão não se perde: vai como backup para a pasta "Controle Diário" no Drive.`, 'Usar os do Drive', 'Usar os deste aparelho');
-        if (usarDrive) { await guardarDescartada(db, 'aparelho'); aplicarDados(remoto, arq.version); }
+        if (usarDrive) { await guardarDescartada(db, 'aparelho'); aplicarDados(remoto, revDrive); }
         else { await guardarDescartada(remoto, 'drive'); await enviarDados(arq.id); }
       }
     }
@@ -3685,7 +3751,7 @@ function renderUsaDesp() {
     // Dia como no Fluxo: "30 de novembro", ou Hoje.
     const cab = d.data !== dia ? `<h3 class="dia">${d.data === h ? 'Hoje' : new Date(d.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</h3>` : '';
     dia = d.data;
-    return cab + `<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}<br><small>${(d.recibos || []).length ? `📎${d.recibos.length > 1 ? d.recibos.length : ''} · ` : ''}${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>`;
+    return cab + `<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}${(d.recibos || []).length ? ` <b class="clipe" title="${d.recibos.length} ${d.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${d.recibos.length > 1 ? d.recibos.length : ''}</b>` : ''}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>`;
   }).join('') || '<p class="fraco" style="margin:0">Nenhuma despesa ainda. Toque em + para lançar.</p>';
   // Por categoria, uma parte por moeda (base primeiro); o total de cada moeda e o mesmo do alto da tela.
   $('udCats').innerHTML = htmlCatsViagem(u, v);
@@ -3705,6 +3771,8 @@ function htmlCatsViagem(u, v, nat) {
     + `<div class="linha"><b class="q">Total${grupos.length > 1 ? ' em ' + esc(moedaUsa(g.moeda).simbolo) : ''}</b><b class="valor neg">${fmtMoeda(g.total, g.moeda)}</b></div>`).join('')
     || '<p class="fraco" style="margin:0">Nenhuma despesa.</p>';
 }
+// Clipe em negrito depois do nome da despesa que tem recibo.
+const CLIPE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5 12.6 19.9a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8"/></svg>';
 // Quem pode dividir a despesa: viajantes da viagem nao arquivados, mais os que ja estao na despesa editada.
 let udPessoas = [];
 function textoUdQuem() {

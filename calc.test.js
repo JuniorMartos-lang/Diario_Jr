@@ -849,6 +849,10 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.ok(!c.backupValido({ ...comGoogle, google: { cliente: 'javascript:alert(1)' } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: 'x' }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { ultimoAutoEm: 'ontem' } }));
+  // Comparar um backup com os dados atuais: o que falta e o que mudou
+  const atualC = { lancs: [{ id: 1, v: 1 }, { id: 2, v: 2 }], usa: { despesas: [{ id: 'a', v: 1 }] } };
+  assert.deepStrictEqual(c.compararDados({ lancs: [{ id: 1, v: 1 }] }, atualC), { faltam: 0, diferentes: 0 }, 'backup mais antigo, sem nada a mais');
+  assert.deepStrictEqual(c.compararDados({ lancs: [{ id: 1, v: 9 }, { id: 3, v: 3 }], usa: { despesas: [{ id: 'b' }] } }, atualC), { faltam: 2, diferentes: 1 });
   // Recibos: validacao, nome do arquivo, recorte (homografia) e PDF
   const ok = (r) => c.backupValido({ ...comUsa, usa: { ...comUsa.usa, despesas: [{ ...comUsa.usa.despesas[0], recibos: r }] } });
   assert.ok(ok(undefined) && ok([]));
