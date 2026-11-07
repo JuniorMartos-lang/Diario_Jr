@@ -67,8 +67,35 @@
   .fatValores .totalSomado { padding-top: 6px; border-top: 1px solid rgba(255,255,255,.25); }
   /* Alerta de atrasados no canto do Saldo geral, so no Resumo; cores fixas nos dois temas. */
   .destaque { position: relative; }
-  button.alertaAtraso { display: none; position: absolute; top: 10px; right: 12px; align-items: center; gap: 6px; min-height: 36px; padding: 4px 8px 4px 6px; border-radius: 999px; background: #c0262d; color: #fff !important; font-size: 13px; font-weight: 700; }
+  /* Canto direito da linha do Saldo geral, so no Resumo: atrasados e, na ponta, a nuvem da sincronizacao. */
+  /* Backup: secao do Google com chave liga/desliga e botoes menores. */
+  h2.tituloDrive { display: flex; align-items: center; gap: 8px; }
+  .icoDrive { width: 24px; height: 24px; flex: none; }
+  label.chaveLiga { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; margin: 6px 0 0; font-size: 15px; color: var(--txt); }
+  input[type=checkbox].chave { appearance: none; -webkit-appearance: none; flex: none; width: 50px; height: 30px; min-height: 0; margin: 0; padding: 0; border-radius: 15px; background: #8a979f; position: relative; cursor: pointer; border: 0; transition: background .2s; }
+  input[type=checkbox].chave::before { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+  input[type=checkbox].chave:checked { background: #15803d; }
+  input[type=checkbox].chave:checked::before { transform: translateX(20px); }
+  input.chave:focus-visible { outline: 2px solid var(--pri); outline-offset: 2px; }
+  .campoGravar { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .campoGravar input { flex: 1; min-width: 0; margin: 0; font-size: 13px; }
+  .campoGravar button { flex: none; min-height: 44px; padding: 6px 14px; }
+  .botoesMini { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+  .botoesMini button.mini { flex: 1 1 auto; min-height: 36px; padding: 6px 12px; font-size: 13px; }
+  @media (prefers-reduced-motion: reduce) { input.chave, input.chave::before { transition: none; } }
+  .cantoTopo { display: none; position: absolute; top: 8px; right: 10px; align-items: center; gap: 6px; }
+  body.emResumo .cantoTopo { display: flex; }
+  button.alertaAtraso { display: none; align-items: center; gap: 6px; min-height: 36px; padding: 4px 8px 4px 6px; border-radius: 999px; background: #c0262d; color: #fff !important; font-size: 13px; font-weight: 700; }
   body.emResumo button.alertaAtraso:not([hidden]) { display: flex; }
+  /* Nuvem: verde sincronizado, vermelha pendente, cinza desligada; cores fixas nos dois temas. */
+  button.syncIco { width: 40px; height: 40px; min-height: 0; padding: 0; border-radius: 50%; background: #5a6b76; color: #fff !important; display: grid; place-items: center; }
+  button.syncIco.ok { background: #15803d; }
+  button.syncIco.pend { background: #c0262d; }
+  button.syncIco svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  button.syncIco .giro { display: none; transform-origin: 12px 13px; }
+  button.syncIco.girando .giro { display: inline; animation: giroSync 1s linear infinite; }
+  @keyframes giroSync { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { button.syncIco.girando .giro { animation: none; } }
   button.alertaAtraso i { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #fff; color: #c0262d; font-style: normal; font-weight: 800; }
   #hSaldo { font-size: 30px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
   .pares { display: flex; gap: 12px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--linha); }
@@ -453,7 +480,7 @@
   </div>
   <div class="destaque">
     <small class="saldoTopo">Saldo geral hoje<button type="button" class="olhoSaldo" id="hOlho" aria-pressed="false" aria-label="Ocultar valores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></small>
-    <button type="button" class="alertaAtraso" id="hAtraso" data-atrasos hidden></button>
+    <div class="cantoTopo"><button type="button" class="alertaAtraso" id="hAtraso" data-atrasos hidden></button><button type="button" class="syncIco" id="hSync"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 10a4 4 0 0 1-.5 8z"/><g class="giro"><path d="M15 13a3 3 0 1 1-1-2.2"/><path d="M14.2 9.3v1.6h-1.6"/></g></svg></button></div>
     <div id="hSaldo"></div>
     <div class="pares">
       <div><small>Gastos do mês</small><b id="hGastos"></b></div>
@@ -647,7 +674,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.56.0 · 07/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.59.1 · 07/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -669,14 +696,30 @@
     </div>
     <div class="tela" id="tBackup" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Backup</h2></div>
-      <p class="infoTela"><button type="button" class="infoBtn" id="aInfoBackup" aria-label="Regras do backup"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button><span>Seus dados ficam só neste aparelho. Se ele for perdido ou o navegador for limpo, só o backup os recupera. Salve e escolha o OneDrive na tela de compartilhar. O arquivo sai criptografado com a senha do aplicativo; se o aplicativo não tiver senha, com a que você digitar. Sem ela, ninguém abre, nem você. Restaurar substitui tudo o que está no app pelo conteúdo do arquivo.</span></p>
+      <p class="infoTela"><button type="button" class="infoBtn" id="aInfoBackup" aria-label="Regras do backup"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button><span>Seus dados ficam só neste aparelho. Se ele for perdido ou o navegador for limpo, só o backup os recupera. No Backup Manual, salve e escolha onde guardar na tela de compartilhar; no Google Drive, salve, restaure e sincronize direto. O arquivo sai criptografado com a senha do aplicativo; se o aplicativo não tiver senha, com a que você digitar. Sem ela, ninguém abre, nem você. Restaurar substitui tudo o que está no app pelo conteúdo do arquivo.</span></p>
       <div class="card">
+        <h2>Backup Manual</h2>
         <p id="aUltimo" class="fraco"></p>
         <div class="botoes">
           <button type="button" id="aBackup">Salvar backup</button>
           <button type="button" class="sec" id="aRestaurar">Restaurar</button>
         </div>
         <input id="aArquivo" type="file" accept=".txt,.json,text/plain,application/json" hidden>
+      </div>
+      <div class="card">
+        <h2 class="tituloDrive"><svg class="icoDrive" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 3h7.6l6.2 10.8H14.4z" fill="#ffba00"/><path d="M8.2 3 2 13.8l3.8 6.6L12 9.6z" fill="#0f9d58"/><path d="M5.8 20.4h12.4l3.8-6.6H9.6z" fill="#4285f4"/></svg><span>Sincronização &amp; Backup Google Drive</span></h2>
+        <p class="fraco">Mantém os mesmos dados no celular e no computador: os dados continuam no aparelho (funciona sem internet) e uma cópia criptografada com a senha do app fica em "Controle Diário/Dados" no seu Drive. Use a mesma senha do app em todos os aparelhos. Com a sincronização ligada, o app também salva um backup na pasta "Controle Diário" sempre que o último tiver mais de 24 horas.</p>
+        <label class="chaveLiga"><span>Sincronização</span><input type="checkbox" role="switch" class="chave" id="aSyncChave"></label>
+        <p id="aSyncStatus" class="fraco"></p>
+        <div class="botoesMini">
+          <button type="button" class="mini" id="aSyncAgora">Sincronizar Já</button>
+          <button type="button" class="mini" id="aDriveSalvar">Salvar Backup Já</button>
+          <button type="button" class="mini sec" id="aDriveRestaurar">Restaurar do Google</button>
+        </div>
+        <p id="aDriveMsg" class="fraco" aria-live="polite"></p>
+        <label for="aGoogleCliente">ID do cliente do projeto no Google</label>
+        <div class="campoGravar"><input type="text" id="aGoogleCliente" autocomplete="off" spellcheck="false" maxlength="200" placeholder="....apps.googleusercontent.com"><button type="button" class="mini" id="aGoogleGravar">Gravar</button></div>
+        <p class="fraco" id="aGoogleMsg" style="margin:0" aria-live="polite">Fica gravado aqui e vai no backup, para você consultar quando quiser. Vazio, o app usa o do projeto atual.</p>
       </div>
     </div>
     <div class="tela" id="tAparencia" hidden>
@@ -984,6 +1027,12 @@
   <p id="dMotivoMsg" class="neg" style="min-height:20px;margin:4px 0 8px"></p>
   <div class="botoes"><button type="submit">Sim, arquivar</button><button type="button" class="sec" id="dMotivoNao">Cancelar</button></div>
 </form></dialog>
+<dialog id="dDrive">
+  <h3>Backups no Google Drive</h3>
+  <p class="fraco">Toque no backup que quer restaurar. O mais recente vem primeiro.</p>
+  <div id="dDriveLista"></div>
+  <div class="botoes"><button type="button" class="sec" id="dDriveFechar">Fechar</button></div>
+</dialog>
 <dialog id="dEscolheCat">
   <h3>Escolha a categoria</h3>
   <div id="dEscolheLista"></div>
@@ -1035,10 +1084,16 @@ try { db = carregar(); } catch {
   db = dadosNovos();
   addEventListener('load', () => modal('Dados não puderam ser lidos', 'Restaure o último backup em Ajustes.', 'Entendi'));
 }
+// Sincronizacao com o Google Drive (detalhes junto do Backup): declarada aqui porque salvar() ja a usa.
+const CHAVE_SYNC = 'controle-diario-sync', ARQ_DADOS = 'dados-controle-diario.txt';
+let sync = {};
+try { sync = JSON.parse(localStorage.getItem(CHAVE_SYNC)) || {}; } catch { sync = {}; }
+let sincronizando = false, syncTimer = null, syncErro = '', syncConferido = false;
 function salvar() {
   try { localStorage.setItem(CHAVE, JSON.stringify(db)); }
   catch { modal('Não foi possível gravar', 'O aparelho recusou a gravação. Salve um backup e libere espaço.', 'Entendi'); }
   render();
+  agendarSync();
 }
 
 const nomeExib = (o) => o.nome + (o.arquivadaEm ? ' (Arquivada)' : '');
@@ -2166,6 +2221,7 @@ function mostrarTelas(nova) {
   if (!$('s-ajustes').hidden) scrollTo(0, y);
 }
 function abrirTela(id) {
+  if (id === 'tBackup') carregarGoogle();
   const nova = [...pilhaTelas, id];
   history.pushState({ pilha: nova }, '');
   mostrarTelas(nova);
@@ -2499,12 +2555,12 @@ $('aTema').onchange = () => {
 try { $('aTema').value = localStorage.getItem(CHAVE_TEMA) || 'auto'; } catch {}
 
 // A senha do backup e pedida a cada vez e nao fica guardada. Devolve null se cancelar.
-function pedirSenhaBackup(criar, erro = '', senhaApp = false) {
+function pedirSenhaBackup(criar, erro = '', senhaApp = false, textos = null) {
   return new Promise((ok) => {
-    $('dBkTitulo').textContent = criar ? 'Criptografar o backup' : 'Backup criptografado';
-    $('dBkTexto').textContent = criar ? 'Crie uma senha de pelo menos 8 caracteres e guarde em lugar seguro. Sem ela, o backup não abre e não há como recuperar.' : senhaApp ? 'Digite a senha que o aplicativo tinha quando este backup foi salvo.' : 'Digite a senha usada ao salvar este backup.';
+    $('dBkTitulo').textContent = textos ? textos.titulo : criar ? 'Criptografar o backup' : 'Backup criptografado';
+    $('dBkTexto').textContent = textos ? textos.texto : criar ? 'Crie uma senha de pelo menos 8 caracteres e guarde em lugar seguro. Sem ela, o backup não abre e não há como recuperar.' : senhaApp ? 'Digite a senha que o aplicativo tinha quando este backup foi salvo.' : 'Digite a senha usada ao salvar este backup.';
     $('dBkRepeteBox').hidden = !criar;
-    $('dBkOk').textContent = criar ? 'Criptografar e salvar' : 'Abrir';
+    $('dBkOk').textContent = textos ? textos.ok : criar ? 'Criptografar e salvar' : 'Abrir';
     $('dBkErro').textContent = erro;
     for (const id of ['dBkSenha', 'dBkRepete']) { $(id).value = ''; $(id).type = 'password'; }
     let resposta = null;
@@ -2614,16 +2670,25 @@ $('hOlho').onclick = () => {
   valoresOcultos = !valoresOcultos;
   render();
 };
-async function salvarBackup() {
+// Monta o arquivo de backup cifrado; null se a pessoa desistiu da senha. Ja marca a data do backup em db.
+async function montarBackup() {
   // Com senha no app, nao pergunta nada; o arquivo abre com essa senha.
   const comSenhaApp = temSenha(), senha = comSenhaApp ? null : await pedirSenhaBackup(true);
-  if (!comSenhaApp && !senha) return;
+  if (!comSenhaApp && !senha) return null;
   const antes = db.ultimoBackupEm, agora = new Date();
   db.ultimoBackupEm = agora.toISOString();
   const p = (n) => String(n).padStart(2, '0');
   const nome = `backup-controle-diario-${agora.getFullYear()}-${p(agora.getMonth() + 1)}-${p(agora.getDate())}_${p(agora.getHours())}-${p(agora.getMinutes())}-${p(agora.getSeconds())}.txt`;
   try {
-    const arq = new File([JSON.stringify(comSenhaApp ? await cifrarBackupSenhaApp(db, trava.senha) : await cifrarBackup(db, senha))], nome, { type: 'text/plain' });
+    return { nome, antes, comSenhaApp, arq: new File([JSON.stringify(comSenhaApp ? await cifrarBackupSenhaApp(db, trava.senha) : await cifrarBackup(db, senha))], nome, { type: 'text/plain' }) };
+  } catch (err) { db.ultimoBackupEm = antes; throw err; }
+}
+async function salvarBackup() {
+  let b;
+  try { b = await montarBackup(); } catch (err) { return avisar('Não foi possível salvar o backup', err.message); }
+  if (!b) return;
+  const { arq, nome, antes, comSenhaApp } = b;
+  try {
     if (navigator.canShare && navigator.canShare({ files: [arq] })) {
       // Em aparelho lento o toque pode expirar enquanto cifra: pede outro toque para compartilhar.
       try {
@@ -2653,9 +2718,13 @@ $('aRestaurar').onclick = () => $('aArquivo').click();
 $('aArquivo').onchange = async () => {
   const f = $('aArquivo').files[0];
   $('aArquivo').value = '';
-  if (!f) return;
+  if (f) restaurarTexto(await f.text(), f.name);
+};
+// Restaura a partir do conteudo do arquivo (escolhido no aparelho ou baixado do Google Drive).
+async function restaurarTexto(texto, nomeArq) {
+  const f = { name: nomeArq };
   let d, bruto;
-  try { bruto = JSON.parse(await f.text()); } catch { bruto = null; }
+  try { bruto = JSON.parse(texto); } catch { bruto = null; }
   if (ehBackupCifrado(bruto)) {
     let erro = '', aberto = null;
     if (senhaSessao) { try { aberto = await decifrarBackup(bruto, senhaSessao); } catch { aberto = null; } }
@@ -2676,6 +2745,302 @@ ${d.usa.viagens.length} ${d.usa.viagens.length > 1 ? 'viagens' : 'viagem'} USA` 
   limparLanc(); limparConta(); limparCartao(); limparCat();
   salvar();
   avisar('Backup restaurado com sucesso');
+}
+
+// Google Drive: login pela janela oficial do Google (a senha nunca passa pelo app), so com acesso aos
+// arquivos que o proprio app criou (drive.file). O acesso vale cerca de 1 hora e fica so na memoria.
+const GOOGLE_CLIENTE = '729588885596-bdhr47c2p7lbat77mtr5htsgnb787sbd.apps.googleusercontent.com';
+const PASTA_DRIVE = 'Controle Diário';
+const clienteGoogle = () => (db.google && db.google.cliente) || GOOGLE_CLIENTE;
+function gravarClienteGoogle() {
+  const v = $('aGoogleCliente').value.trim(), antes = (db.google && db.google.cliente) || '';
+  if (v && !ehClienteGoogle(v)) { $('aGoogleMsg').textContent = 'ID inválido: nada foi gravado.'; return avisar('ID inválido', 'O ID do cliente termina em .apps.googleusercontent.com. Nada foi gravado.'); }
+  delete $('aGoogleCliente').dataset.editando;
+  if (v === antes) { $('aGoogleMsg').textContent = 'Nada mudou: este ID já está gravado.'; return; }
+  if (v) db.google = { ...(db.google || {}), cliente: v }; else if (db.google) delete db.google.cliente;
+  // Outro projeto: o acesso antigo nao vale mais.
+  gToken = null; gValidade = 0;
+  try { localStorage.removeItem(CHAVE_GTOKEN); } catch {}
+  salvar();
+  $('aGoogleMsg').textContent = v ? 'ID gravado. Ele vai no próximo backup.' : 'Campo vazio gravado: o app usa o ID do projeto atual.';
+}
+$('aGoogleGravar').onclick = gravarClienteGoogle;
+$('aGoogleCliente').oninput = () => { $('aGoogleCliente').dataset.editando = '1'; };
+$('aGoogleCliente').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); gravarClienteGoogle(); } };
+const CHAVE_GTOKEN = 'controle-diario-gtoken';
+let gToken = null, gValidade = 0;
+// O acesso do Google (cerca de 1 hora, so para os arquivos do app) fica guardado ate vencer, fora do backup.
+try { const t = JSON.parse(localStorage.getItem(CHAVE_GTOKEN)); if (t && t.ate > Date.now()) { gToken = t.token; gValidade = t.ate; } } catch {}
+const tokenValido = () => !!gToken && Date.now() < gValidade;
+// Carrega o script do Google antes do toque: a janela de login so abre se for pedida direto no toque.
+function carregarGoogle() {
+  if ((window.google && google.accounts) || document.getElementById('gsiScript')) return;
+  const sc = document.createElement('script');
+  sc.id = 'gsiScript'; sc.src = 'https://accounts.google.com/gsi/client'; sc.async = true;
+  sc.onerror = () => sc.remove();
+  document.head.appendChild(sc);
+}
+// Chamar logo no inicio do toque, antes de qualquer await.
+function tokenGoogle() {
+  return new Promise((ok, falha) => {
+    if (gToken && Date.now() < gValidade) return ok(gToken);
+    if (!(window.google && google.accounts && google.accounts.oauth2)) { carregarGoogle(); return falha(new Error('O Google ainda não carregou. Confira a internet e toque de novo.')); }
+    google.accounts.oauth2.initTokenClient({
+      client_id: clienteGoogle(), scope: 'https://www.googleapis.com/auth/drive.file',
+      callback: (r) => {
+        if (r.error) return falha(new Error(r.error_description || r.error));
+        gToken = r.access_token; gValidade = Date.now() + (Number(r.expires_in || 3600) - 60) * 1000;
+        try { localStorage.setItem(CHAVE_GTOKEN, JSON.stringify({ token: gToken, ate: gValidade })); } catch {}
+        ok(gToken);
+      },
+      error_callback: (e) => falha(new Error(e && e.type === 'popup_closed' ? 'A janela do Google foi fechada antes de terminar.'
+        : e && e.type === 'popup_failed_to_open' ? 'O aparelho bloqueou a janela do Google. Libere janelas pop-up e tente de novo.' : (e && (e.message || e.type)) || 'Erro no login do Google.')),
+    }).requestAccessToken();
+  });
+}
+async function drive(caminho, opc = {}) {
+  const r = await fetch('https://www.googleapis.com' + caminho, { ...opc, headers: { ...(opc.headers || {}), Authorization: 'Bearer ' + gToken } });
+  if (r.status === 401) { gToken = null; try { localStorage.removeItem(CHAVE_GTOKEN); } catch {} throw new Error('O acesso ao Google expirou. Toque de novo para entrar.'); }
+  if (!r.ok) throw new Error(`Google Drive respondeu ${r.status}. ${(await r.text()).slice(0, 200)}`);
+  return r;
+}
+// Pasta "Controle Diário" no Drive; com drive.file o app so ve a que ele mesmo criou.
+async function pastaDrive() {
+  const q = encodeURIComponent(`name='${PASTA_DRIVE}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const achou = await (await drive(`/drive/v3/files?q=${q}&fields=files(id)&spaces=drive`)).json();
+  if (achou.files.length) return achou.files[0].id;
+  return (await (await drive('/drive/v3/files?fields=id', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: PASTA_DRIVE, mimeType: 'application/vnd.google-apps.folder' }) })).json()).id;
+}
+async function enviarDrive(nome, arquivo, pasta) {
+  const fd = new FormData();
+  fd.append('metadata', new Blob([JSON.stringify({ name: nome, parents: [pasta] })], { type: 'application/json' }));
+  fd.append('file', arquivo);
+  return (await drive('/upload/drive/v3/files?uploadType=multipart&fields=id,name', { method: 'POST', body: fd })).json();
+}
+$('aDriveSalvar').onclick = async () => {
+  try { await tokenGoogle(); } catch (err) { return avisar('Google Drive', err.message); }
+  let b;
+  try { b = await montarBackup(); } catch (err) { return avisar('Não foi possível salvar o backup', err.message); }
+  if (!b) return;
+  $('aDriveMsg').textContent = 'Enviando para o Google Drive...';
+  try {
+    await enviarDrive(b.nome, b.arq, await pastaDrive());
+    salvar();
+    $('aDriveMsg').textContent = '';
+    avisar('Backup salvo no Google Drive', `${b.nome}\nPasta "${PASTA_DRIVE}" no seu Drive.${b.comSenhaApp ? '\nCriptografado com a senha do aplicativo.' : ''}`);
+  } catch (err) {
+    db.ultimoBackupEm = b.antes;
+    $('aDriveMsg').textContent = '';
+    avisar('Não foi possível salvar no Google Drive', err.message);
+  }
+};
+$('aDriveRestaurar').onclick = async () => {
+  try { await tokenGoogle(); } catch (err) { return avisar('Google Drive', err.message); }
+  $('aDriveMsg').textContent = 'Buscando backups no Google Drive...';
+  try {
+    const q = encodeURIComponent(`'${await pastaDrive()}' in parents and name contains 'backup-controle-diario' and trashed=false`);
+    const { files } = await (await drive(`/drive/v3/files?q=${q}&orderBy=createdTime desc&pageSize=20&fields=files(id,name,createdTime,size)`)).json();
+    $('aDriveMsg').textContent = '';
+    if (!files.length) return avisar('Nenhum backup no Google Drive', `A pasta "${PASTA_DRIVE}" ainda não tem backup salvo por este app.`);
+    $('dDriveLista').innerHTML = files.map((f) => `<button type="button" class="linha" data-drivearq="${esc(f.id)}" data-nome="${esc(f.name)}"><span class="q">${new Date(f.createdTime).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}<br><small>${esc(f.name)} · ${Math.max(1, Math.round((f.size || 0) / 1024))} KB</small></span>${SETA}</button>`).join('');
+    $('dDrive').showModal();
+  } catch (err) {
+    $('aDriveMsg').textContent = '';
+    avisar('Não foi possível ler o Google Drive', err.message);
+  }
+};
+$('dDriveFechar').onclick = () => $('dDrive').close();
+
+// Sincronizacao com o Google Drive: os dados continuam no aparelho (funciona sem internet) e uma copia cifrada
+// fica em "Controle Diário/Dados/dados-controle-diario.txt". Ao abrir, o app traz o que outro aparelho mudou;
+// ao salvar, envia em seguida. Se os dois lados mudaram, pergunta qual manter e guarda o outro como backup.
+// A configuracao fica no aparelho, fora do backup (como a senha): chave tirada da senha do app, sal do arquivo,
+// versao do Drive ja vista e assinatura dos dados ja enviados.
+const gravarSync = () => { try { localStorage.setItem(CHAVE_SYNC, JSON.stringify(sync)); } catch {} mostrarSync(); };
+// Assinatura curta dos dados (FNV-1a), para saber se algo mudou desde o ultimo envio.
+function assinatura(texto) { let h = 2166136261; for (let i = 0; i < texto.length; i++) { h ^= texto.charCodeAt(i); h = Math.imul(h, 16777619); } return texto.length + ':' + (h >>> 0).toString(36); }
+const mudouAqui = () => assinatura(JSON.stringify(db)) !== sync.assin;
+async function pastaDados() {
+  const pai = await pastaDrive();
+  const q = encodeURIComponent(`name='Dados' and '${pai}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const achou = await (await drive(`/drive/v3/files?q=${q}&fields=files(id)`)).json();
+  if (achou.files.length) return achou.files[0].id;
+  return (await (await drive('/drive/v3/files?fields=id', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Dados', mimeType: 'application/vnd.google-apps.folder', parents: [pai] }) })).json()).id;
+}
+async function arquivoDados() {
+  const q = encodeURIComponent(`name='${ARQ_DADOS}' and '${await pastaDados()}' in parents and trashed=false`);
+  const { files } = await (await drive(`/drive/v3/files?q=${q}&orderBy=modifiedTime desc&fields=files(id,version,modifiedTime)`)).json();
+  return files[0] || null;
+}
+async function baixarDados(id) {
+  const o = JSON.parse(await (await drive(`/drive/v3/files/${encodeURIComponent(id)}?alt=media`)).text());
+  const d = migrar(await decifrarComChave(o, sync.chave), hoje());
+  if (!backupValido(d)) throw new Error('O arquivo de dados do Drive não é válido. Nada foi alterado.');
+  return d;
+}
+async function enviarDados(id) {
+  const texto = JSON.stringify(db), arq = new Blob([JSON.stringify(await cifrarComChave(db, sync.chave, sync.sal))], { type: 'text/plain' });
+  const r = id
+    ? await (await drive(`/upload/drive/v3/files/${encodeURIComponent(id)}?uploadType=media&fields=id,version`, { method: 'PATCH', body: arq })).json()
+    : await (async () => {
+      const fd = new FormData();
+      fd.append('metadata', new Blob([JSON.stringify({ name: ARQ_DADOS, parents: [await pastaDados()] })], { type: 'application/json' }));
+      fd.append('file', arq);
+      return (await drive('/upload/drive/v3/files?uploadType=multipart&fields=id,version', { method: 'POST', body: fd })).json();
+    })();
+  Object.assign(sync, { arquivo: r.id, versao: r.version, assin: assinatura(texto), ultimaEm: new Date().toISOString() });
+}
+function aplicarDados(d, versao) {
+  db = d;
+  completarSeries(db, addMes(hoje().slice(0, 7), MESES_FRENTE));
+  limparLanc(); limparConta(); limparCartao(); limparCat();
+  try { localStorage.setItem(CHAVE, JSON.stringify(db)); } catch {}
+  // A assinatura e a do que veio do Drive: se completarSeries criou ocorrencias, elas sobem no proximo envio.
+  Object.assign(sync, { versao, assin: assinatura(JSON.stringify(d)), ultimaEm: new Date().toISOString() });
+  render();
+}
+// Guarda a versao que vai ser descartada como backup comum na pasta "Controle Diário".
+async function guardarDescartada(dados, origem) {
+  const p = (n) => String(n).padStart(2, '0'), a = new Date();
+  const nome = `backup-controle-diario-${a.getFullYear()}-${p(a.getMonth() + 1)}-${p(a.getDate())}_${p(a.getHours())}-${p(a.getMinutes())}-${p(a.getSeconds())}-conflito-${origem}.txt`;
+  await enviarDrive(nome, new Blob([JSON.stringify(await cifrarComChave(dados, sync.chave, sync.sal))], { type: 'text/plain' }), await pastaDrive());
+}
+async function sincronizar() {
+  if (!sync.ativo || sincronizando || $('trava').open) return mostrarSync();
+  if (!navigator.onLine || !tokenValido()) return mostrarSync();
+  sincronizando = true; syncErro = ''; mostrarSync();
+  try {
+    const arq = await arquivoDados();
+    if (!arq) await enviarDados(null);
+    else if (arq.version === sync.versao) { if (mudouAqui()) await enviarDados(arq.id); }
+    else {
+      const remoto = await baixarDados(arq.id);
+      // Aparelho novo, ainda sem nada: recebe os dados do Drive sem perguntar.
+      const vazio = !db.lancs.length && !(db.usa && db.usa.viagens.length) && db.contasBanco.length <= 1;
+      if (!mudouAqui() || (!sync.versao && vazio)) aplicarDados(remoto, arq.version);
+      else {
+        const quando = new Date(arq.modifiedTime).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+        const usarDrive = await modal('Dados diferentes', `Os dados deste aparelho e os do Google Drive (gravados em ${quando}) mudaram desde a última sincronização.\n\nEscolha quais ficam valendo. A outra versão não se perde: vai como backup para a pasta "Controle Diário" no Drive.`, 'Usar os do Drive', 'Usar os deste aparelho');
+        if (usarDrive) { await guardarDescartada(db, 'aparelho'); aplicarDados(remoto, arq.version); }
+        else { await guardarDescartada(remoto, 'drive'); await enviarDados(arq.id); }
+      }
+    }
+    syncConferido = true;
+    await backupAutomatico();
+  } catch (err) {
+    syncErro = err.message;
+  } finally {
+    sincronizando = false;
+    gravarSync();
+  }
+}
+// Backup automatico: depois de cada sincronizacao, se o backup mais novo da pasta "Controle Diário" (manual,
+// automatico ou de conflito) tiver mais de 24 horas, ou se nao houver nenhum, salva outro, com a senha do app.
+const HORAS_BACKUP_AUTO = 24;
+async function backupAutomatico() {
+  if (!temSenha()) return;
+  const pasta = await pastaDrive();
+  const q = encodeURIComponent(`'${pasta}' in parents and name contains 'backup-controle-diario' and trashed=false`);
+  const { files } = await (await drive(`/drive/v3/files?q=${q}&orderBy=createdTime desc&pageSize=1&fields=files(createdTime)`)).json();
+  if (files.length && Date.now() - new Date(files[0].createdTime).getTime() < HORAS_BACKUP_AUTO * 3600e3) return;
+  const p = (n) => String(n).padStart(2, '0'), a = new Date();
+  const nome = `backup-controle-diario-${a.getFullYear()}-${p(a.getMonth() + 1)}-${p(a.getDate())}_${p(a.getHours())}-${p(a.getMinutes())}-${p(a.getSeconds())}-auto.txt`;
+  db.ultimoBackupEm = a.toISOString();
+  await enviarDrive(nome, new Blob([JSON.stringify(await cifrarBackupSenhaApp(db, trava.senha))], { type: 'text/plain' }), pasta);
+  // A data do backup muda os dados: grava e deixa a proxima sincronizacao enviar.
+  try { localStorage.setItem(CHAVE, JSON.stringify(db)); } catch {}
+  render();
+  agendarSync();
+}
+// Depois de salvar, envia em 3 segundos (varias mudancas seguidas viram um envio so).
+function agendarSync() {
+  if (!sync.ativo) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(sincronizar, 3000);
+  mostrarSync();
+}
+// Verde: conferido com o Drive nesta abertura e nada para enviar. Vermelha: algo a enviar, ou ainda nao deu para
+// conferir (sem internet, login vencido ou erro). Cinza: desligada. Tocar na vermelha sincroniza; nas outras, abre o Backup.
+function mostrarSync() {
+  const ativo = !!sync.ativo, pend = ativo && mudouAqui();
+  const ok = ativo && !pend && !syncErro && syncConferido;
+  const ico = $('hSync');
+  ico.className = 'syncIco' + (!ativo ? '' : ok ? ' ok' : ' pend') + (sincronizando ? ' girando' : '');
+  ico.title = !ativo ? 'Sincronização desligada. Toque para abrir o Backup.'
+    : sincronizando ? 'Sincronizando com o Google Drive...'
+      : ok ? 'Sincronizado com o Google Drive. Toque para abrir o Backup.'
+        : !navigator.onLine ? 'Sem internet: as alterações vão para o Google Drive quando a conexão voltar.'
+          : syncErro ? `Falhou: ${syncErro} Toque para tentar de novo.`
+            : !tokenValido() ? 'Toque para entrar no Google e sincronizar.' : 'Pendente: toque para sincronizar agora.';
+  ico.setAttribute('aria-label', ico.title);
+  // Na vermelha o toque sincroniza; nas outras, o menu leva a Ajustes > Backup.
+  if (ativo && !ok) { delete ico.dataset.aba; delete ico.dataset.tela; } else { ico.dataset.aba = 'ajustes'; ico.dataset.tela = 'tBackup'; }
+  const quando = sync.ultimaEm ? new Date(sync.ultimaEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+  $('aSyncStatus').textContent = !ativo ? 'Desligada. Os dados ficam só neste aparelho.'
+    : sincronizando ? 'Sincronizando...'
+      : `Ligada.${quando ? ' Última sincronização: ' + quando + '.' : ''}${pend ? ' Há alterações para enviar.' : ''}${syncErro ? ' Erro: ' + syncErro : ''}`;
+  $('aSyncChave').checked = ativo;
+  $('aSyncAgora').disabled = !ativo;
+  // Enquanto a pessoa digita (sem Gravar), o campo nao e trocado pelo valor gravado.
+  if (!$('aGoogleCliente').dataset.editando) $('aGoogleCliente').value = (db.google && db.google.cliente) || '';
+}
+async function sincronizarComToque() {
+  try { await tokenGoogle(); } catch (err) { return avisar('Google Drive', err.message); }
+  await sincronizar();
+  if (syncErro) avisar('Sincronização com o Google Drive', syncErro);
+}
+$('hSync').onclick = () => { if (!$('hSync').dataset.aba) sincronizarComToque(); };
+$('aSyncAgora').onclick = sincronizarComToque;
+$('aSyncChave').onchange = () => { if ($('aSyncChave').checked) ligarSync(); else desligarSync(); };
+async function ligarSync() {
+  try { await tokenGoogle(); } catch (err) { mostrarSync(); return avisar('Google Drive', err.message); }
+  if (!temSenha()) { mostrarSync(); return avisar('Crie a senha do app primeiro', 'A sincronização usa a senha do app para proteger os dados no Drive. Crie a senha em Ajustes > Senha (a mesma em todos os aparelhos) e depois ligue a sincronização.'); }
+  const senha = await pedirSenhaBackup(false, '', false, { titulo: 'Ligar a sincronização', texto: 'Digite a senha do app. Ela tem de ser a mesma em todos os aparelhos que vão sincronizar.', ok: 'Ligar' });
+  if (!senha) return mostrarSync();
+  if (!await confereSenha(senha, trava.senha)) { mostrarSync(); return avisar('Senha errada', 'A senha não é a deste app. Nada foi alterado.'); }
+  $('aSyncStatus').textContent = 'Preparando...';
+  try {
+    const arq = await arquivoDados();
+    let sal = novoSal();
+    if (arq) {
+      const o = JSON.parse(await (await drive(`/drive/v3/files/${encodeURIComponent(arq.id)}?alt=media`)).text());
+      sal = o.sal;
+      const chave = await chaveSync(senha, sal);
+      try { await decifrarComChave(o, chave); } catch {
+        mostrarSync();
+        return avisar('Senha diferente', 'Os dados do Drive foram gravados com outra senha. Use neste aparelho a mesma senha do app do outro aparelho.');
+      }
+      sync = { ativo: true, chave, sal };
+    } else sync = { ativo: true, chave: await chaveSync(senha, sal), sal };
+    gravarSync();
+    await sincronizar();
+    if (syncErro) return avisar('Sincronização com o Google Drive', syncErro);
+    avisar('Sincronização ligada', 'A partir de agora, o que você mudar aqui vai para o Google Drive, e o que mudar em outro aparelho chega ao abrir o app.');
+  } catch (err) {
+    mostrarSync();
+    avisar('Não foi possível ligar a sincronização', err.message);
+  }
+}
+async function desligarSync() {
+  if (!await modal('Desligar a sincronização?', 'Os dados continuam neste aparelho e no Drive, mas deixam de ser enviados e recebidos, e o backup automático para.', 'Sim, desligar', 'Cancelar')) return mostrarSync();
+  sync = {};
+  gravarSync();
+}
+addEventListener('online', () => { mostrarSync(); sincronizar(); });
+addEventListener('offline', mostrarSync);
+$('dDriveLista').onclick = async (e) => {
+  const b = e.target.closest('[data-drivearq]');
+  if (!b) return;
+  $('dDrive').close();
+  $('aDriveMsg').textContent = 'Baixando o backup...';
+  try {
+    const texto = await (await drive(`/drive/v3/files/${encodeURIComponent(b.dataset.drivearq)}?alt=media`)).text();
+    $('aDriveMsg').textContent = '';
+    restaurarTexto(texto, b.dataset.nome);
+  } catch (err) {
+    $('aDriveMsg').textContent = '';
+    avisar('Não foi possível baixar o backup', err.message);
+  }
 };
 
 // Cliques das listas e do menu
@@ -3547,6 +3912,7 @@ function bloquear() {
 function liberar() {
   limparTrava();
   $('trava').close();
+  sincronizar();
 }
 $('trava').oncancel = (e) => e.preventDefault();
 $('tBio').onclick = entrarBio;
@@ -3577,6 +3943,7 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
     if (document.body.classList.contains('emResumo')) mes = hoje().slice(0, 7);
     render();
+    if (!(temSenha() && Date.now() - saiuEm > 60000)) sincronizar();
   }
   if (document.hidden) saiuEm = Date.now();
   else if (temSenha() && Date.now() - saiuEm > 60000) bloquear();
@@ -3591,6 +3958,8 @@ history.replaceState(null, '');
 document.body.classList.add('emResumo');
 limparLanc();
 if (completarSeries(db, addMes(hoje().slice(0, 7), MESES_FRENTE))) salvar(); else render();
+mostrarSync();
+if (sync.ativo) { carregarGoogle(); sincronizar(); }
 </script>
 </body>
 </html>

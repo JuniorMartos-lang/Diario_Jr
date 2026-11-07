@@ -791,6 +791,14 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   const dadosBk = Buffer.from(bk.dados, 'base64'); dadosBk[0] ^= 1;
   await assert.rejects(c.decifrarBackup({ ...bk, dados: dadosBk.toString('base64') }, 'senha-certa-1'));
   await assert.rejects(c.decifrarBackup({ ...bk, iteracoes: 1 }, 'senha-certa-1'));
+  // Sincronizacao: a chave sai da senha e do sal do arquivo; outro aparelho com a mesma senha abre, e o Restaurar comum tambem
+  const salSync = c.novoSal(), chaveA = await c.chaveSync('senha-do-app-1', salSync), chaveB = await c.chaveSync('senha-do-app-1', salSync);
+  assert.strictEqual(chaveA, chaveB, 'mesma senha e sal, mesma chave nos dois aparelhos');
+  const arqSync = JSON.parse(JSON.stringify(await c.cifrarComChave(claroBk, chaveA, salSync)));
+  assert.strictEqual(arqSync.sal, salSync);
+  assert.deepStrictEqual(await c.decifrarComChave(arqSync, chaveB), claroBk);
+  assert.deepStrictEqual(await c.decifrarBackup(arqSync, 'senha-do-app-1'), claroBk, 'abre pelo Restaurar comum');
+  await assert.rejects(c.decifrarComChave(arqSync, await c.chaveSync('outra-senha-1', salSync)));
   assert.notStrictEqual((await c.cifrarBackup(claroBk, 'senha-certa-1')).dados, bk.dados);
   // Backup com a senha do app: salva so com o hash guardado; abre com a senha, nao com o hash
   const gApp = await c.protegerSenha('senha-do-app-1');
@@ -828,6 +836,17 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.ok(c.backupValido(volta));
     assert.deepStrictEqual(volta.usa, comUsa.usa);
   }
+  // ID do cliente do Google (Ajustes > Backup) passa pelos dois tipos de backup; formato errado nao restaura
+  const comGoogle = { ...JSON.parse(JSON.stringify(dp)), google: { cliente: '729588885596-abc123.apps.googleusercontent.com' } };
+  for (const arq of [await c.cifrarBackup(comGoogle, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comGoogle, gApp)]) {
+    const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
+    const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-07');
+    assert.ok(c.backupValido(volta));
+    assert.deepStrictEqual(volta.google, comGoogle.google);
+  }
+  assert.ok(c.backupValido({ ...comGoogle, google: {} }));
+  assert.ok(!c.backupValido({ ...comGoogle, google: { cliente: 'javascript:alert(1)' } }));
+  assert.ok(!c.backupValido({ ...comGoogle, google: 'x' }));
   // Viagem unica da 1.46.1 vira a lista de viagens, sem perder nada
   const velho = c.migrar({ ...JSON.parse(JSON.stringify(dp)), usa: { viagem: 'Orlando', inicio: '2027-04-04', fundo: jpg, contas: [], cartoes: [], viajantes: [], categorias: [] } }, '2026-11-03');
   assert.deepStrictEqual(velho.usa, { contas: [], cartoes: [], viajantes: [], categorias: [], moedas: c.MOEDAS_PADRAO, despesas: [],

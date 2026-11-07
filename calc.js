@@ -698,6 +698,24 @@ async function cifrarBackupSenhaApp(dados, g) {
   const cifrado = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, chave, new TextEncoder().encode(JSON.stringify(dados)));
   return { formato: FORMATO_CIFRADO, versao: 2, sal: g.sal, iv: b64(iv), dados: b64(new Uint8Array(cifrado)) };
 }
+// Sincronizacao: o mesmo formato do backup versao 1, com um sal fixo por conta, para a chave ser tirada da senha
+// uma vez so em cada aparelho. O arquivo de dados tambem abre pelo Restaurar comum, com a senha do app.
+async function chaveSync(senha, sal) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(senha), 'PBKDF2', false, ['deriveBits']);
+  return b64(new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: deB64(sal), iterations: ITERACOES_BACKUP }, base, 256)));
+}
+const chaveAes = (bruta) => crypto.subtle.importKey('raw', deB64(bruta), 'AES-GCM', false, ['encrypt', 'decrypt']);
+async function cifrarComChave(dados, bruta, sal) {
+  const iv = aleatorio(12);
+  const cifrado = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await chaveAes(bruta), new TextEncoder().encode(JSON.stringify(dados)));
+  return { formato: FORMATO_CIFRADO, versao: 1, iteracoes: ITERACOES_BACKUP, sal, iv: b64(iv), dados: b64(new Uint8Array(cifrado)) };
+}
+async function decifrarComChave(o, bruta) {
+  if (!ehBackupCifrado(o) || o.versao !== 1 || o.iteracoes !== ITERACOES_BACKUP) throw new Error('formato');
+  const claro = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: deB64(o.iv) }, await chaveAes(bruta), deB64(o.dados));
+  return JSON.parse(new TextDecoder().decode(claro));
+}
+const novoSal = () => b64(aleatorio(16));
 const ehBackupCifrado = (o) => !!o && o.formato === FORMATO_CIFRADO;
 const usaSenhaDoApp = (o) => o.versao === 2;
 // Senha errada ou arquivo alterado: o AES-GCM recusa e a promessa falha.
@@ -792,10 +810,13 @@ const finaisValidos = (c) => (c.finais === undefined || (Array.isArray(c.finais)
     && typeof f.motivo === 'string' && f.motivo.length >= 1 && f.motivo.length <= 200 && /^\d{4}-\d{2}-\d{2}$/.test(f.em))));
 
 // Barreira da restauracao: um arquivo fora deste formato nao pode substituir os dados.
+// Configuracao do Google guardada nos dados (vai no backup): o ID do cliente do projeto no Google Cloud.
+const ehClienteGoogle = (v) => typeof v === 'string' && v.length <= 200 && /^[\w-]+\.apps\.googleusercontent\.com$/.test(v);
+const googleValido = (g) => g === undefined || (!!g && typeof g === 'object' && !Array.isArray(g) && (g.cliente === undefined || ehClienteGoogle(g.cliente)));
 function backupValido(d) {
   const inteiro = (v) => Number.isInteger(v);
   const data = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
-  if (!d || typeof d !== 'object' || !perfilValido(d.perfil) || !usaValido(d.usa) || !Array.isArray(d.categorias) || !Array.isArray(d.cartoes) || !Array.isArray(d.parciais)
+  if (!d || typeof d !== 'object' || !perfilValido(d.perfil) || !usaValido(d.usa) || !googleValido(d.google) || !Array.isArray(d.categorias) || !Array.isArray(d.cartoes) || !Array.isArray(d.parciais)
     || !Array.isArray(d.lancs) || !Array.isArray(d.contasBanco) || !d.contasBanco.length || !Array.isArray(d.series)
     || !d.faturasPagas || typeof d.faturasPagas !== 'object' || Array.isArray(d.faturasPagas)) return false;
   const conta = (id) => d.contasBanco.some((c) => c.id === id);
@@ -820,7 +841,8 @@ function backupValido(d) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
+    ehClienteGoogle,
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, cifrarBackup, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }
