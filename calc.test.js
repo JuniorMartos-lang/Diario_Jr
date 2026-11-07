@@ -838,7 +838,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.deepStrictEqual(volta.usa, comUsa.usa);
   }
   // ID do cliente do Google (Ajustes > Backup) passa pelos dois tipos de backup; formato errado nao restaura
-  const comGoogle = { ...JSON.parse(JSON.stringify(dp)), google: { cliente: '729588885596-abc123.apps.googleusercontent.com', ultimoAutoEm: '2026-11-07T18:30:05.000Z' } };
+  const comGoogle = { ...JSON.parse(JSON.stringify(dp)), google: { cliente: '729588885596-abc123.apps.googleusercontent.com', ultimoAutoEm: '2026-11-07T18:30:05.000Z', agenda: { ativo: true, id: 'abc123def@group.calendar.google.com' } } };
   for (const arq of [await c.cifrarBackup(comGoogle, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comGoogle, gApp)]) {
     const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
     const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-07');
@@ -849,6 +849,23 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.ok(!c.backupValido({ ...comGoogle, google: { cliente: 'javascript:alert(1)' } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: 'x' }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { ultimoAutoEm: 'ontem' } }));
+  assert.ok(!c.backupValido({ ...comGoogle, google: { agenda: { ativo: 'sim' } } }));
+  assert.ok(!c.backupValido({ ...comGoogle, google: { agenda: { ativo: true, id: '<script>' } } }));
+  // Lembretes do Google Agenda: so conta a pagar nao paga e fatura com algo a pagar, de hoje ate 3 meses
+  {
+    const nuA = { id: 'nu', nome: 'Nu', fechamento: 25, vencimento: 5, contaPag: 'conta' };
+    const dbA = c.migrar({ contasBanco: [{ id: 'conta', nome: 'Corrente', tipo: 'corrente', saldoInicial: 0 }], series: [], categorias: [{ id: 'a', nome: 'A', tipo: 'S' }], cartoes: [nuA], faturasPagas: {},
+      lancs: [{ id: 1, tipo: 'S', desc: 'Luz', data: '2026-11-20', valor: 21000, cat: 'a', meio: 'conta', pago: false },
+        { id: 2, tipo: 'S', desc: 'Paga', data: '2026-11-21', valor: 5000, cat: 'a', meio: 'conta', pago: true },
+        { id: 3, tipo: 'S', desc: 'Atrasada', data: '2026-11-01', valor: 1000, cat: 'a', meio: 'conta', pago: false },
+        { id: 4, tipo: 'S', desc: 'Longe', data: '2027-04-10', valor: 1000, cat: 'a', meio: 'conta', pago: false },
+        { id: 5, tipo: 'S', desc: 'Compra', data: '2026-11-10', valor: 30000, cat: 'a', meio: 'nu', pago: true },
+        { id: 6, tipo: 'E', desc: 'Salario', data: '2026-11-25', valor: 900000, cat: 'a', meio: 'conta', pago: false }] }, '2026-11-07');
+    assert.deepStrictEqual(c.lembretesAgenda(dbA, '2026-11-07').map((x) => [x.chave, x.data]), [['lanc:1', '2026-11-20'], ['fat:nu:2026-12', '2026-12-05']]);
+    dbA.faturasPagas['nu|2026-12'] = { valor: 30000, conta: 'conta', data: '2026-12-01' };
+    assert.deepStrictEqual(c.lembretesAgenda(dbA, '2026-11-07').map((x) => x.chave), ['lanc:1'], 'fatura paga sai');
+    assert.ok(/^[a-v0-9]{5,1024}$/.test(c.idEvento('fat:nu:2026-12')) && c.idEvento('lanc:1') !== c.idEvento('lanc:2'));
+  }
   // Realce de documento: papel com sombra forte de um lado (tom 220 a 90), texto a 40% do papel e o verso aparecendo a 85%
   {
     const W = 400, H = 300, lum = new Float32Array(W * H), texto = (x, y) => y % 30 < 6 && x % 50 < 35, verso = (x, y) => y % 30 > 15 && y % 30 < 20 && x % 50 < 30;

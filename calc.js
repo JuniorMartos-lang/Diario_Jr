@@ -931,8 +931,31 @@ const finaisValidos = (c) => (c.finais === undefined || (Array.isArray(c.finais)
 // Configuracao do Google guardada nos dados (vai no backup): o ID do cliente do projeto no Google Cloud.
 const ehClienteGoogle = (v) => typeof v === 'string' && v.length <= 200 && /^[\w-]+\.apps\.googleusercontent\.com$/.test(v);
 // ultimoAutoEm: data e hora do ultimo backup automatico no Drive, de qualquer aparelho.
+// agenda: lembretes no Google Agenda ligados ou nao, e o id da agenda criada pelo app (vale para todos os aparelhos).
 const googleValido = (g) => g === undefined || (!!g && typeof g === 'object' && !Array.isArray(g) && (g.cliente === undefined || ehClienteGoogle(g.cliente))
-  && (g.ultimoAutoEm === undefined || (typeof g.ultimoAutoEm === 'string' && g.ultimoAutoEm.length <= 40 && !Number.isNaN(Date.parse(g.ultimoAutoEm)))));
+  && (g.ultimoAutoEm === undefined || (typeof g.ultimoAutoEm === 'string' && g.ultimoAutoEm.length <= 40 && !Number.isNaN(Date.parse(g.ultimoAutoEm))))
+  && (g.agenda === undefined || (!!g.agenda && typeof g.agenda === 'object' && typeof g.agenda.ativo === 'boolean'
+    && (g.agenda.id === undefined || (typeof g.agenda.id === 'string' && g.agenda.id.length <= 300 && /^[\w.@-]+$/.test(g.agenda.id))))));
+// Lembretes do Google Agenda: contas a pagar (gasto em conta ainda nao pago) e faturas de cartao com algo a pagar,
+// com vencimento de hoje ate o fim do mes daqui a "meses". Cada um tem uma chave fixa, que vira o id do evento.
+function lembretesAgenda(db, hoje, meses = 3) {
+  const fim = dataNoMes(addMes(hoje.slice(0, 7), meses), 31), real = (v) => (v / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const nomeDe = (id) => ([...db.contasBanco, ...db.cartoes].find((x) => x.id === id) || { nome: '' }).nome;
+  const itens = [];
+  for (const l of lancsVisiveis(db)) {
+    if (l.tipo !== 'S' || l.pago || ehCartao(db, l.meio) || l.data < hoje || l.data > fim) continue;
+    itens.push({ chave: 'lanc:' + l.id, data: l.data, titulo: `${l.desc} — ${real(l.valor)}`, detalhe: `Conta a pagar · ${nomeDe(l.meio)}` });
+  }
+  for (const f of faturasAte(db, fim.slice(0, 7))) {
+    if (f.paga || f.valor <= 0) continue;
+    const data = dataNoMes(f.ym, f.cartao.vencimento);
+    if (data < hoje || data > fim) continue;
+    itens.push({ chave: `fat:${f.cartao.id}:${f.ym}`, data, titulo: `Fatura ${f.cartao.nome} — ${real(f.valor)}`, detalhe: `Fatura do cartão · conta sugerida: ${nomeDe(f.conta)}` });
+  }
+  return itens.sort((a, b) => a.data.localeCompare(b.data) || a.chave.localeCompare(b.chave));
+}
+// Id do evento no Google Agenda: so letras de a a v e numeros; a chave em hexadecimal serve e e sempre a mesma.
+const idEvento = (chave) => 'cd' + [...new TextEncoder().encode(chave)].map((b) => b.toString(16).padStart(2, '0')).join('');
 function backupValido(d) {
   const inteiro = (v) => Number.isInteger(v);
   const data = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
@@ -961,7 +984,7 @@ function backupValido(d) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
+    lembretesAgenda, idEvento, googleValido, ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
     protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
