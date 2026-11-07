@@ -860,6 +860,17 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.ok(papelMin >= 235, 'papel branco ate na sombra: ' + papelMin);
     assert.ok(textoMax <= 40, 'texto escuro dos dois lados: ' + textoMax);
   }
+  // Recibos no lancamento do cartao passam pelos dois tipos de backup; formato errado nao restaura
+  const comRecLanc = JSON.parse(JSON.stringify(dp));
+  comRecLanc.lancs[0].recibos = [{ id: 'rl1', em: '2026-11-07T19:00:00.000Z', pag: 1, arq: '1ZyXwVuTsRqPoNm_lk-j', nome: '2026-11-07 Compra R$ 10,00.pdf' }, { id: 'rl2', em: '2026-11-07T19:01:00.000Z', pag: 2 }];
+  for (const arq of [await c.cifrarBackup(comRecLanc, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comRecLanc, gApp)]) {
+    const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
+    const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-07');
+    assert.ok(c.backupValido(volta));
+    assert.deepStrictEqual(volta.lancs[0].recibos, comRecLanc.lancs[0].recibos);
+  }
+  const recRuim = JSON.parse(JSON.stringify(comRecLanc)); recRuim.lancs[0].recibos[0].em = 'ontem';
+  assert.ok(!c.backupValido(recRuim));
   // Comparar um backup com os dados atuais: o que falta e o que mudou
   const atualC = { lancs: [{ id: 1, v: 1 }, { id: 2, v: 2 }], usa: { despesas: [{ id: 'a', v: 1 }] } };
   assert.deepStrictEqual(c.compararDados({ lancs: [{ id: 1, v: 1 }] }, atualC), { faltam: 0, diferentes: 0 }, 'backup mais antigo, sem nada a mais');

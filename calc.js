@@ -949,7 +949,7 @@ function backupValido(d) {
     && d.cartoes.every((c) => c.id && typeof c.nome === 'string' && inteiro(c.fechamento) && inteiro(c.vencimento) && conta(c.contaPag) && iconeValido(c.icone) && arquivo(c)
       && (c.limite === undefined || (inteiro(c.limite) && c.limite >= 0))
       && finaisValidos(c) && (c.ativoAte === undefined || /^\d{4}-\d{2}$/.test(c.ativoAte)))
-    && d.lancs.every((l) => data(l.data) && inteiro(l.valor) && typeof l.pago === 'boolean'
+    && d.lancs.every((l) => data(l.data) && inteiro(l.valor) && typeof l.pago === 'boolean' && recibosValidos(l.recibos)
       && (l.tipo === 'T' ? conta(l.meio) && conta(l.destino) && l.meio !== l.destino
         : l.tipo === 'E' ? conta(l.meio)
           : l.tipo === 'S' && (conta(l.meio) || cartao(l.meio))))

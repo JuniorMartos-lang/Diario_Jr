@@ -611,6 +611,10 @@
       <p id="lSerieInfo" class="fraco" hidden></p>
       <label id="lEstornoBox"><input id="lEstorno" type="checkbox">É estorno ou devolução (diminui a fatura)</label>
       <label id="lPagoCaixa"><input id="lPago" type="checkbox" checked><span id="lPagoTxt">Já foi pago</span></label>
+      <div class="rotuloCampo" id="lRecBox" hidden><span>Recibos</span>
+        <div id="lRecLista"></div>
+        <div class="botoesMini"><button type="button" class="mini sec" id="lRecCam">Escanear recibo</button><button type="button" class="mini sec" id="lRecGal">Foto do celular</button></div>
+      </div>
       <div class="botoes">
         <button type="submit">Salvar</button>
         <button type="button" class="sec" id="lLimpar">Limpar</button>
@@ -691,7 +695,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.60.4 · 07/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.61.0 · 07/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1040,10 +1044,10 @@
   <div class="rotuloCampo" id="udRecBox"><span>Recibos</span>
     <div id="udRecLista"></div>
     <div class="botoesMini"><button type="button" class="mini sec" id="udRecCam">Escanear recibo</button><button type="button" class="mini sec" id="udRecGal">Foto do celular</button></div>
-    <input type="file" accept="image/*" capture="environment" id="recCamArq" hidden><input type="file" accept="image/*" multiple id="recGalArq" hidden>
   </div>
   <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="udFechar">Fechar</button><button type="button" class="perigo" id="udExcluir" hidden>Excluir</button></div>
 </form></dialog>
+<input type="file" accept="image/*" capture="environment" id="recCamArq" hidden><input type="file" accept="image/*" multiple id="recGalArq" hidden>
 <dialog id="dRecibo">
   <h3 id="recTit">Ajuste os cantos</h3>
   <div id="recModoCorte">
@@ -1139,7 +1143,7 @@ let sincronizando = false, syncTimer = null, syncErro = '', syncConferido = fals
 // Recibos guardados no aparelho (IndexedDB) ainda sem envio ao Drive; detalhes junto da despesa da viagem.
 let recLocais = new Set(), enviandoRec = false, recErro = '';
 // Recibos deste aparelho ainda sem envio (deixam a nuvem vermelha).
-const recPendentes = () => (db.usa ? db.usa.despesas : []).reduce((n, d) => n + (d.recibos || []).filter((x) => !x.arq && recLocais.has(x.id)).length, 0);
+const recPendentes = () => [...(db.usa ? db.usa.despesas : []), ...db.lancs].reduce((n, d) => n + (d.recibos || []).filter((x) => !x.arq && recLocais.has(x.id)).length, 0);
 function salvar() {
   try { localStorage.setItem(CHAVE, JSON.stringify(db)); }
   catch { modal('Não foi possível gravar', 'O aparelho recusou a gravação. Salve um backup e libere espaço.', 'Entendi'); }
@@ -1767,7 +1771,7 @@ function htmlLancsFatura(itens) {
   return [...itens].sort((a, b) => b.lanc.data.localeCompare(a.lanc.data)).map((p) => {
     const titulo = p.lanc.data === dia ? '' : `<h3 class="dia">${new Date(p.lanc.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</h3>`;
     dia = p.lanc.data;
-    return `${titulo}<button type="button" class="linha" data-lanc="${esc(p.lanc.id)}">${iconeCat(db.categorias.find((x) => x.id === p.lanc.cat) || { nome: '' })}<span class="q">${esc(p.lanc.desc)}${p.de ? `<br><small>Parcela ${p.n}/${p.de}</small>` : ''}</span><span class="valor">${brl(p.valor)}</span></button>`;
+    return `${titulo}<button type="button" class="linha" data-lanc="${esc(p.lanc.id)}">${iconeCat(db.categorias.find((x) => x.id === p.lanc.cat) || { nome: '' })}<span class="q">${esc(p.lanc.desc)}${(p.lanc.recibos || []).length ? ` <b class="clipe" title="${p.lanc.recibos.length} ${p.lanc.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${p.lanc.recibos.length > 1 ? p.lanc.recibos.length : ''}</b>` : ''}${p.de ? `<br><small>Parcela ${p.n}/${p.de}</small>` : ''}</span><span class="valor">${brl(p.valor)}</span></button>`;
   }).join('');
 }
 // Pagar e Desfazer: iguais em Detalhes da fatura e na aba Cartoes. Paga por inteiro, o botao diz que esta paga.
@@ -2108,6 +2112,8 @@ function formaLanc() {
   // Compra no cartao nao tem situacao propria: quem paga e a fatura.
   $('lPagoCaixa').hidden = cartao;
   $('lPagoTxt').textContent = { S: 'Já foi pago', E: 'Já foi recebido', T: 'Já foi feita' }[tipo];
+  // Recibos: em gasto no cartao (e sempre que o lancamento ja tiver algum).
+  $('lRecBox').hidden = !((tipo === 'S' && cartao) || recL.lista.length);
   mostrarCatEscolhida();
 }
 function mostrarCatEscolhida() {
@@ -2131,6 +2137,8 @@ function avisoBackup() {
 
 // Lancamentos
 function limparLanc() {
+  soltarRecibosLanc(false);
+  renderRec(recL);
   lancEditando = null;
   $('fLanc').reset();
   $('lData').value = hoje();
@@ -2198,26 +2206,38 @@ $('fLanc').onsubmit = async (e) => {
     destino: transf ? $('lDestino').value : undefined,
     pago: cartao || $('lPago').checked,
   };
+  let idGravado;
   if (editando) {
     if (editando.serie && !await modal('Alterar também as outras?', 'A data e a situação mudam só nesta. Os outros dados valem para:', 'Salvar', 'Cancelar', null, true)) return;
     aplicarEdicao(db, editando.id, dados, editando.serie ? $('dEscopo').value : 'esta');
-  } else if (repete === 'fixa') criarSerie(db, novoId(), dados, $('lRep').value, hoje());
-  else if (repete === 'parc') criarParcelada(db, novoId(), dados, $('lRep').value, parcelas, hoje());
-  else db.lancs.push({ id: novoId(), ...dados });
+    idGravado = editando.id;
+  } else if (repete === 'fixa') { idGravado = novoId(); criarSerie(db, idGravado, dados, $('lRep').value, hoje()); idGravado += '-0'; }
+  else if (repete === 'parc') { idGravado = novoId(); criarParcelada(db, idGravado, dados, $('lRep').value, parcelas, hoje()); idGravado += '-0'; }
+  else { idGravado = novoId(); db.lancs.push({ id: idGravado, ...dados }); }
+  // Recibos ficam so no lancamento aberto (na conta fixa ou parcelada, na primeira ocorrencia).
+  const gravado = db.lancs.find((l) => l.id === idGravado);
+  if (gravado) { gravado.recibos = mesclarRecibos(recL.lista, gravado.recibos); if (!gravado.recibos) delete gravado.recibos; }
+  descartarRecibos(recL.tirados);
+  soltarRecibosLanc(true);
   const cartaoLanc = db.cartoes.find((x) => x.id === dados.meio);
   if (!fatCartao && !limCat && !lancOrigem) mes = dados.data.slice(0, 7);
   else if (fatCartao && cartaoLanc) { fatCartao = cartaoLanc.id; fatMes = mesFatura(dados.data, cartaoLanc); }
   limparLanc();
   salvar();
+  enviarRecibos();
   if (fatCartao || limCat || lancOrigem) history.back(); else abrirAba('fluxo');
   avisar('Gravado com sucesso');
 };
 $('lExcluir').onclick = async () => {
   const fixa = !!db.lancs.find((l) => l.id === lancEditando).serie;
   if (!await modal('Excluir lançamento?', $('lDesc').value + ' · ' + $('lValor').value, 'Sim, excluir', 'Cancelar', null, fixa)) return;
+  // Os recibos dos lancamentos excluidos vao para a lixeira do Drive.
+  const antes = db.lancs;
   excluirLanc(db, lancEditando, fixa ? $('dEscopo').value : 'esta');
+  descartarRecibos(antes.filter((l) => !db.lancs.includes(l)).flatMap((l) => l.recibos || []));
   limparLanc();
   salvar();
+  enviarRecibos();
   if (fatCartao || limCat || lancOrigem) history.back(); else abrirAba('fluxo');
 };
 
@@ -3329,6 +3349,11 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
     formaLanc();
     if (l.destino) $('lDestino').value = l.destino;
     $('lCat').value = l.cat || '';
+    soltarRecibosLanc(false);
+    recL.lista = (l.recibos || []).map((x) => ({ ...x }));
+    renderRec(recL);
+    formaLanc();
+    $('lCat').value = l.cat || '';
     mostrarCatEscolhida();
     irParaLancar();
   } else if (d.editconta) {
@@ -3840,9 +3865,9 @@ function abrirDespesa(id) {
   $('udDoisMeios').checked = pags.length === 2;
   mostrarDoisMeios();
   $('udExcluir').hidden = !d;
-  udRec = ((d && d.recibos) || []).map((x) => ({ ...x }));
-  udRecNovos = []; udRecTirados = []; udSalvou = false;
-  renderUdRec();
+  recUd.lista = ((d && d.recibos) || []).map((x) => ({ ...x }));
+  recUd.novos = []; recUd.tirados = []; udSalvou = false;
+  renderRec(recUd);
   $('dUsaDesp').showModal();
   if (!d) $('udDesc').focus();
 }
@@ -3904,10 +3929,11 @@ $('fUsaDesp').onsubmit = (e) => {
   if (checkin && checkout && checkout < checkin) return avisar('Datas inválidas', 'O check-out não pode ser antes do check-in.');
   // Nenhum marcado ou Todos: divide entre todos os viajantes da viagem.
   const sel = marcados($('udQuemBox')), quem = $('udQuemBox').hidden ? [] : sel.length ? sel : [...udPessoas];
-  const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem, pago: $('udPago').checked, natureza: v.corporativa ? $('udNat').value : undefined, obs: $('udObs').value.trim() || undefined, checkin, checkout, pagamentos, recibos: udRec.length ? udRec : undefined };
+  const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem, pago: $('udPago').checked, natureza: v.corporativa ? $('udNat').value : undefined, obs: $('udObs').value.trim() || undefined, checkin, checkout, pagamentos };
   const atual = usa().despesas.find((x) => x.id === despEd);
+  dados.recibos = mesclarRecibos(recUd.lista, atual && atual.recibos);
   if (atual) Object.assign(atual, dados); else usa().despesas.push({ id: novoId(), ...dados });
-  descartarRecibos(udRecTirados);
+  descartarRecibos(recUd.tirados);
   udSalvou = true;
   $('dUsaDesp').close();
   salvar();
@@ -3915,7 +3941,7 @@ $('fUsaDesp').onsubmit = (e) => {
 $('udExcluir').onclick = async () => {
   const id = despEd, d = usa().despesas.find((x) => x.id === id), n = ((d && d.recibos) || []).length;
   if (!await modal('Excluir despesa?', $('udDesc').value + (n ? `\n${n > 1 ? `Os ${n} recibos vão` : 'O recibo vai'} para a lixeira do Google Drive (dá para recuperar por 30 dias).` : ''), 'Sim, excluir', 'Cancelar')) return;
-  descartarRecibos([...((d && d.recibos) || []), ...udRec]);
+  descartarRecibos([...((d && d.recibos) || []), ...recUd.lista]);
   usa().despesas = usa().despesas.filter((x) => x.id !== id);
   udSalvou = true;
   $('dUsaDesp').close();
@@ -3983,6 +4009,20 @@ async function enviarRecibos() {
         recLocais.delete(r.id); await recApagar(r.id);
       }
     }
+    // Lancamentos: pasta com o nome do cartao (ou da conta) dentro de "Recibos".
+    for (const l of db.lancs) {
+      for (const [i, r] of (l.recibos || []).entries()) {
+        if (r.arq || !recLocais.has(r.id)) continue;
+        const blob = await recLer(r.id);
+        if (!blob) { recLocais.delete(r.id); continue; }
+        const meio = [...db.cartoes, ...db.contasBanco].find((x) => x.id === l.meio), nomeP = ((meio && meio.nome) || 'Sem cartão').replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'Cartão';
+        if (!pastas['m:' + nomeP]) pastas['m:' + nomeP] = await subpasta(nomeP, await subpasta('Recibos', await pastaDrive()));
+        const nome = nomeRecibo({ ...l, valor: Math.abs(l.valor) }, 'R$', l.recibos.length > 1 ? i + 1 : 0);
+        const f = await enviarDrive(nome, new File([blob], nome, { type: 'application/pdf' }), pastas['m:' + nomeP]);
+        r.arq = f.id; r.nome = nome; mudou = true;
+        recLocais.delete(r.id); await recApagar(r.id);
+      }
+    }
     for (const id of lixoLer()) {
       try { await drive(`/drive/v3/files/${encodeURIComponent(id)}?fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }) }); } catch (err) { if (!/ 404\./.test(err.message)) throw err; }
       lixoGravar(lixoLer().filter((x) => x !== id));
@@ -3994,20 +4034,22 @@ async function enviarRecibos() {
     if (mudou) salvar(); else mostrarSync();
   }
 }
-// Lista de recibos no popup: udRec e a copia em edicao; so vale ao tocar em Salvar.
-let udRec = [], udRecNovos = [], udRecTirados = [], udSalvou = false;
-function renderUdRec() {
-  const n = udRec.length;
-  $('udRecLista').innerHTML = udRec.map((r, i) => {
+// Caixas de recibos: a lista em edicao (vale so ao Salvar), os feitos agora e os removidos.
+// recUd: despesa da viagem; recL: lancamento no cartao. recAlvo: para onde vai o recibo que esta sendo escaneado.
+const recUd = { lista: [], novos: [], tirados: [], el: 'udRecLista' }, recL = { lista: [], novos: [], tirados: [], el: 'lRecLista' };
+let recAlvo = recUd, udSalvou = false;
+function renderRec(cx) {
+  const n = cx.lista.length;
+  $(cx.el).innerHTML = cx.lista.map((r, i) => {
     const sit = r.arq ? 'No Google Drive' : recLocais.has(r.id) ? 'Aguardando envio ao Google Drive' : 'Ainda no aparelho onde foi escaneado';
     return `<div class="linha"><span class="q">📎 Recibo${n > 1 ? ' ' + (i + 1) : ''}<br><small class="fraco">${sit}${r.pag ? ` · ${r.pag} ${r.pag > 1 ? 'páginas' : 'página'}` : ''}</small></span>`
       + `${r.arq || recLocais.has(r.id) ? `<button type="button" class="sec" data-recabrir="${esc(r.id)}">Abrir</button>` : ''}<button type="button" class="perigo" data-rectirar="${esc(r.id)}">Remover</button></div>`;
   }).join('');
 }
-$('udRecLista').onclick = async (e) => {
+const cliqueRecibos = (cx) => async (e) => {
   const ab = e.target.closest('[data-recabrir]'), ti = e.target.closest('[data-rectirar]');
   if (ab) {
-    const r = udRec.find((x) => x.id === ab.dataset.recabrir);
+    const r = cx.lista.find((x) => x.id === ab.dataset.recabrir);
     if (recLocais.has(r.id)) {
       const janela = window.open('', '_blank'), blob = await recLer(r.id);
       if (!blob) { if (janela) janela.close(); return avisar('Recibo', 'O arquivo não está mais neste aparelho.'); }
@@ -4018,17 +4060,26 @@ $('udRecLista').onclick = async (e) => {
     return;
   }
   if (ti) {
-    const r = udRec.find((x) => x.id === ti.dataset.rectirar);
-    if (!await modal('Remover recibo?', r.arq ? 'Ao salvar a despesa, o PDF vai para a lixeira do Google Drive (dá para recuperar por 30 dias).' : 'O PDF ainda não foi enviado e será apagado deste aparelho.', 'Sim, remover', 'Cancelar')) return;
-    udRec = udRec.filter((x) => x !== r);
-    if (udRecNovos.includes(r.id)) { udRecNovos = udRecNovos.filter((x) => x !== r.id); descartarRecibos([r]); } else udRecTirados.push(r);
-    renderUdRec();
+    const r = cx.lista.find((x) => x.id === ti.dataset.rectirar);
+    if (!await modal('Remover recibo?', r.arq ? 'Ao salvar, o PDF vai para a lixeira do Google Drive (dá para recuperar por 30 dias).' : 'O PDF ainda não foi enviado e será apagado deste aparelho.', 'Sim, remover', 'Cancelar')) return;
+    cx.lista = cx.lista.filter((x) => x !== r);
+    if (cx.novos.includes(r.id)) { cx.novos = cx.novos.filter((x) => x !== r.id); descartarRecibos([r]); } else cx.tirados.push(r);
+    renderRec(cx);
   }
 };
+$('udRecLista').onclick = cliqueRecibos(recUd);
+$('lRecLista').onclick = cliqueRecibos(recL);
+// Ao gravar, o que ja subiu para o Drive enquanto a tela estava aberta continua com o endereco do arquivo.
+const mesclarRecibos = (lista, atuais) => (lista.length ? lista.map((x) => { const a = (atuais || []).find((y) => y.id === x.id); return a && a.arq ? { ...x, arq: a.arq, nome: a.nome } : x; }) : undefined);
+// Lancamento no cartao: recibos feitos e nao gravados somem do aparelho ao sair do formulario.
+function soltarRecibosLanc(gravou) {
+  if (!gravou) for (const id of recL.novos) { recLocais.delete(id); recApagar(id); }
+  recL.lista = []; recL.novos = []; recL.tirados = [];
+}
 // Fechar o popup sem salvar: recibos feitos agora sao apagados do aparelho.
 $('dUsaDesp').addEventListener('close', () => {
-  if (!udSalvou) for (const id of udRecNovos) { recLocais.delete(id); recApagar(id); }
-  udRecNovos = []; udRecTirados = []; udSalvou = false;
+  if (!udSalvou) for (const id of recUd.novos) { recLocais.delete(id); recApagar(id); }
+  recUd.novos = []; recUd.tirados = []; udSalvou = false;
   setTimeout(enviarRecibos, 300);
 });
 
@@ -4097,8 +4148,11 @@ function mostrarPaginas() {
   $('recMinis').innerHTML = scanPags.map((p) => `<img src="${p.mini}" alt="">`).join('');
 }
 function abrirFotos(input) { input.value = ''; input.click(); }
-$('udRecCam').onclick = () => { if (udRec.length >= 20) return avisar('Recibos', 'Esta despesa já tem 20 recibos.'); scanPags = []; abrirFotos($('recCamArq')); };
-$('udRecGal').onclick = () => { if (udRec.length >= 20) return avisar('Recibos', 'Esta despesa já tem 20 recibos.'); scanPags = []; abrirFotos($('recGalArq')); };
+const comecarScan = (cx, input) => { if (cx.lista.length >= 20) return avisar('Recibos', 'Este lançamento já tem 20 recibos.'); recAlvo = cx; scanPags = []; abrirFotos(input); };
+$('udRecCam').onclick = () => comecarScan(recUd, $('recCamArq'));
+$('udRecGal').onclick = () => comecarScan(recUd, $('recGalArq'));
+$('lRecCam').onclick = () => comecarScan(recL, $('recCamArq'));
+$('lRecGal').onclick = () => comecarScan(recL, $('recGalArq'));
 $('recMaisCam').onclick = () => abrirFotos($('recCamArq'));
 $('recMaisGal').onclick = () => abrirFotos($('recGalArq'));
 ['recCamArq', 'recGalArq'].forEach((id) => { $(id).onchange = () => { const fs = [...$(id).files]; if (!fs.length) return; scanFila.push(...fs); if (!$('dRecibo').open || !$('recModoPaginas').hidden) proximaFoto(); }; });
@@ -4158,11 +4212,11 @@ $('recConcluir').onclick = async () => {
   try {
     const id = novoId(), blob = new Blob([montarPdf(scanPags)], { type: 'application/pdf' });
     await recGuardar(id, blob);
-    recLocais.add(id); udRecNovos.push(id);
-    udRec.push({ id, em: new Date().toISOString(), pag: scanPags.length });
+    recLocais.add(id); recAlvo.novos.push(id);
+    recAlvo.lista.push({ id, em: new Date().toISOString(), pag: scanPags.length });
     scanPags = []; scanFila = [];
     $('dRecibo').close();
-    renderUdRec();
+    renderRec(recAlvo);
   } catch (err) {
     avisar('Não foi possível gerar o PDF', err.message);
   } finally {
