@@ -837,7 +837,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.deepStrictEqual(volta.usa, comUsa.usa);
   }
   // ID do cliente do Google (Ajustes > Backup) passa pelos dois tipos de backup; formato errado nao restaura
-  const comGoogle = { ...JSON.parse(JSON.stringify(dp)), google: { cliente: '729588885596-abc123.apps.googleusercontent.com' } };
+  const comGoogle = { ...JSON.parse(JSON.stringify(dp)), google: { cliente: '729588885596-abc123.apps.googleusercontent.com', ultimoAutoEm: '2026-11-07T18:30:05.000Z' } };
   for (const arq of [await c.cifrarBackup(comGoogle, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comGoogle, gApp)]) {
     const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
     const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-07');
@@ -847,6 +847,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.ok(c.backupValido({ ...comGoogle, google: {} }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { cliente: 'javascript:alert(1)' } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: 'x' }));
+  assert.ok(!c.backupValido({ ...comGoogle, google: { ultimoAutoEm: 'ontem' } }));
   // Viagem unica da 1.46.1 vira a lista de viagens, sem perder nada
   const velho = c.migrar({ ...JSON.parse(JSON.stringify(dp)), usa: { viagem: 'Orlando', inicio: '2027-04-04', fundo: jpg, contas: [], cartoes: [], viajantes: [], categorias: [] } }, '2026-11-03');
   assert.deepStrictEqual(velho.usa, { contas: [], cartoes: [], viajantes: [], categorias: [], moedas: c.MOEDAS_PADRAO, despesas: [],

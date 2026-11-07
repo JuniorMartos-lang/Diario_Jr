@@ -812,7 +812,9 @@ const finaisValidos = (c) => (c.finais === undefined || (Array.isArray(c.finais)
 // Barreira da restauracao: um arquivo fora deste formato nao pode substituir os dados.
 // Configuracao do Google guardada nos dados (vai no backup): o ID do cliente do projeto no Google Cloud.
 const ehClienteGoogle = (v) => typeof v === 'string' && v.length <= 200 && /^[\w-]+\.apps\.googleusercontent\.com$/.test(v);
-const googleValido = (g) => g === undefined || (!!g && typeof g === 'object' && !Array.isArray(g) && (g.cliente === undefined || ehClienteGoogle(g.cliente)));
+// ultimoAutoEm: data e hora do ultimo backup automatico no Drive, de qualquer aparelho.
+const googleValido = (g) => g === undefined || (!!g && typeof g === 'object' && !Array.isArray(g) && (g.cliente === undefined || ehClienteGoogle(g.cliente))
+  && (g.ultimoAutoEm === undefined || (typeof g.ultimoAutoEm === 'string' && g.ultimoAutoEm.length <= 40 && !Number.isNaN(Date.parse(g.ultimoAutoEm)))));
 function backupValido(d) {
   const inteiro = (v) => Number.isInteger(v);
   const data = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);

@@ -83,7 +83,10 @@
   .botoesMini { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
   .botoesMini button.mini { flex: 1 1 auto; min-height: 36px; padding: 6px 12px; font-size: 13px; }
   @media (prefers-reduced-motion: reduce) { input.chave, input.chave::before { transition: none; } }
-  .cantoTopo { display: none; position: absolute; top: 8px; right: 10px; align-items: center; gap: 6px; }
+  .cantoTopo { display: none; position: absolute; top: 8px; right: 10px; align-items: flex-start; gap: 6px; }
+  .syncBox { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .syncBox small { font-size: 10px; line-height: 1.2; color: var(--mut); white-space: nowrap; text-align: center; }
+  .cantoTopo .alertaAtraso { margin-top: 2px; }
   body.emResumo .cantoTopo { display: flex; }
   button.alertaAtraso { display: none; align-items: center; gap: 6px; min-height: 36px; padding: 4px 8px 4px 6px; border-radius: 999px; background: #c0262d; color: #fff !important; font-size: 13px; font-weight: 700; }
   body.emResumo button.alertaAtraso:not([hidden]) { display: flex; }
@@ -480,7 +483,7 @@
   </div>
   <div class="destaque">
     <small class="saldoTopo">Saldo geral hoje<button type="button" class="olhoSaldo" id="hOlho" aria-pressed="false" aria-label="Ocultar valores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></small>
-    <div class="cantoTopo"><button type="button" class="alertaAtraso" id="hAtraso" data-atrasos hidden></button><button type="button" class="syncIco" id="hSync"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 10a4 4 0 0 1-.5 8z"/><g class="giro"><path d="M15 13a3 3 0 1 1-1-2.2"/><path d="M14.2 9.3v1.6h-1.6"/></g></svg></button></div>
+    <div class="cantoTopo"><button type="button" class="alertaAtraso" id="hAtraso" data-atrasos hidden></button><span class="syncBox"><button type="button" class="syncIco" id="hSync"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 10a4 4 0 0 1-.5 8z"/><g class="giro"><path d="M15 13a3 3 0 1 1-1-2.2"/><path d="M14.2 9.3v1.6h-1.6"/></g></svg></button><small id="hSyncQuando" hidden></small></span></div>
     <div id="hSaldo"></div>
     <div class="pares">
       <div><small>Gastos do mês</small><b id="hGastos"></b></div>
@@ -674,7 +677,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.59.1 · 07/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.59.3 · 07/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -710,7 +713,8 @@
         <h2 class="tituloDrive"><svg class="icoDrive" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 3h7.6l6.2 10.8H14.4z" fill="#ffba00"/><path d="M8.2 3 2 13.8l3.8 6.6L12 9.6z" fill="#0f9d58"/><path d="M5.8 20.4h12.4l3.8-6.6H9.6z" fill="#4285f4"/></svg><span>Sincronização &amp; Backup Google Drive</span></h2>
         <p class="fraco">Mantém os mesmos dados no celular e no computador: os dados continuam no aparelho (funciona sem internet) e uma cópia criptografada com a senha do app fica em "Controle Diário/Dados" no seu Drive. Use a mesma senha do app em todos os aparelhos. Com a sincronização ligada, o app também salva um backup na pasta "Controle Diário" sempre que o último tiver mais de 24 horas.</p>
         <label class="chaveLiga"><span>Sincronização</span><input type="checkbox" role="switch" class="chave" id="aSyncChave"></label>
-        <p id="aSyncStatus" class="fraco"></p>
+        <p id="aSyncStatus" class="fraco" style="margin-bottom:2px"></p>
+        <p id="aAutoStatus" class="fraco"></p>
         <div class="botoesMini">
           <button type="button" class="mini" id="aSyncAgora">Sincronizar Já</button>
           <button type="button" class="mini" id="aDriveSalvar">Salvar Backup Já</button>
@@ -2946,6 +2950,8 @@ async function backupAutomatico() {
   const p = (n) => String(n).padStart(2, '0'), a = new Date();
   const nome = `backup-controle-diario-${a.getFullYear()}-${p(a.getMonth() + 1)}-${p(a.getDate())}_${p(a.getHours())}-${p(a.getMinutes())}-${p(a.getSeconds())}-auto.txt`;
   db.ultimoBackupEm = a.toISOString();
+  // Vai nos dados (e no backup), para todos os aparelhos mostrarem o ultimo backup automatico.
+  db.google = { ...(db.google || {}), ultimoAutoEm: a.toISOString() };
   await enviarDrive(nome, new Blob([JSON.stringify(await cifrarBackupSenhaApp(db, trava.senha))], { type: 'text/plain' }), pasta);
   // A data do backup muda os dados: grava e deixa a proxima sincronizacao enviar.
   try { localStorage.setItem(CHAVE, JSON.stringify(db)); } catch {}
@@ -2973,12 +2979,18 @@ function mostrarSync() {
           : syncErro ? `Falhou: ${syncErro} Toque para tentar de novo.`
             : !tokenValido() ? 'Toque para entrar no Google e sincronizar.' : 'Pendente: toque para sincronizar agora.';
   ico.setAttribute('aria-label', ico.title);
+  // Abaixo da nuvem: data e hora da ultima sincronizacao feita neste aparelho.
+  const ult = sync.ultimaEm && new Date(sync.ultimaEm);
+  $('hSyncQuando').hidden = !ativo || !ult;
+  if (ult) $('hSyncQuando').textContent = ult.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + ult.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   // Na vermelha o toque sincroniza; nas outras, o menu leva a Ajustes > Backup.
   if (ativo && !ok) { delete ico.dataset.aba; delete ico.dataset.tela; } else { ico.dataset.aba = 'ajustes'; ico.dataset.tela = 'tBackup'; }
   const quando = sync.ultimaEm ? new Date(sync.ultimaEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
   $('aSyncStatus').textContent = !ativo ? 'Desligada. Os dados ficam só neste aparelho.'
     : sincronizando ? 'Sincronizando...'
       : `Ligada.${quando ? ' Última sincronização: ' + quando + '.' : ''}${pend ? ' Há alterações para enviar.' : ''}${syncErro ? ' Erro: ' + syncErro : ''}`;
+  const auto = db.google && db.google.ultimoAutoEm;
+  $('aAutoStatus').textContent = `Último backup automático no Google Drive: ${auto ? new Date(auto).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'nenhum ainda'}.`;
   $('aSyncChave').checked = ativo;
   $('aSyncAgora').disabled = !ativo;
   // Enquanto a pessoa digita (sem Gravar), o campo nao e trocado pelo valor gravado.
