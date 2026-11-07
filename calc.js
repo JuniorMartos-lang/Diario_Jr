@@ -776,6 +776,66 @@ const viagemFinalizada = (v, hoje) => !!v.fim && v.fim < hoje;
 const filtrarViagens = (viagens, f) => viagens.filter((v) => (!f.ids.length || f.ids.includes(v.id))
   && (!f.ini || (v.inicio && v.inicio >= f.ini)) && (!f.fim || (v.inicio && v.inicio <= f.fim)));
 
+// Recibos da despesa da viagem: o PDF fica no Google Drive (arq = id do arquivo) e, ate subir, so no aparelho
+// onde foi escaneado. id local, data em que foi feito, paginas e nome do arquivo no Drive.
+const recibosValidos = (l) => l === undefined || (Array.isArray(l) && l.length <= 20 && new Set(l.map((r) => r && r.id)).size === l.length
+  && l.every((r) => r && typeof r.id === 'string' && r.id.length >= 1 && r.id.length <= 40 && typeof r.em === 'string' && r.em.length <= 40 && !Number.isNaN(Date.parse(r.em))
+    && (r.arq === undefined || (typeof r.arq === 'string' && /^[\w-]{10,200}$/.test(r.arq)))
+    && (r.nome === undefined || (typeof r.nome === 'string' && r.nome.length <= 200))
+    && (r.pag === undefined || (Number.isInteger(r.pag) && r.pag >= 1 && r.pag <= 50))));
+// Nome do PDF no Drive: data, descricao e valor, sem caracteres que o Drive ou o Windows recusam. n > 0 numera.
+function nomeRecibo(d, simbolo, n) {
+  const valor = (d.valor / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const base = `${d.data} ${d.desc} ${simbolo} ${valor}`.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return `${base}${n ? ` (${n})` : ''}.pdf`;
+}
+// Recorte do recibo: homografia que leva os 4 pontos de "de" aos 4 de "para" (ordem: cima-esq, cima-dir, baixo-dir, baixo-esq).
+function homografia(de, para) {
+  const A = [], b = [];
+  for (let i = 0; i < 4; i++) {
+    const [x, y] = de[i], [u, v] = para[i];
+    A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); b.push(u);
+    A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); b.push(v);
+  }
+  for (let c = 0; c < 8; c++) {
+    let p = c;
+    for (let r = c + 1; r < 8; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+    [A[c], A[p]] = [A[p], A[c]]; [b[c], b[p]] = [b[p], b[c]];
+    if (Math.abs(A[c][c]) < 1e-12) throw new Error('cantos alinhados');
+    for (let r = 0; r < 8; r++) {
+      if (r === c) continue;
+      const f = A[r][c] / A[c][c];
+      for (let k = c; k < 8; k++) A[r][k] -= f * A[c][k];
+      b[r] -= f * b[c];
+    }
+  }
+  return [...b.map((x, i) => x / A[i][i]), 1];
+}
+const aplicarH = (h, x, y) => { const w = h[6] * x + h[7] * y + h[8]; return [(h[0] * x + h[1] * y + h[2]) / w, (h[3] * x + h[4] * y + h[5]) / w]; };
+// PDF simples, uma pagina por imagem JPEG (largura A4, altura na proporcao da foto). paginas: [{ jpeg: Uint8Array, w, h }].
+function montarPdf(paginas) {
+  const enc = new TextEncoder(), partes = [], offs = [];
+  let tam = 0;
+  const add = (x) => { const b = typeof x === 'string' ? enc.encode(x) : x; partes.push(b); tam += b.length; };
+  const obj = (n, corpo) => { offs[n] = tam; add(`${n} 0 obj\n`); corpo(); add('\nendobj\n'); };
+  add('%PDF-1.4\n%\u00e2\u00e3\u00cf\u00d3\n');
+  obj(1, () => add('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2, () => add(`<< /Type /Pages /Kids [${paginas.map((_, i) => `${3 + 3 * i} 0 R`).join(' ')}] /Count ${paginas.length} >>`));
+  paginas.forEach((p, i) => {
+    const W = 595, H = Math.round(595 * p.h / p.w * 100) / 100, cont = `q ${W} 0 0 ${H} 0 0 cm /Im${i} Do Q`;
+    obj(3 + 3 * i, () => add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im${i} ${5 + 3 * i} 0 R >> >> /Contents ${4 + 3 * i} 0 R >>`));
+    obj(4 + 3 * i, () => add(`<< /Length ${cont.length} >>\nstream\n${cont}\nendstream`));
+    obj(5 + 3 * i, () => { add(`<< /Type /XObject /Subtype /Image /Width ${p.w} /Height ${p.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${p.jpeg.length} >>\nstream\n`); add(p.jpeg); add('\nendstream'); });
+  });
+  const xref = tam, total = 3 + 3 * paginas.length;
+  add(`xref\n0 ${total}\n0000000000 65535 f \n${offs.slice(1).map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}`);
+  add(`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  const out = new Uint8Array(tam);
+  let pos = 0;
+  for (const b of partes) { out.set(b, pos); pos += b.length; }
+  return out;
+}
+
 // Area USA: cadastros proprios, sem ligacao com contas, cartoes e lancamentos do resto do app.
 function usaValido(u) {
   if (u === undefined) return true;
@@ -792,7 +852,7 @@ function usaValido(u) {
     && Array.isArray(u.despesas) && u.despesas.every((d) => d && typeof d.id === 'string' && typeof d.desc === 'string' && d.desc.length <= 60 && tem(u.viagens, d.viagem)
       && tem(u.categorias, d.cat) && tem(u.moedas, d.moeda) && /^\d{4}-\d{2}-\d{2}$/.test(d.data) && Number.isInteger(d.valor) && d.valor > 0 && ids(d.quem, u.viajantes)
       && (d.obs === undefined || (typeof d.obs === 'string' && d.obs.length <= 500)) && (d.pago === undefined || typeof d.pago === 'boolean') && (d.natureza === undefined || d.natureza === 'C' || d.natureza === 'P')
-      && data(d.checkin) && data(d.checkout) && !(d.checkin && d.checkout && d.checkout < d.checkin)
+      && data(d.checkin) && data(d.checkout) && !(d.checkin && d.checkout && d.checkout < d.checkin) && recibosValidos(d.recibos)
       // Pago com: um ou dois meios (contas ou cartoes da area), diferentes, somando o valor da despesa.
       && (d.pagamentos === undefined || (Array.isArray(d.pagamentos) && d.pagamentos.length >= 1 && d.pagamentos.length <= 2
         && d.pagamentos.every((p) => p && (tem(u.contas, p.meio) || tem(u.cartoes, p.meio)) && Number.isInteger(p.valor) && p.valor > 0)
@@ -843,7 +903,7 @@ function backupValido(d) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    ehClienteGoogle,
+    ehClienteGoogle, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
     protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };

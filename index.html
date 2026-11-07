@@ -83,6 +83,15 @@
   .botoesMini { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
   .botoesMini button.mini { flex: 1 1 auto; min-height: 36px; padding: 6px 12px; font-size: 13px; }
   @media (prefers-reduced-motion: reduce) { input.chave, input.chave::before { transition: none; } }
+  /* Recibos: lista no popup da despesa e dialogo do recorte. */
+  #udRecLista .linha { gap: 8px; }
+  #udRecLista .linha button { flex: none; min-height: 36px; padding: 4px 10px; font-size: 13px; }
+  dialog#dRecibo { width: min(100vw - 16px, 520px); max-width: none; }
+  .recArea { position: relative; margin: 0 auto; touch-action: none; user-select: none; -webkit-user-select: none; width: fit-content; }
+  .recArea canvas { display: block; max-width: 100%; border-radius: 6px; }
+  .recPonto { position: absolute; width: 36px; height: 36px; margin: -18px 0 0 -18px; border-radius: 50%; border: 3px solid #fff; background: rgba(29, 78, 216, .45); box-shadow: 0 0 0 2px #1d4ed8; touch-action: none; cursor: grab; }
+  .recMinis { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+  .recMinis img { width: 72px; height: 96px; object-fit: cover; border-radius: 6px; border: 1px solid var(--linha); background: #fff; }
   .cantoTopo { display: none; position: absolute; top: 8px; right: 10px; align-items: flex-start; gap: 6px; }
   .syncBox { display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .syncBox small { font-size: 10px; line-height: 1.2; color: var(--mut); white-space: nowrap; text-align: center; }
@@ -677,7 +686,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.59.3 · 07/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.60.0 · 07/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1022,8 +1031,29 @@
   </div>
   <label><input id="udPago" type="checkbox" checked>Pago</label>
   <label>Obs<textarea id="udObs" maxlength="500" rows="2" placeholder="Opcional"></textarea></label>
+  <div class="rotuloCampo" id="udRecBox"><span>Recibos</span>
+    <div id="udRecLista"></div>
+    <div class="botoesMini"><button type="button" class="mini sec" id="udRecCam">Escanear recibo</button><button type="button" class="mini sec" id="udRecGal">Foto do celular</button></div>
+    <input type="file" accept="image/*" capture="environment" id="recCamArq" hidden><input type="file" accept="image/*" multiple id="recGalArq" hidden>
+  </div>
   <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="udFechar">Fechar</button><button type="button" class="perigo" id="udExcluir" hidden>Excluir</button></div>
 </form></dialog>
+<dialog id="dRecibo">
+  <h3 id="recTit">Ajuste os cantos</h3>
+  <div id="recModoCorte">
+    <p class="fraco" style="margin:0 0 8px">Arraste os 4 círculos até os cantos do recibo. O app endireita a imagem.</p>
+    <div class="recArea" id="recArea"><canvas id="recCanvas"></canvas><span class="recPonto" data-p="0"></span><span class="recPonto" data-p="1"></span><span class="recPonto" data-p="2"></span><span class="recPonto" data-p="3"></span></div>
+    <div class="botoesMini"><button type="button" class="mini sec" id="recGirar">Girar</button><button type="button" class="mini sec" id="recTudo">Imagem inteira</button></div>
+    <div class="botoes"><button type="button" id="recUsar">Usar esta página</button><button type="button" class="sec" id="recPular">Descartar foto</button></div>
+  </div>
+  <div id="recModoPaginas" hidden>
+    <p id="recQtd"></p>
+    <div class="recMinis" id="recMinis"></div>
+    <div class="botoesMini"><button type="button" class="mini sec" id="recMaisCam">+ Câmera</button><button type="button" class="mini sec" id="recMaisGal">+ Foto do celular</button></div>
+    <div class="botoes"><button type="button" id="recConcluir">Concluir recibo (PDF)</button><button type="button" class="sec" id="recDescartar">Descartar</button></div>
+  </div>
+  <p id="recMsg" class="fraco" aria-live="polite" style="margin:6px 0 0"></p>
+</dialog>
 <dialog id="dMotivo"><form novalidate>
   <h3 id="dMotivoTit"></h3>
   <p>O cartão será arquivado: vai para Cartões arquivados, com a data de hoje e este motivo, e a linha fica livre para outro. Nada é apagado. Isso é gravado ao tocar em Salvar no cartão.</p>
@@ -1093,6 +1123,10 @@ const CHAVE_SYNC = 'controle-diario-sync', ARQ_DADOS = 'dados-controle-diario.tx
 let sync = {};
 try { sync = JSON.parse(localStorage.getItem(CHAVE_SYNC)) || {}; } catch { sync = {}; }
 let sincronizando = false, syncTimer = null, syncErro = '', syncConferido = false;
+// Recibos guardados no aparelho (IndexedDB) ainda sem envio ao Drive; detalhes junto da despesa da viagem.
+let recLocais = new Set(), enviandoRec = false, recErro = '';
+// Recibos deste aparelho ainda sem envio (deixam a nuvem vermelha).
+const recPendentes = () => (db.usa ? db.usa.despesas : []).reduce((n, d) => n + (d.recibos || []).filter((x) => !x.arq && recLocais.has(x.id)).length, 0);
 function salvar() {
   try { localStorage.setItem(CHAVE, JSON.stringify(db)); }
   catch { modal('Não foi possível gravar', 'O aparelho recusou a gravação. Salve um backup e libere espaço.', 'Entendi'); }
@@ -2652,14 +2686,15 @@ function exportar(tipo) {
     const pessoas = [...new Set([...v.viajantes, ...desp.flatMap((d) => d.quem)])];
     const partes = (d) => { const n = d.quem.length, base = Math.floor(d.valor / n), sobra = d.valor - base * n; return Object.fromEntries(d.quem.map((id, i) => [id, base + (i < sobra ? 1 : 0)])); };
     const cab = ['Data', 'Descrição', 'Categoria', 'Moeda', 'Valor', 'Situação', ...(v.corporativa ? ['Tipo de despesa'] : []), 'Dividida entre',
-      ...pessoas.map((id) => 'Parte de ' + nome(id)), 'Pago com', 'Valor pago', 'Pago com (2)', 'Valor pago (2)', 'Check-in', 'Check-out', 'Obs'];
+      ...pessoas.map((id) => 'Parte de ' + nome(id)), 'Pago com', 'Valor pago', 'Pago com (2)', 'Valor pago (2)', 'Check-in', 'Check-out', 'Obs', 'Recibos (Google Drive)'];
     const linhas = desp.map((d) => {
       const pt = d.quem.length ? partes(d) : {}, pg = d.pagamentos || [];
       return [dataCsv(d.data), d.desc, (u.categorias.find((c) => c.id === d.cat) || { nome: '?' }).nome, moedaUsa(d.moeda).codigo, numCsv(d.valor), d.pago === false ? 'A pagar' : 'Pago',
         ...(v.corporativa ? [naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corporativa'] : []), d.quem.map(nome).join(', '),
         ...pessoas.map((id) => (id in pt ? numCsv(pt[id]) : '')),
         pg[0] ? meio(pg[0].meio) : '', pg[0] ? numCsv(pg[0].valor) : '', pg[1] ? meio(pg[1].meio) : '', pg[1] ? numCsv(pg[1].valor) : '',
-        d.checkin ? dataCsv(d.checkin) : '', d.checkout ? dataCsv(d.checkout) : '', d.obs || ''];
+        d.checkin ? dataCsv(d.checkin) : '', d.checkout ? dataCsv(d.checkout) : '', d.obs || '',
+        (d.recibos || []).map((x) => (x.arq ? `https://drive.google.com/file/d/${x.arq}/view` : 'pendente')).join(' ')];
     });
     return exportarCSV(`despesas-${v.nome}`, cab, linhas);
   }
@@ -2931,6 +2966,7 @@ async function sincronizar() {
     }
     syncConferido = true;
     await backupAutomatico();
+    setTimeout(enviarRecibos, 0);
   } catch (err) {
     syncErro = err.message;
   } finally {
@@ -2968,7 +3004,7 @@ function agendarSync() {
 // Verde: conferido com o Drive nesta abertura e nada para enviar. Vermelha: algo a enviar, ou ainda nao deu para
 // conferir (sem internet, login vencido ou erro). Cinza: desligada. Tocar na vermelha sincroniza; nas outras, abre o Backup.
 function mostrarSync() {
-  const ativo = !!sync.ativo, pend = ativo && mudouAqui();
+  const ativo = !!sync.ativo, pend = ativo && (mudouAqui() || recPendentes() > 0);
   const ok = ativo && !pend && !syncErro && syncConferido;
   const ico = $('hSync');
   ico.className = 'syncIco' + (!ativo ? '' : ok ? ' ok' : ' pend') + (sincronizando ? ' girando' : '');
@@ -2999,6 +3035,7 @@ function mostrarSync() {
 async function sincronizarComToque() {
   try { await tokenGoogle(); } catch (err) { return avisar('Google Drive', err.message); }
   await sincronizar();
+  if (!sync.ativo) await enviarRecibos();
   if (syncErro) avisar('Sincronização com o Google Drive', syncErro);
 }
 $('hSync').onclick = () => { if (!$('hSync').dataset.aba) sincronizarComToque(); };
@@ -3038,7 +3075,7 @@ async function desligarSync() {
   sync = {};
   gravarSync();
 }
-addEventListener('online', () => { mostrarSync(); sincronizar(); });
+addEventListener('online', () => { mostrarSync(); sincronizar(); enviarRecibos(); });
 addEventListener('offline', mostrarSync);
 $('dDriveLista').onclick = async (e) => {
   const b = e.target.closest('[data-drivearq]');
@@ -3457,9 +3494,11 @@ $('uViagemExcluir').onclick = async () => {
   const id = viagemEd, n = usa().despesas.filter((d) => d.viagem === id).length;
   if (!await modal('Excluir viagem?', $('uViagem').value + (n ? `\nAs ${n} despesas desta viagem também serão excluídas.` : ''), 'Sim, excluir', 'Cancelar')) return;
   usa().viagens = usa().viagens.filter((x) => x.id !== id);
+  descartarRecibos(usa().despesas.filter((d) => d.viagem === id).flatMap((d) => d.recibos || []));
   usa().despesas = usa().despesas.filter((d) => d.viagem !== id);
   fecharEditor();
   salvar();
+  enviarRecibos();
 };
 $('uFundoTrocar').onclick = () => $('uFundoArq').click();
 $('uFundoTirar').onclick = () => { fundoEdit = undefined; mostrarFundo(); };
@@ -3646,7 +3685,7 @@ function renderUsaDesp() {
     // Dia como no Fluxo: "30 de novembro", ou Hoje.
     const cab = d.data !== dia ? `<h3 class="dia">${d.data === h ? 'Hoje' : new Date(d.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</h3>` : '';
     dia = d.data;
-    return cab + `<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>`;
+    return cab + `<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}<br><small>${(d.recibos || []).length ? `📎${d.recibos.length > 1 ? d.recibos.length : ''} · ` : ''}${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>`;
   }).join('') || '<p class="fraco" style="margin:0">Nenhuma despesa ainda. Toque em + para lançar.</p>';
   // Por categoria, uma parte por moeda (base primeiro); o total de cada moeda e o mesmo do alto da tela.
   $('udCats').innerHTML = htmlCatsViagem(u, v);
@@ -3729,6 +3768,9 @@ function abrirDespesa(id) {
   $('udDoisMeios').checked = pags.length === 2;
   mostrarDoisMeios();
   $('udExcluir').hidden = !d;
+  udRec = ((d && d.recibos) || []).map((x) => ({ ...x }));
+  udRecNovos = []; udRecTirados = []; udSalvou = false;
+  renderUdRec();
   $('dUsaDesp').showModal();
   if (!d) $('udDesc').focus();
 }
@@ -3790,18 +3832,269 @@ $('fUsaDesp').onsubmit = (e) => {
   if (checkin && checkout && checkout < checkin) return avisar('Datas inválidas', 'O check-out não pode ser antes do check-in.');
   // Nenhum marcado ou Todos: divide entre todos os viajantes da viagem.
   const sel = marcados($('udQuemBox')), quem = $('udQuemBox').hidden ? [] : sel.length ? sel : [...udPessoas];
-  const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem, pago: $('udPago').checked, natureza: v.corporativa ? $('udNat').value : undefined, obs: $('udObs').value.trim() || undefined, checkin, checkout, pagamentos };
+  const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem, pago: $('udPago').checked, natureza: v.corporativa ? $('udNat').value : undefined, obs: $('udObs').value.trim() || undefined, checkin, checkout, pagamentos, recibos: udRec.length ? udRec : undefined };
   const atual = usa().despesas.find((x) => x.id === despEd);
   if (atual) Object.assign(atual, dados); else usa().despesas.push({ id: novoId(), ...dados });
+  descartarRecibos(udRecTirados);
+  udSalvou = true;
   $('dUsaDesp').close();
   salvar();
 };
 $('udExcluir').onclick = async () => {
-  const id = despEd;
-  if (!await modal('Excluir despesa?', $('udDesc').value, 'Sim, excluir', 'Cancelar')) return;
+  const id = despEd, d = usa().despesas.find((x) => x.id === id), n = ((d && d.recibos) || []).length;
+  if (!await modal('Excluir despesa?', $('udDesc').value + (n ? `\n${n > 1 ? `Os ${n} recibos vão` : 'O recibo vai'} para a lixeira do Google Drive (dá para recuperar por 30 dias).` : ''), 'Sim, excluir', 'Cancelar')) return;
+  descartarRecibos([...((d && d.recibos) || []), ...udRec]);
   usa().despesas = usa().despesas.filter((x) => x.id !== id);
+  udSalvou = true;
   $('dUsaDesp').close();
   salvar();
+  enviarRecibos();
+};
+
+// ===== Recibos da despesa: foto (camera ou galeria), recorte manual dos cantos, PDF e envio ao Google Drive =====
+// O PDF fica no IndexedDB do aparelho (cabe mais que o localStorage) ate subir para
+// "Controle Diário/Recibos/<viagem>" no Drive; depois disso a despesa guarda so o id do arquivo (vai no backup).
+const BANCO_REC = 'controle-diario-recibos', CHAVE_LIXO = 'controle-diario-lixo';
+const idbRec = () => new Promise((ok, falha) => {
+  const q = indexedDB.open(BANCO_REC, 1);
+  q.onupgradeneeded = () => q.result.createObjectStore('pdf');
+  q.onsuccess = () => ok(q.result);
+  q.onerror = () => falha(q.error);
+});
+async function idbFazer(modo, fazer) {
+  const banco = await idbRec();
+  return new Promise((ok, falha) => {
+    const t = banco.transaction('pdf', modo), q = fazer(t.objectStore('pdf'));
+    t.oncomplete = () => { banco.close(); ok(q && q.result); };
+    t.onerror = () => { banco.close(); falha(t.error); };
+  });
+}
+const recGuardar = (id, blob) => idbFazer('readwrite', (st) => st.put(blob, id));
+const recLer = (id) => idbFazer('readonly', (st) => st.get(id));
+const recApagar = (id) => idbFazer('readwrite', (st) => st.delete(id)).catch(() => {});
+idbFazer('readonly', (st) => st.getAllKeys()).then((k) => { recLocais = new Set(k); mostrarSync(); if (tokenValido()) enviarRecibos(); }).catch(() => {});
+// Arquivos do Drive a mandar para a lixeira (despesa ou recibo excluido); ficam no aparelho ate dar certo.
+const lixoLer = () => { try { return JSON.parse(localStorage.getItem(CHAVE_LIXO)) || []; } catch { return []; } };
+const lixoGravar = (l) => { try { localStorage.setItem(CHAVE_LIXO, JSON.stringify(l)); } catch {} };
+function descartarRecibos(lista) {
+  const lixo = lixoLer();
+  for (const r of lista) {
+    if (r.arq && !lixo.includes(r.arq)) lixo.push(r.arq);
+    if (recLocais.has(r.id)) { recLocais.delete(r.id); recApagar(r.id); }
+  }
+  lixoGravar(lixo);
+}
+async function subpasta(nome, pai) {
+  const n = nome.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  const q = encodeURIComponent(`name='${n}' and '${pai}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const achou = await (await drive(`/drive/v3/files?q=${q}&fields=files(id)`)).json();
+  if (achou.files.length) return achou.files[0].id;
+  return (await (await drive('/drive/v3/files?fields=id', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: nome, mimeType: 'application/vnd.google-apps.folder', parents: [pai] }) })).json()).id;
+}
+async function enviarRecibos() {
+  // Com o popup da despesa aberto, espera: a despesa ainda pode mudar.
+  if (enviandoRec || !navigator.onLine || !tokenValido() || $('dUsaDesp').open) return mostrarSync();
+  enviandoRec = true; recErro = '';
+  let mudou = false;
+  try {
+    const u = usa(), pastas = {};
+    for (const d of u.despesas) {
+      for (const [i, r] of (d.recibos || []).entries()) {
+        if (r.arq || !recLocais.has(r.id)) continue;
+        const blob = await recLer(r.id);
+        if (!blob) { recLocais.delete(r.id); continue; }
+        const v = u.viagens.find((x) => x.id === d.viagem), nomeV = (v ? v.nome : 'Sem viagem').replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'Viagem';
+        if (!pastas[nomeV]) pastas[nomeV] = await subpasta(nomeV, await subpasta('Recibos', await pastaDrive()));
+        const nome = nomeRecibo(d, moedaUsa(d.moeda).simbolo, d.recibos.length > 1 ? i + 1 : 0);
+        const f = await enviarDrive(nome, new File([blob], nome, { type: 'application/pdf' }), pastas[nomeV]);
+        r.arq = f.id; r.nome = nome; mudou = true;
+        recLocais.delete(r.id); await recApagar(r.id);
+      }
+    }
+    for (const id of lixoLer()) {
+      try { await drive(`/drive/v3/files/${encodeURIComponent(id)}?fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }) }); } catch (err) { if (!/ 404\./.test(err.message)) throw err; }
+      lixoGravar(lixoLer().filter((x) => x !== id));
+    }
+  } catch (err) {
+    recErro = err.message;
+  } finally {
+    enviandoRec = false;
+    if (mudou) salvar(); else mostrarSync();
+  }
+}
+// Lista de recibos no popup: udRec e a copia em edicao; so vale ao tocar em Salvar.
+let udRec = [], udRecNovos = [], udRecTirados = [], udSalvou = false;
+function renderUdRec() {
+  const n = udRec.length;
+  $('udRecLista').innerHTML = udRec.map((r, i) => {
+    const sit = r.arq ? 'No Google Drive' : recLocais.has(r.id) ? 'Aguardando envio ao Google Drive' : 'Ainda no aparelho onde foi escaneado';
+    return `<div class="linha"><span class="q">📎 Recibo${n > 1 ? ' ' + (i + 1) : ''}<br><small class="fraco">${sit}${r.pag ? ` · ${r.pag} ${r.pag > 1 ? 'páginas' : 'página'}` : ''}</small></span>`
+      + `${r.arq || recLocais.has(r.id) ? `<button type="button" class="sec" data-recabrir="${esc(r.id)}">Abrir</button>` : ''}<button type="button" class="perigo" data-rectirar="${esc(r.id)}">Remover</button></div>`;
+  }).join('');
+}
+$('udRecLista').onclick = async (e) => {
+  const ab = e.target.closest('[data-recabrir]'), ti = e.target.closest('[data-rectirar]');
+  if (ab) {
+    const r = udRec.find((x) => x.id === ab.dataset.recabrir);
+    if (recLocais.has(r.id)) {
+      const janela = window.open('', '_blank'), blob = await recLer(r.id);
+      if (!blob) { if (janela) janela.close(); return avisar('Recibo', 'O arquivo não está mais neste aparelho.'); }
+      const url = URL.createObjectURL(blob);
+      if (janela) janela.location.href = url; else location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } else window.open(`https://drive.google.com/file/d/${encodeURIComponent(r.arq)}/view`, '_blank');
+    return;
+  }
+  if (ti) {
+    const r = udRec.find((x) => x.id === ti.dataset.rectirar);
+    if (!await modal('Remover recibo?', r.arq ? 'Ao salvar a despesa, o PDF vai para a lixeira do Google Drive (dá para recuperar por 30 dias).' : 'O PDF ainda não foi enviado e será apagado deste aparelho.', 'Sim, remover', 'Cancelar')) return;
+    udRec = udRec.filter((x) => x !== r);
+    if (udRecNovos.includes(r.id)) { udRecNovos = udRecNovos.filter((x) => x !== r.id); descartarRecibos([r]); } else udRecTirados.push(r);
+    renderUdRec();
+  }
+};
+// Fechar o popup sem salvar: recibos feitos agora sao apagados do aparelho.
+$('dUsaDesp').addEventListener('close', () => {
+  if (!udSalvou) for (const id of udRecNovos) { recLocais.delete(id); recApagar(id); }
+  udRecNovos = []; udRecTirados = []; udSalvou = false;
+  setTimeout(enviarRecibos, 300);
+});
+
+// Foto -> recorte -> paginas -> PDF
+let scanFila = [], scanPags = [], scanFonte = null, scanPontos = [], scanEscala = 1;
+const LADO_FONTE = 2000, LADO_SAIDA = 1600;
+async function imagemParaCanvas(arq) {
+  const bmp = await createImageBitmap(arq);
+  const k = Math.min(1, LADO_FONTE / Math.max(bmp.width, bmp.height)), cv = document.createElement('canvas');
+  cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
+  cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+  bmp.close && bmp.close();
+  return cv;
+}
+function pontosIniciais(m = 0.06) {
+  const w = scanFonte.width, h = scanFonte.height;
+  scanPontos = [[w * m, h * m], [w * (1 - m), h * m], [w * (1 - m), h * (1 - m)], [w * m, h * (1 - m)]];
+}
+function desenharCorte() {
+  const cv = $('recCanvas'), area = $('recArea'), larg = Math.min($('dRecibo').clientWidth - 40, 480), alt = Math.max(240, innerHeight * 0.55);
+  scanEscala = Math.min(larg / scanFonte.width, alt / scanFonte.height);
+  cv.width = Math.round(scanFonte.width * scanEscala); cv.height = Math.round(scanFonte.height * scanEscala);
+  const g = cv.getContext('2d');
+  g.drawImage(scanFonte, 0, 0, cv.width, cv.height);
+  g.fillStyle = 'rgba(0, 0, 0, .35)';
+  g.beginPath(); g.rect(0, 0, cv.width, cv.height);
+  scanPontos.forEach(([x, y], i) => (i ? g.lineTo(x * scanEscala, y * scanEscala) : g.moveTo(x * scanEscala, y * scanEscala)));
+  g.closePath(); g.fill('evenodd');
+  g.strokeStyle = '#3b82f6'; g.lineWidth = 2;
+  g.beginPath(); scanPontos.forEach(([x, y], i) => (i ? g.lineTo(x * scanEscala, y * scanEscala) : g.moveTo(x * scanEscala, y * scanEscala))); g.closePath(); g.stroke();
+  area.querySelectorAll('.recPonto').forEach((el) => { const [x, y] = scanPontos[+el.dataset.p]; el.style.left = x * scanEscala + 'px'; el.style.top = y * scanEscala + 'px'; });
+}
+document.querySelectorAll('.recPonto').forEach((el) => {
+  el.addEventListener('pointerdown', (e) => { e.preventDefault(); el.setPointerCapture(e.pointerId); });
+  el.addEventListener('pointermove', (e) => {
+    if (!el.hasPointerCapture(e.pointerId)) return;
+    const rc = $('recCanvas').getBoundingClientRect();
+    const x = Math.max(0, Math.min(scanFonte.width, (e.clientX - rc.left) / scanEscala)), y = Math.max(0, Math.min(scanFonte.height, (e.clientY - rc.top) / scanEscala));
+    scanPontos[+el.dataset.p] = [x, y];
+    desenharCorte();
+  });
+});
+function modoRecibo(corte) {
+  $('recModoCorte').hidden = !corte; $('recModoPaginas').hidden = corte;
+  $('recTit').textContent = corte ? 'Ajuste os cantos' : 'Recibo';
+  $('recMsg').textContent = '';
+  if (!$('dRecibo').open) $('dRecibo').showModal();
+}
+async function proximaFoto() {
+  const f = scanFila.shift();
+  if (!f) return scanPags.length ? mostrarPaginas() : $('dRecibo').close();
+  try { scanFonte = await imagemParaCanvas(f); } catch { await avisar('Imagem', 'Não foi possível abrir esta imagem.'); return proximaFoto(); }
+  pontosIniciais();
+  modoRecibo(true);
+  desenharCorte();
+}
+function mostrarPaginas() {
+  modoRecibo(false);
+  $('recQtd').textContent = `${scanPags.length} ${scanPags.length > 1 ? 'páginas' : 'página'}. Adicione mais, se o recibo for comprido, ou conclua.`;
+  $('recMinis').innerHTML = scanPags.map((p) => `<img src="${p.mini}" alt="">`).join('');
+}
+function abrirFotos(input) { input.value = ''; input.click(); }
+$('udRecCam').onclick = () => { if (udRec.length >= 20) return avisar('Recibos', 'Esta despesa já tem 20 recibos.'); scanPags = []; abrirFotos($('recCamArq')); };
+$('udRecGal').onclick = () => { if (udRec.length >= 20) return avisar('Recibos', 'Esta despesa já tem 20 recibos.'); scanPags = []; abrirFotos($('recGalArq')); };
+$('recMaisCam').onclick = () => abrirFotos($('recCamArq'));
+$('recMaisGal').onclick = () => abrirFotos($('recGalArq'));
+['recCamArq', 'recGalArq'].forEach((id) => { $(id).onchange = () => { const fs = [...$(id).files]; if (!fs.length) return; scanFila.push(...fs); if (!$('dRecibo').open || !$('recModoPaginas').hidden) proximaFoto(); }; });
+$('recGirar').onclick = () => {
+  const cv = document.createElement('canvas'), w = scanFonte.width, h = scanFonte.height;
+  cv.width = h; cv.height = w;
+  const g = cv.getContext('2d');
+  g.translate(h, 0); g.rotate(Math.PI / 2); g.drawImage(scanFonte, 0, 0);
+  scanFonte = cv; pontosIniciais(); desenharCorte();
+};
+$('recTudo').onclick = () => { pontosIniciais(0); desenharCorte(); };
+$('recPular').onclick = () => proximaFoto();
+// Endireita a area dos 4 cantos e deixa com cara de documento: cinza, papel claro e texto escuro.
+async function retificar() {
+  const [tl, tr, br, bl] = scanPontos, dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  let W = Math.max(dist(tl, tr), dist(bl, br)), H = Math.max(dist(tl, bl), dist(tr, br));
+  const k = Math.min(1, LADO_SAIDA / Math.max(W, H));
+  W = Math.max(40, Math.round(W * k)); H = Math.max(40, Math.round(H * k));
+  const h = homografia([[0, 0], [W, 0], [W, H], [0, H]], scanPontos);
+  const fw = scanFonte.width, fh = scanFonte.height, src = scanFonte.getContext('2d').getImageData(0, 0, fw, fh).data;
+  const lum = new Float32Array(W * H), hist = new Uint32Array(256);
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const [u, v] = aplicarH(h, x + 0.5, y + 0.5);
+      const x0 = Math.max(0, Math.min(fw - 2, Math.floor(u - 0.5))), y0 = Math.max(0, Math.min(fh - 2, Math.floor(v - 0.5)));
+      const ax = Math.max(0, Math.min(1, u - 0.5 - x0)), ay = Math.max(0, Math.min(1, v - 0.5 - y0));
+      const p = (xx, yy) => { const i = (yy * fw + xx) * 4; return 0.299 * src[i] + 0.587 * src[i + 1] + 0.114 * src[i + 2]; };
+      const l = (p(x0, y0) * (1 - ax) + p(x0 + 1, y0) * ax) * (1 - ay) + (p(x0, y0 + 1) * (1 - ax) + p(x0 + 1, y0 + 1) * ax) * ay;
+      lum[y * W + x] = l; hist[Math.min(255, l | 0)]++;
+    }
+  }
+  // Estica o contraste: o que estiver abaixo do 5% mais escuro vira preto, acima do 92%, branco (o papel).
+  const pct = (q) => { let s = 0; const alvo = q * W * H; for (let i = 0; i < 256; i++) { s += hist[i]; if (s >= alvo) return i; } return 255; };
+  const lo = pct(0.05), hi = Math.max(lo + 30, pct(0.92));
+  const out = document.createElement('canvas');
+  out.width = W; out.height = H;
+  const g = out.getContext('2d'), img = g.createImageData(W, H), d = img.data;
+  for (let i = 0; i < W * H; i++) {
+    const v = Math.max(0, Math.min(1, (lum[i] - lo) / (hi - lo))), c = Math.round(255 * Math.pow(v, 1.3));
+    d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = c; d[i * 4 + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  const blob = await new Promise((ok) => out.toBlob(ok, 'image/jpeg', 0.72));
+  const mini = document.createElement('canvas'), km = 120 / Math.max(W, H);
+  mini.width = Math.round(W * km); mini.height = Math.round(H * km);
+  mini.getContext('2d').drawImage(out, 0, 0, mini.width, mini.height);
+  return { jpeg: new Uint8Array(await blob.arrayBuffer()), w: W, h: H, mini: mini.toDataURL('image/jpeg', 0.7) };
+}
+$('recUsar').onclick = async () => {
+  $('recUsar').disabled = true; $('recMsg').textContent = 'Endireitando a imagem...';
+  try { scanPags.push(await retificar()); } catch (err) { $('recUsar').disabled = false; $('recMsg').textContent = ''; return avisar('Recorte', 'Os cantos estão alinhados demais. Afaste os círculos e tente de novo.'); }
+  $('recUsar').disabled = false;
+  if (scanFila.length) proximaFoto(); else mostrarPaginas();
+};
+$('recDescartar').onclick = async () => {
+  if (scanPags.length && !await modal('Descartar este recibo?', 'As páginas feitas agora serão apagadas.', 'Sim, descartar', 'Cancelar')) return;
+  scanPags = []; scanFila = []; $('dRecibo').close();
+};
+$('dRecibo').addEventListener('cancel', (e) => { e.preventDefault(); $('recDescartar').click(); });
+$('recConcluir').onclick = async () => {
+  $('recConcluir').disabled = true; $('recMsg').textContent = 'Gerando o PDF...';
+  try {
+    const id = novoId(), blob = new Blob([montarPdf(scanPags)], { type: 'application/pdf' });
+    await recGuardar(id, blob);
+    recLocais.add(id); udRecNovos.push(id);
+    udRec.push({ id, em: new Date().toISOString(), pag: scanPags.length });
+    scanPags = []; scanFila = [];
+    $('dRecibo').close();
+    renderUdRec();
+  } catch (err) {
+    avisar('Não foi possível gerar o PDF', err.message);
+  } finally {
+    $('recConcluir').disabled = false; $('recMsg').textContent = '';
+  }
 };
 
 $('fPerfil').onsubmit = (e) => {

@@ -823,7 +823,8 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   // Area USA inteira (viagens com imagem, contas, cartoes, viajantes, categorias) passa pelos dois tipos de backup
   const jpg = 'data:image/jpeg;base64,/9j/AAAA', svg = 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=';
   const comUsa = { ...JSON.parse(JSON.stringify(dp)), usa: { moedas: c.MOEDAS_PADRAO, despesas: [{ id: 'd1', viagem: 'v1', desc: 'Parque', cat: 'u4', data: '2027-04-05', moeda: 'BRL', valor: 12345, quem: ['u3'], obs: 'Ingresso de 2 dias', pago: false, checkin: '2027-04-05', checkout: '2027-04-08',
-      pagamentos: [{ meio: 'u1', valor: 10000 }, { meio: 'u2', valor: 2345 }], natureza: 'P' }],
+      pagamentos: [{ meio: 'u1', valor: 10000 }, { meio: 'u2', valor: 2345 }], natureza: 'P',
+      recibos: [{ id: 'r1', em: '2027-04-05T15:00:00.000Z', pag: 2, arq: '1AbCdEfGhIjKlMnOp_q-r', nome: '2027-04-05 Parque R$ 123,45 (1).pdf' }, { id: 'r2', em: '2027-04-05T15:05:00.000Z', pag: 1 }] }],
     viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 }, corporativa: true }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {} }],
     contas: [{ id: 'u1', nome: 'Wise', icone: svg, iconeNome: 'Wise' }], cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'V', icone: svg, iconeNome: 'Visa',
       finais: [{ n: '1234', tipo: 'V', dono: 'T' }], finaisInativos: [{ n: '5678', tipo: 'F', dono: 'A', motivo: 'Vencido', em: '2026-11-03' }] }],
@@ -848,6 +849,23 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.ok(!c.backupValido({ ...comGoogle, google: { cliente: 'javascript:alert(1)' } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: 'x' }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { ultimoAutoEm: 'ontem' } }));
+  // Recibos: validacao, nome do arquivo, recorte (homografia) e PDF
+  const ok = (r) => c.backupValido({ ...comUsa, usa: { ...comUsa.usa, despesas: [{ ...comUsa.usa.despesas[0], recibos: r }] } });
+  assert.ok(ok(undefined) && ok([]));
+  assert.ok(!ok([{ id: 'r1', em: 'ontem' }]), 'data invalida');
+  assert.ok(!ok([{ id: 'r1', em: '2027-04-05' }, { id: 'r1', em: '2027-04-05' }]), 'id repetido');
+  assert.ok(!ok([{ id: 'r1', em: '2027-04-05', arq: '../../x' }]), 'id do Drive estranho');
+  assert.strictEqual(c.nomeRecibo({ data: '2026-04-25', desc: 'Hotel / Disney: "Pop"', valor: 35000 }, 'US$', 0), '2026-04-25 Hotel Disney Pop US$ 350,00.pdf');
+  assert.strictEqual(c.nomeRecibo({ data: '2026-04-25', desc: 'Táxi', valor: 123456 }, 'R$', 2), '2026-04-25 Táxi R$ 1.234,56 (2).pdf');
+  const quad = [[30, 40], [500, 20], [520, 700], [10, 680]], ret = [[0, 0], [400, 0], [400, 600], [0, 600]];
+  const hq = c.homografia(ret, quad);
+  ret.forEach((p, i) => { const [x, y] = c.aplicarH(hq, p[0], p[1]); assert.ok(Math.abs(x - quad[i][0]) < 1e-6 && Math.abs(y - quad[i][1]) < 1e-6); });
+  const pdf = new TextDecoder('latin1').decode(c.montarPdf([{ jpeg: new Uint8Array([255, 216, 255, 217]), w: 100, h: 200 }, { jpeg: new Uint8Array([255, 216, 255, 217]), w: 200, h: 100 }]));
+  assert.ok(pdf.startsWith('%PDF-1.4') && pdf.trimEnd().endsWith('%%EOF') && pdf.includes('/Count 2') && pdf.includes('/MediaBox [0 0 595 1190]') && pdf.includes('/MediaBox [0 0 595 297.5]'));
+  const xrefEm = Number(pdf.match(/startxref\n(\d+)/)[1]);
+  assert.ok(pdf.slice(xrefEm).startsWith('xref'), 'startxref aponta para a tabela');
+  const offs = [...pdf.slice(xrefEm).matchAll(/^(\d{10}) 00000 n $/gm)].map((m) => Number(m[1]));
+  offs.forEach((o, i) => assert.ok(pdf.slice(o).startsWith(`${i + 1} 0 obj`), `objeto ${i + 1} no lugar certo`));
   // Viagem unica da 1.46.1 vira a lista de viagens, sem perder nada
   const velho = c.migrar({ ...JSON.parse(JSON.stringify(dp)), usa: { viagem: 'Orlando', inicio: '2027-04-04', fundo: jpg, contas: [], cartoes: [], viajantes: [], categorias: [] } }, '2026-11-03');
   assert.deepStrictEqual(velho.usa, { contas: [], cartoes: [], viajantes: [], categorias: [], moedas: c.MOEDAS_PADRAO, despesas: [],
