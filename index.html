@@ -603,9 +603,9 @@
   <section id="s-usa" hidden>
     <div class="topoUsa"><h2 class="tituloUsa">Viagens Martos</h2><button type="button" class="olhoSaldo" id="uOlho" aria-pressed="false" aria-label="Ocultar valores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button><div class="usaViaj" id="uFotosTopo"></div></div>
     <div id="uConteudo">
-      <div class="card" data-usasec="ab"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 7V4h6v3M9 11v5M15 11v5"/></svg><span>Viagens em aberto</span><label class="caixaTit"><input type="checkbox" data-lista>Em lista</label></h2><div class="filtroUsa"></div><div class="corpoUsa"></div></div>
-      <div class="card" data-usasec="fin"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h13l-2.5 4.5L18 13H5"/><path d="M9 8.5l1.5 1.5 3-3"/></svg><span>Viagens finalizadas</span><label class="caixaTit"><input type="checkbox" data-lista>Em lista</label></h2><div class="filtroUsa"></div><div class="corpoUsa"></div></div>
-      <div class="card" data-usasec="cus"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span>Custos das viagens</span></h2><div class="filtroUsa"></div><div class="corpoUsa"></div></div>
+      <div class="card" data-usasec="ab"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 7V4h6v3M9 11v5M15 11v5"/></svg><span>Viagens em aberto</span><label class="caixaTit"><input type="checkbox" data-lista>Em lista</label></h2><div class="filtroUsa"></div><div class="corpoUsa"></div><button type="button" class="sec gerenciar" data-exportar="usa-ab" hidden><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button></div>
+      <div class="card" data-usasec="fin"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h13l-2.5 4.5L18 13H5"/><path d="M9 8.5l1.5 1.5 3-3"/></svg><span>Viagens finalizadas</span><label class="caixaTit"><input type="checkbox" data-lista>Em lista</label></h2><div class="filtroUsa"></div><div class="corpoUsa"></div><button type="button" class="sec gerenciar" data-exportar="usa-fin" hidden><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button></div>
+      <div class="card" data-usasec="cus"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span>Custos das viagens</span></h2><div class="filtroUsa"></div><div class="corpoUsa"></div><button type="button" class="sec gerenciar" data-exportar="usa-cus"><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button></div>
     </div>
     <div class="card" id="uUsaVazio"><p class="fraco" style="margin-top:0">Cadastre a viagem, com datas e imagem de fundo, os meios de pagamento, os viajantes e as categorias em Ajustes Travel.</p><button type="button" class="sec gerenciar" data-aba="ajustes" data-tela="tUsaViagem">Abrir Ajustes Travel</button></div>
   </section>
@@ -617,6 +617,7 @@
     <div class="card"><div class="udTopo"><label class="caixaTit"><input type="checkbox" id="udDetalhes">Detalhes</label></div><div id="udLista"></div></div>
     <div class="card"><h2 class="faixaTit"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.4 6.4"/></svg><span>Total por categoria</span></h2><div id="udCats"></div></div>
     <div class="card" id="udCatsC"></div><div class="card" id="udCatsP"></div>
+    <button type="button" class="sec gerenciar" data-exportar="usadesp"><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button>
     <button type="button" id="udMais" aria-label="Nova despesa">+</button>
   </section>
 
@@ -646,7 +647,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.55.2 · 05/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.56.0 · 07/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -2571,6 +2572,37 @@ function exportar(tipo) {
     const lista = sec.id === 'conta' ? resumoConta(db, f) : sec.id === 'cartoes' ? resumoCartoes(db, f) : [...resumoConta(db, f), ...resumoCartoes(db, f)].sort((a, b) => nomeCat(a.cat).localeCompare(nomeCat(b.cat)) || a.data.localeCompare(b.data));
     return exportarCSV(nome, CAB_LANC, lista.map(linhaLancCsv));
   }
+  if (tipo.startsWith('usa-')) {
+    const u = usa(), lista = usaListas[tipo.slice(4)];
+    // Uma coluna de custo por moeda que aparece nas viagens exportadas.
+    const moedas = totaisViagens(u, lista).filter((t) => t.valor).map((t) => t.moeda);
+    const cab = ['Viagem', 'Situação', 'Tipo', 'Início', 'Fim', ...moedas.map((m) => `Custos ${moedaUsa(m).codigo} (${moedaUsa(m).simbolo})`)];
+    const linhas = lista.map((v) => {
+      const t = totaisViagem(u, v);
+      return [v.nome, viagemFinalizada(v, h) ? 'Encerrada' : 'Em aberto', v.corporativa ? 'Corporativa' : 'Pessoal', v.inicio ? dataCsv(v.inicio) : '', v.fim ? dataCsv(v.fim) : '',
+        ...moedas.map((m) => numCsv((t.find((x) => x.moeda === m) || { valor: 0 }).valor))];
+    });
+    return exportarCSV({ 'usa-ab': 'viagens-em-aberto', 'usa-fin': 'viagens-finalizadas', 'usa-cus': 'custos-das-viagens' }[tipo], cab, linhas);
+  }
+  if (tipo === 'usadesp') {
+    const u = usa(), v = viagemAberta(), nome = (id) => (u.viajantes.find((p) => p.id === id) || { nome: '?' }).nome;
+    const meio = (id) => ([...u.contas, ...u.cartoes].find((x) => x.id === id) || { nome: '?' }).nome;
+    const desp = u.despesas.filter((d) => d.viagem === v.id).sort((a, b) => a.data.localeCompare(b.data));
+    // Uma coluna por viajante com a parte dele; a sobra de centavos fica com os primeiros, e a soma bate com o valor.
+    const pessoas = [...new Set([...v.viajantes, ...desp.flatMap((d) => d.quem)])];
+    const partes = (d) => { const n = d.quem.length, base = Math.floor(d.valor / n), sobra = d.valor - base * n; return Object.fromEntries(d.quem.map((id, i) => [id, base + (i < sobra ? 1 : 0)])); };
+    const cab = ['Data', 'Descrição', 'Categoria', 'Moeda', 'Valor', 'Situação', ...(v.corporativa ? ['Tipo de despesa'] : []), 'Dividida entre',
+      ...pessoas.map((id) => 'Parte de ' + nome(id)), 'Pago com', 'Valor pago', 'Pago com (2)', 'Valor pago (2)', 'Check-in', 'Check-out', 'Obs'];
+    const linhas = desp.map((d) => {
+      const pt = d.quem.length ? partes(d) : {}, pg = d.pagamentos || [];
+      return [dataCsv(d.data), d.desc, (u.categorias.find((c) => c.id === d.cat) || { nome: '?' }).nome, moedaUsa(d.moeda).codigo, numCsv(d.valor), d.pago === false ? 'A pagar' : 'Pago',
+        ...(v.corporativa ? [naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corporativa'] : []), d.quem.map(nome).join(', '),
+        ...pessoas.map((id) => (id in pt ? numCsv(pt[id]) : '')),
+        pg[0] ? meio(pg[0].meio) : '', pg[0] ? numCsv(pg[0].valor) : '', pg[1] ? meio(pg[1].meio) : '', pg[1] ? numCsv(pg[1].valor) : '',
+        d.checkin ? dataCsv(d.checkin) : '', d.checkout ? dataCsv(d.checkout) : '', d.obs || ''];
+    });
+    return exportarCSV(`despesas-${v.nome}`, cab, linhas);
+  }
   if (tipo === 'cartoes') {
     const ativos = db.cartoes.filter((c) => ativoEm(c, mes)), marcados = ativos.filter((c) => filtroCartoes.has(c.id));
     const linhas = (marcados.length ? marcados : ativos).flatMap((c) => itensFatura(db, c, mes).sort((a, b) => a.lanc.data.localeCompare(b.lanc.data))
@@ -2960,9 +2992,13 @@ function renderUsa() {
     return filtrarViagens(base, f);
   };
   const corpo = (id) => document.querySelector(`[data-usasec="${id}"] .corpoUsa`);
-  corpo('ab').innerHTML = htmlViagens(todas.filter((v) => !viagemFinalizada(v, h)), 'Nenhuma viagem em aberto.', usaSec.ab.lista);
-  corpo('fin').innerHTML = htmlViagens(filtrar('fin', todas.filter((v) => viagemFinalizada(v, h))), 'Nenhuma viagem finalizada.', usaSec.fin.lista);
-  const filtradas = filtrar('cus', todas);
+  usaListas.ab = todas.filter((v) => !viagemFinalizada(v, h));
+  usaListas.fin = filtrar('fin', todas.filter((v) => viagemFinalizada(v, h)));
+  corpo('ab').innerHTML = htmlViagens(usaListas.ab, 'Nenhuma viagem em aberto.', usaSec.ab.lista);
+  corpo('fin').innerHTML = htmlViagens(usaListas.fin, 'Nenhuma viagem finalizada.', usaSec.fin.lista);
+  // Exportar aparece nas viagens so na visao Em lista; em Custos, sempre.
+  for (const id of ['ab', 'fin']) document.querySelector(`[data-exportar="usa-${id}"]`).hidden = !usaSec[id].lista;
+  const filtradas = usaListas.cus = filtrar('cus', todas);
   corpo('cus').innerHTML = !filtradas.length ? '<p class="fraco" style="margin:0">Nenhuma viagem no filtro.</p>'
     : filtradas.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}"><span class="q">${viagemFinalizada(v, h) ? '<span class="tipoViag fim">Encerrada</span>' : '<span class="tipoViag aberta">Em aberto</span>'} ${pilTipo(v)}<br><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small>${htmlCorpPes(u, v)}</span></button>`).join('')
       + `<div class="linha"><b class="q">Total</b><b class="valor">${totaisViagens(u, filtradas).map((t) => fmtMoeda(t.valor, t.moeda)).join(' + ')}</b></div>`;
@@ -2974,6 +3010,8 @@ function renderUsa() {
   $('uUsaVazio').hidden = !!u.viagens.length;
   $('uConteudo').hidden = !u.viagens.length;
 }
+// Viagens mostradas em cada secao (com os filtros), para o Exportar.
+const usaListas = { ab: [], fin: [], cus: [] };
 // Secoes da aba Travel: lista ou cards e filtros de cada uma, so na memoria. Viagens em aberto nao tem filtro.
 const usaSec = { ab: { lista: false }, fin: { lista: false, ids: [], ini: '', fim: '' }, cus: { ids: [], ini: '', fim: '' } };
 const INFO_FILTRO = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg>';
