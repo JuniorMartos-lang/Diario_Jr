@@ -831,7 +831,9 @@ const aplicarH = (h, x, y) => { const w = h[6] * x + h[7] * y + h[8]; return [(h
 // Realce de documento: estima o tom do papel em cada regiao (blocos, o mais claro de cada um, suavizado) e
 // divide a imagem por ele. Sombra e luz desigual somem, o papel fica branco e o texto escuro, sem escurecer o resto.
 // lum: Float32Array com o brilho (0 a 255) de cada ponto; devolve Uint8ClampedArray em tons de cinza.
-function realceDocumento(lum, W, H) {
+// preto/branco: abaixo de preto vira preto; acima de branco vira branco. 0,86 apaga o verso que aparece no papel
+// termico sem sumir com a impressao fraca (0,80 apagava linhas claras; 0,92 deixava o verso aparecer).
+function realceDocumento(lum, W, H, preto = 0.45, branco = 0.86) {
   const c = Math.max(8, Math.round(Math.max(W, H) / 48)), gw = Math.ceil(W / c), gh = Math.ceil(H / c), grade = new Float32Array(gw * gh), hist = new Uint32Array(64);
   for (let by = 0; by < gh; by++) {
     for (let bx = 0; bx < gw; bx++) {
@@ -861,8 +863,8 @@ function realceDocumento(lum, W, H) {
       const gx = Math.max(0, Math.min(gw - 1, (x + 0.5) / c - 0.5)), x0 = Math.min(gw - 2, Math.floor(gx)), ax = gw > 1 ? gx - Math.max(0, x0) : 0, xa = Math.max(0, x0), xb = Math.min(gw - 1, xa + 1);
       const fundo = (grade[ya * gw + xa] * (1 - ax) + grade[ya * gw + xb] * ax) * (1 - ay) + (grade[yb * gw + xa] * (1 - ax) + grade[yb * gw + xb] * ax) * ay;
       const v = lum[y * W + x] / Math.max(fundo, 24);
-      // Papel (perto de 1) vira branco; texto (bem abaixo do papel) vira escuro; o meio fica cinza, sem borrar.
-      out[y * W + x] = 255 * Math.max(0, Math.min(1, (v - 0.45) / 0.47));
+      // Papel e o verso aparecendo (acima de 86% do papel) viram branco; texto escuro; a borda da letra fica cinza, sem engrossar.
+      out[y * W + x] = 255 * Math.max(0, Math.min(1, (v - preto) / (branco - preto)));
     }
   }
   return out;

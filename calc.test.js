@@ -849,13 +849,14 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.ok(!c.backupValido({ ...comGoogle, google: { cliente: 'javascript:alert(1)' } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: 'x' }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { ultimoAutoEm: 'ontem' } }));
-  // Realce de documento: papel com sombra forte de um lado (tom 220 a 90) e texto a 50% do papel
+  // Realce de documento: papel com sombra forte de um lado (tom 220 a 90), texto a 40% do papel e o verso aparecendo a 85%
   {
-    const W = 400, H = 300, lum = new Float32Array(W * H), texto = (x, y) => y % 30 < 6 && x % 50 < 35;
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const papel = 220 - 130 * (x / W); lum[y * W + x] = texto(x, y) ? papel * 0.5 : papel; }
+    const W = 400, H = 300, lum = new Float32Array(W * H), texto = (x, y) => y % 30 < 6 && x % 50 < 35, verso = (x, y) => y % 30 > 15 && y % 30 < 20 && x % 50 < 30;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const papel = 220 - 130 * (x / W); lum[y * W + x] = texto(x, y) ? papel * 0.4 : verso(x, y) ? papel * 0.85 : papel; }
     const r = c.realceDocumento(lum, W, H);
-    let papelMin = 255, textoMax = 0;
-    for (let y = 0; y < H; y++) for (let x = 10; x < W - 10; x++) { const v = r[y * W + x]; if (texto(x, y)) textoMax = Math.max(textoMax, v); else if (y % 30 > 9 && x % 50 > 38 && x % 50 < 48) papelMin = Math.min(papelMin, v); }
+    let papelMin = 255, textoMax = 0, versoMin = 255;
+    for (let y = 0; y < H; y++) for (let x = 10; x < W - 10; x++) { const v = r[y * W + x]; if (texto(x, y)) textoMax = Math.max(textoMax, v); else if (verso(x, y)) versoMin = Math.min(versoMin, v); else if (y % 30 > 9 && x % 50 > 38 && x % 50 < 48) papelMin = Math.min(papelMin, v); }
+    assert.ok(versoMin >= 235, 'verso aparecendo some: ' + versoMin);
     assert.ok(papelMin >= 235, 'papel branco ate na sombra: ' + papelMin);
     assert.ok(textoMax <= 40, 'texto escuro dos dois lados: ' + textoMax);
   }
