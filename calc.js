@@ -828,6 +828,46 @@ function homografia(de, para) {
   return [...b.map((x, i) => x / A[i][i]), 1];
 }
 const aplicarH = (h, x, y) => { const w = h[6] * x + h[7] * y + h[8]; return [(h[0] * x + h[1] * y + h[2]) / w, (h[3] * x + h[4] * y + h[5]) / w]; };
+// Realce de documento: estima o tom do papel em cada regiao (blocos, o mais claro de cada um, suavizado) e
+// divide a imagem por ele. Sombra e luz desigual somem, o papel fica branco e o texto escuro, sem escurecer o resto.
+// lum: Float32Array com o brilho (0 a 255) de cada ponto; devolve Uint8ClampedArray em tons de cinza.
+function realceDocumento(lum, W, H) {
+  const c = Math.max(8, Math.round(Math.max(W, H) / 48)), gw = Math.ceil(W / c), gh = Math.ceil(H / c), grade = new Float32Array(gw * gh), hist = new Uint32Array(64);
+  for (let by = 0; by < gh; by++) {
+    for (let bx = 0; bx < gw; bx++) {
+      hist.fill(0);
+      let n = 0;
+      for (let y = by * c; y < Math.min(H, by * c + c); y++) for (let x = bx * c; x < Math.min(W, bx * c + c); x++) { hist[Math.min(63, lum[y * W + x] >> 2)]++; n++; }
+      // Tom do papel no bloco: o ponto em que ficam 10% dos pontos mais claros.
+      let s = 0, i = 63;
+      for (; i > 0; i--) { s += hist[i]; if (s >= n * 0.1) break; }
+      grade[by * gw + bx] = i * 4 + 2;
+    }
+  }
+  // Suaviza a grade duas vezes, para nao aparecer o desenho dos blocos.
+  for (let vez = 0; vez < 2; vez++) {
+    const g2 = new Float32Array(grade.length);
+    for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
+      let s = 0, n = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const yy = y + dy, xx = x + dx; if (yy >= 0 && yy < gh && xx >= 0 && xx < gw) { s += grade[yy * gw + xx]; n++; } }
+      g2[y * gw + x] = s / n;
+    }
+    grade.set(g2);
+  }
+  const out = new Uint8ClampedArray(W * H);
+  for (let y = 0; y < H; y++) {
+    const gy = Math.max(0, Math.min(gh - 1, (y + 0.5) / c - 0.5)), y0 = Math.min(gh - 2, Math.floor(gy)), ay = gh > 1 ? gy - Math.max(0, y0) : 0, ya = Math.max(0, y0), yb = Math.min(gh - 1, ya + 1);
+    for (let x = 0; x < W; x++) {
+      const gx = Math.max(0, Math.min(gw - 1, (x + 0.5) / c - 0.5)), x0 = Math.min(gw - 2, Math.floor(gx)), ax = gw > 1 ? gx - Math.max(0, x0) : 0, xa = Math.max(0, x0), xb = Math.min(gw - 1, xa + 1);
+      const fundo = (grade[ya * gw + xa] * (1 - ax) + grade[ya * gw + xb] * ax) * (1 - ay) + (grade[yb * gw + xa] * (1 - ax) + grade[yb * gw + xb] * ax) * ay;
+      const v = lum[y * W + x] / Math.max(fundo, 24);
+      // Papel (perto de 1) vira branco; texto (bem abaixo do papel) vira escuro; o meio fica cinza, sem borrar.
+      out[y * W + x] = 255 * Math.max(0, Math.min(1, (v - 0.45) / 0.47));
+    }
+  }
+  return out;
+}
+
 // PDF simples, uma pagina por imagem JPEG (largura A4, altura na proporcao da foto). paginas: [{ jpeg: Uint8Array, w, h }].
 function montarPdf(paginas) {
   const enc = new TextEncoder(), partes = [], offs = [];
@@ -919,7 +959,7 @@ function backupValido(d) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    ehClienteGoogle, compararDados, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
+    ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
     protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
