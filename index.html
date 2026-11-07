@@ -696,7 +696,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.62.0 · 07/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.63.0 · 07/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -748,9 +748,9 @@
     </div>
     <div class="tela" id="tAgenda" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Lembretes</h2></div>
-      <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Avisos no celular pelo Google Agenda, mesmo com o app fechado: cada conta a pagar ainda não paga e cada fatura de cartão com algo a pagar vira um evento às 9h do dia do vencimento, nos próximos 3 meses, numa agenda própria, "Controle Diário — Vencimentos" (a sua agenda principal não é tocada). Ao pagar, alterar ou excluir no app, o evento muda ou some. Para receber o aviso, deixe essa agenda visível no app Google Agenda e as notificações dele ligadas.</span></p>
+      <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Avisos no celular, mesmo com o app fechado: cada conta a pagar ainda não paga e cada fatura de cartão com algo a pagar, nos próximos 3 meses, vira um evento às 9h do dia do vencimento numa agenda própria e uma tarefa numa lista própria, as duas "Controle Diário — Vencimentos" (a sua agenda e as suas outras tarefas não são tocadas). Ao pagar no app, o evento sai e a tarefa fica concluída; desfeito o pagamento, a tarefa volta a pendente; ao alterar ou excluir, os dois acompanham. Para receber o aviso, deixe a agenda visível no app Google Agenda e as notificações dele ligadas.</span></p>
       <div class="card">
-        <label class="chaveLiga"><span>Lembretes no Google Agenda</span><input type="checkbox" role="switch" class="chave" id="agChave"></label>
+        <label class="chaveLiga"><span>Lembretes no Google Agenda e Tarefas</span><input type="checkbox" role="switch" class="chave" id="agChave"></label>
         <p id="agStatus" class="fraco"></p>
         <div class="botoesMini"><button type="button" class="mini" id="agAgora">Atualizar agora</button></div>
       </div>
@@ -2855,11 +2855,11 @@ $('aGoogleCliente').oninput = () => { $('aGoogleCliente').dataset.editando = '1'
 $('aGoogleCliente').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); gravarClienteGoogle(); } };
 const CHAVE_GTOKEN = 'controle-diario-gtoken';
 let gToken = null, gValidade = 0, gEscopos = '';
-const ESC_DRIVE = 'https://www.googleapis.com/auth/drive.file', ESC_AGENDA = 'https://www.googleapis.com/auth/calendar.app.created';
+const ESC_DRIVE = 'https://www.googleapis.com/auth/drive.file', ESC_AGENDA = 'https://www.googleapis.com/auth/calendar.app.created', ESC_TAREFAS = 'https://www.googleapis.com/auth/tasks';
 // O acesso do Google (cerca de 1 hora, so para os arquivos e a agenda do app) fica guardado ate vencer, fora do backup.
 try { const t = JSON.parse(localStorage.getItem(CHAVE_GTOKEN)); if (t && t.ate > Date.now()) { gToken = t.token; gValidade = t.ate; gEscopos = t.escopos || ESC_DRIVE; } } catch {}
 const agendaLigada = () => !!(db.google && db.google.agenda && db.google.agenda.ativo);
-const tokenAgenda = () => tokenValido() && gEscopos.includes(ESC_AGENDA);
+const tokenAgenda = () => tokenValido() && gEscopos.includes(ESC_AGENDA) && gEscopos.includes(ESC_TAREFAS);
 const tokenValido = () => !!gToken && Date.now() < gValidade;
 // Carrega o script do Google antes do toque: a janela de login so abre se for pedida direto no toque.
 function carregarGoogle() {
@@ -2873,10 +2873,10 @@ function carregarGoogle() {
 // Com os lembretes ligados (ou ao liga-los), pede tambem a agenda do app.
 function tokenGoogle(comAgenda = agendaLigada()) {
   return new Promise((ok, falha) => {
-    if (gToken && Date.now() < gValidade && (!comAgenda || gEscopos.includes(ESC_AGENDA))) return ok(gToken);
+    if (gToken && Date.now() < gValidade && (!comAgenda || (gEscopos.includes(ESC_AGENDA) && gEscopos.includes(ESC_TAREFAS)))) return ok(gToken);
     if (!(window.google && google.accounts && google.accounts.oauth2)) { carregarGoogle(); return falha(new Error('O Google ainda não carregou. Confira a internet e toque de novo.')); }
     google.accounts.oauth2.initTokenClient({
-      client_id: clienteGoogle(), scope: comAgenda ? `${ESC_DRIVE} ${ESC_AGENDA}` : ESC_DRIVE,
+      client_id: clienteGoogle(), scope: comAgenda ? `${ESC_DRIVE} ${ESC_AGENDA} ${ESC_TAREFAS}` : ESC_DRIVE,
       callback: (r) => {
         if (r.error) return falha(new Error(r.error_description || r.error));
         gToken = r.access_token; gValidade = Date.now() + (Number(r.expires_in || 3600) - 60) * 1000; gEscopos = r.scope || ESC_DRIVE;
@@ -3193,11 +3193,24 @@ addEventListener('online', () => { mostrarSync(); sincronizar(); enviarRecibos()
 const CHAVE_AGENDA = 'controle-diario-agenda', NOME_AGENDA = 'Controle Diário — Vencimentos', HORA_AVISO = '09:00:00';
 let agendaLocal = {};
 try { agendaLocal = JSON.parse(localStorage.getItem(CHAVE_AGENDA)) || {}; } catch { agendaLocal = {}; }
-async function gcal(caminho, opc = {}) {
-  const r = await fetch('https://www.googleapis.com/calendar/v3' + caminho, { ...opc, headers: { 'Content-Type': 'application/json', ...(opc.headers || {}), Authorization: 'Bearer ' + gToken } });
+const apiGoogle = (base, nome) => async (caminho, opc = {}) => {
+  const r = await fetch(base + caminho, { ...opc, headers: { 'Content-Type': 'application/json', ...(opc.headers || {}), Authorization: 'Bearer ' + gToken } });
   if (r.status === 401) { gToken = null; try { localStorage.removeItem(CHAVE_GTOKEN); } catch {} throw new Error('O acesso ao Google expirou. Toque em Atualizar agora para entrar.'); }
-  if (!r.ok) { const e = new Error(`Google Agenda respondeu ${r.status}. ${(await r.text()).slice(0, 160)}`); e.status = r.status; throw e; }
+  if (!r.ok) { const e = new Error(`${nome} respondeu ${r.status}. ${(await r.text()).slice(0, 160)}`); e.status = r.status; throw e; }
   return r;
+};
+const gcal = apiGoogle('https://www.googleapis.com/calendar/v3', 'Google Agenda'), gtasks = apiGoogle('https://tasks.googleapis.com/tasks/v1', 'Google Tarefas');
+// Tarefa: o mesmo titulo do evento, o dia do vencimento (o Google nao aceita hora em tarefa) e a chave no fim da nota,
+// que liga a tarefa ao lancamento ou a fatura. Pago no app = concluida; desfeito = pendente de novo.
+const corpoTarefa = (chave, info) => ({ title: info.titulo, notes: `${info.detalhe}\n[cd:${chave}]`, due: `${info.data}T00:00:00.000Z`, status: info.pago ? 'completed' : 'needsAction' });
+async function listaTarefas() {
+  const id = db.google.agenda.tarefas;
+  if (id) { try { await gtasks(`/users/@me/lists/${encodeURIComponent(id)}`); return id; } catch (err) { if (err.status !== 404 && err.status !== 410 && err.status !== 400) throw err; } }
+  const l = await (await gtasks('/users/@me/lists', { method: 'POST', body: JSON.stringify({ title: NOME_AGENDA }) })).json();
+  db.google.agenda.tarefas = l.id;
+  try { localStorage.setItem(CHAVE, JSON.stringify(db)); } catch {}
+  agendarSync();
+  return l.id;
 }
 const fusoAgenda = () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo';
 function corpoEvento(it) {
@@ -3218,8 +3231,8 @@ async function agendaDoApp() {
 }
 async function sincronizarAgenda(forcar) {
   if (!agendaLigada() || agendaRodando || !navigator.onLine || !tokenAgenda()) return mostrarAgenda();
-  const itens = lembretesAgenda(db, hoje()), assin = assinatura(JSON.stringify(itens));
-  if (!forcar && assin === agendaLocal.assin && agendaLocal.id === db.google.agenda.id && agendaLocal.dia === hoje()) return mostrarAgenda();
+  const itens = lembretesAgenda(db, hoje()), sit = situacaoLembretes(db, hoje()), assin = assinatura(JSON.stringify([itens, [...sit]]));
+  if (!forcar && assin === agendaLocal.assin && agendaLocal.id === db.google.agenda.id && agendaLocal.tarefas === db.google.agenda.tarefas && agendaLocal.dia === hoje()) return mostrarAgenda();
   agendaRodando = true; agendaErro = ''; mostrarAgenda();
   try {
     const cal = encodeURIComponent(await agendaDoApp()), existentes = [];
@@ -3243,7 +3256,32 @@ async function sincronizarAgenda(forcar) {
       if (quer.has(e.id)) continue;
       try { await gcal(`/calendars/${cal}/events/${e.id}`, { method: 'DELETE' }); } catch (err) { if (err.status !== 404 && err.status !== 410) throw err; }
     }
-    agendaLocal = { assin, id: db.google.agenda.id, dia: hoje(), em: new Date().toISOString(), n: itens.length };
+    // Tarefas: cada lembrete vira uma tarefa; as que ja existem seguem a situacao no app (paga = concluida), mesmo
+    // depois do vencimento; lancamento ou fatura que nao existe mais apaga a tarefa. Tarefa sem a chave (feita a mao) fica.
+    const lista = encodeURIComponent(await listaTarefas()), tarefas = [];
+    pt = '';
+    do {
+      const j = await (await gtasks(`/lists/${lista}/tasks?showCompleted=true&showHidden=true&maxResults=100${pt ? '&pageToken=' + pt : ''}`)).json();
+      tarefas.push(...(j.items || []));
+      pt = j.nextPageToken || '';
+    } while (pt);
+    const comTarefa = new Set();
+    for (const t of tarefas) {
+      const ch = ((t.notes || '').match(/\[cd:([^\]]+)\]/) || [])[1];
+      if (!ch) continue;
+      const info = sit.get(ch);
+      if (!info || comTarefa.has(ch)) { try { await gtasks(`/lists/${lista}/tasks/${t.id}`, { method: 'DELETE' }); } catch (err) { if (err.status !== 404 && err.status !== 410) throw err; } continue; }
+      comTarefa.add(ch);
+      const corpo = corpoTarefa(ch, info);
+      if (t.title === corpo.title && (t.notes || '') === corpo.notes && (t.due || '').slice(0, 10) === info.data && t.status === corpo.status) continue;
+      await gtasks(`/lists/${lista}/tasks/${t.id}`, { method: 'PATCH', body: JSON.stringify(corpo.status === 'needsAction' ? { ...corpo, completed: null } : corpo) });
+    }
+    for (const it of itens) {
+      if (comTarefa.has(it.chave)) continue;
+      await gtasks(`/lists/${lista}/tasks`, { method: 'POST', body: JSON.stringify(corpoTarefa(it.chave, sit.get(it.chave))) });
+      comTarefa.add(it.chave);
+    }
+    agendaLocal = { assin, id: db.google.agenda.id, tarefas: db.google.agenda.tarefas, dia: hoje(), em: new Date().toISOString(), n: itens.length, nt: comTarefa.size };
     try { localStorage.setItem(CHAVE_AGENDA, JSON.stringify(agendaLocal)); } catch {}
   } catch (err) {
     agendaErro = err.message;
@@ -3267,34 +3305,36 @@ function mostrarAgenda() {
     : agendaRodando ? 'Atualizando a agenda...'
       : agendaErro ? `Erro: ${agendaErro}`
         : !tokenAgenda() ? 'Ligados. Toque em Atualizar agora para entrar no Google e atualizar a agenda.'
-          : `Ligados.${quando ? ` ${agendaLocal.n} ${agendaLocal.n === 1 ? 'lembrete' : 'lembretes'} nos próximos 3 meses. Última atualização: ${quando}.` : ''}`;
+          : `Ligados.${quando ? ` ${agendaLocal.n} ${agendaLocal.n === 1 ? 'evento' : 'eventos'} às 9h nos próximos 3 meses e ${agendaLocal.nt || 0} ${agendaLocal.nt === 1 ? 'tarefa' : 'tarefas'}. Última atualização: ${quando}.` : ''}`;
 }
 $('agAgora').onclick = async () => {
   try { await tokenGoogle(true); } catch (err) { return avisar('Google Agenda', err.message); }
-  if (!gEscopos.includes(ESC_AGENDA)) return avisar('Google Agenda', 'A permissão da agenda não foi dada. Toque de novo e marque o acesso ao Google Agenda.');
+  if (!tokenAgenda()) return avisar('Google Agenda e Tarefas', 'Falta permissão. Toque de novo e, na janela do Google, marque o acesso ao Google Agenda e ao Google Tarefas.');
   await sincronizarAgenda(true);
   if (agendaErro) avisar('Google Agenda', agendaErro);
 };
 $('agChave').onchange = async () => {
   if ($('agChave').checked) {
     try { await tokenGoogle(true); } catch (err) { mostrarAgenda(); return avisar('Google Agenda', err.message); }
-    if (!gEscopos.includes(ESC_AGENDA)) { mostrarAgenda(); return avisar('Google Agenda', 'A permissão da agenda não foi dada. Ligue de novo e marque o acesso ao Google Agenda.'); }
+    if (!tokenAgenda()) { mostrarAgenda(); return avisar('Google Agenda e Tarefas', 'Falta permissão. Ligue de novo e, na janela do Google, marque o acesso ao Google Agenda e ao Google Tarefas.'); }
     db.google = { ...(db.google || {}), agenda: { ...((db.google && db.google.agenda) || {}), ativo: true } };
     salvar();
     await sincronizarAgenda(true);
     if (agendaErro) return avisar('Google Agenda', agendaErro);
-    avisar('Lembretes ligados', `A agenda "${NOME_AGENDA}" foi criada no seu Google Agenda com ${agendaLocal.n || 0} ${agendaLocal.n === 1 ? 'lembrete' : 'lembretes'}. No app Google Agenda, confira se ela está marcada (menu ☰) e se as notificações estão ligadas.`);
+    avisar('Lembretes ligados', `Foram criados ${agendaLocal.n || 0} ${agendaLocal.n === 1 ? 'evento' : 'eventos'} às 9h na agenda "${NOME_AGENDA}" e as tarefas na lista de mesmo nome do Google Tarefas. No app Google Agenda, confira se a agenda está marcada (menu ☰) e se as notificações estão ligadas.`);
   } else {
-    if (!await modal('Desligar os lembretes?', `A agenda "${NOME_AGENDA}" e os lembretes dela serão apagados do Google Agenda.`, 'Sim, desligar', 'Cancelar')) return mostrarAgenda();
+    if (!await modal('Desligar os lembretes?', `A agenda e a lista de tarefas "${NOME_AGENDA}" serão apagadas do Google Agenda e do Google Tarefas.`, 'Sim, desligar', 'Cancelar')) return mostrarAgenda();
     const id = db.google && db.google.agenda && db.google.agenda.id;
     let apagou = !id;
     if (id && tokenAgenda()) { try { await gcal(`/calendars/${encodeURIComponent(id)}`, { method: 'DELETE' }); apagou = true; } catch (err) { apagou = err.status === 404 || err.status === 410; } }
+    const lt = db.google && db.google.agenda && db.google.agenda.tarefas;
+    if (lt && tokenAgenda()) { try { await gtasks(`/users/@me/lists/${encodeURIComponent(lt)}`, { method: 'DELETE' }); } catch (err) { if (err.status !== 404 && err.status !== 410) apagou = false; } } else if (lt) apagou = false;
     db.google.agenda = { ativo: false };
     agendaLocal = {};
     try { localStorage.removeItem(CHAVE_AGENDA); } catch {}
     salvar();
     mostrarAgenda();
-    if (!apagou) avisar('Lembretes desligados', `Não foi possível apagar a agenda agora (sem login do Google ou sem internet). Para tirar os avisos, apague a agenda "${NOME_AGENDA}" no Google Agenda.`);
+    if (!apagou) avisar('Lembretes desligados', `Não foi possível apagar tudo agora (sem login do Google ou sem internet). Para tirar os avisos, apague a agenda e a lista de tarefas "${NOME_AGENDA}" no Google Agenda e no Google Tarefas.`);
   }
 };
 addEventListener('offline', mostrarSync);

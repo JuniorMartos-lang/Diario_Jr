@@ -838,7 +838,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.deepStrictEqual(volta.usa, comUsa.usa);
   }
   // ID do cliente do Google (Ajustes > Backup) passa pelos dois tipos de backup; formato errado nao restaura
-  const comGoogle = { ...JSON.parse(JSON.stringify(dp)), google: { cliente: '729588885596-abc123.apps.googleusercontent.com', ultimoAutoEm: '2026-11-07T18:30:05.000Z', agenda: { ativo: true, id: 'abc123def@group.calendar.google.com' } } };
+  const comGoogle = { ...JSON.parse(JSON.stringify(dp)), google: { cliente: '729588885596-abc123.apps.googleusercontent.com', ultimoAutoEm: '2026-11-07T18:30:05.000Z', agenda: { ativo: true, id: 'abc123def@group.calendar.google.com', tarefas: 'MDQ0NjE3ODM4NjU1NjIxNzk0NDk6MDow' } } };
   for (const arq of [await c.cifrarBackup(comGoogle, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comGoogle, gApp)]) {
     const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
     const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-07');
@@ -851,6 +851,8 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.ok(!c.backupValido({ ...comGoogle, google: { ultimoAutoEm: 'ontem' } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { agenda: { ativo: 'sim' } } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { agenda: { ativo: true, id: '<script>' } } }));
+  assert.ok(c.backupValido({ ...comGoogle, google: { agenda: { ativo: true, id: 'x@group.calendar.google.com', tarefas: 'MDQ0NjE3ODM4NjU1NjIxNzk0NDk6MDow' } } }));
+  assert.ok(!c.backupValido({ ...comGoogle, google: { agenda: { ativo: true, tarefas: 'a b' } } }));
   // Lembretes do Google Agenda: so conta a pagar nao paga e fatura com algo a pagar, de hoje ate 3 meses
   {
     const nuA = { id: 'nu', nome: 'Nu', fechamento: 25, vencimento: 5, contaPag: 'conta' };
@@ -862,7 +864,13 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
         { id: 5, tipo: 'S', desc: 'Compra', data: '2026-11-10', valor: 30000, cat: 'a', meio: 'nu', pago: true },
         { id: 6, tipo: 'E', desc: 'Salario', data: '2026-11-25', valor: 900000, cat: 'a', meio: 'conta', pago: false }] }, '2026-11-07');
     assert.deepStrictEqual(c.lembretesAgenda(dbA, '2026-11-07').map((x) => [x.chave, x.data]), [['lanc:1', '2026-11-20'], ['fat:nu:2026-12', '2026-12-05']]);
+    // Situacao para as tarefas: a conta paga e a atrasada tambem aparecem, cada uma com pago certo
+    const sit = c.situacaoLembretes(dbA, '2026-11-07');
+    assert.deepStrictEqual([sit.get('lanc:1').pago, sit.get('lanc:2').pago, sit.get('lanc:3').pago, sit.has('lanc:5'), sit.has('lanc:6')], [false, true, false, false, false]);
+    assert.strictEqual(sit.get('fat:nu:2026-12').pago, false);
     dbA.faturasPagas['nu|2026-12'] = { valor: 30000, conta: 'conta', data: '2026-12-01' };
+    const sitPaga = c.situacaoLembretes(dbA, '2026-11-07').get('fat:nu:2026-12');
+    assert.ok(sitPaga.pago && sitPaga.titulo.includes('300,00'), 'fatura paga vira concluida, com o valor pago');
     assert.deepStrictEqual(c.lembretesAgenda(dbA, '2026-11-07').map((x) => x.chave), ['lanc:1'], 'fatura paga sai');
     assert.ok(/^[a-v0-9]{5,1024}$/.test(c.idEvento('fat:nu:2026-12')) && c.idEvento('lanc:1') !== c.idEvento('lanc:2'));
   }
