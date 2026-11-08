@@ -87,11 +87,14 @@
   #udRecLista .linha { gap: 8px; }
   /* Local da despesa: marcador vermelho antes do nome, sugestoes da busca e tela do mapa. */
   /* Linha com local: a linha (abre a edicao) e, na direita, o botao do mapa, com area de toque propria. */
-  .linhaMapa { display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--linha); }
+  /* Linha com local: o botao do mapa e separado da linha (que abre a edicao), mas fica por cima do lugar
+     reservado na linha das etiquetas, a esquerda do Corp./Pessoal (posicionarMapas). */
+  .linhaMapa { position: relative; border-top: 1px solid var(--linha); }
   .dia + .linhaMapa { border-top: 0; }
-  .linhaMapa > .linha { flex: 1; min-width: 0; border-top: 0; }
-  button.btnMapa { flex: none; width: 44px; height: 44px; min-height: 0; padding: 0; border-radius: 50%; background: var(--campo); color: #c0262d !important; display: grid; place-items: center; }
-  button.btnMapa svg { width: 24px; height: 24px; fill: currentColor; }
+  .linhaMapa > .linha { border-top: 0; }
+  .pinoLugar { display: inline-block; width: 20px; height: 18px; flex: none; }
+  button.btnMapa { position: absolute; left: 0; top: 0; z-index: 1; width: 36px; height: 36px; min-height: 0; padding: 0; border-radius: 50%; background: none; color: #c0262d !important; display: grid; place-items: center; }
+  button.btnMapa svg { width: 20px; height: 20px; fill: currentColor; }
   .pino { display: inline-flex; align-items: center; vertical-align: -4px; margin-right: 4px; color: #c0262d; cursor: pointer; }
   .pino svg { width: 20px; height: 20px; fill: currentColor; }
   .localSug .linha { gap: 8px; }
@@ -715,7 +718,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.64.1 · 07/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.64.2 · 07/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -4003,8 +4006,9 @@ function renderUsaDesp() {
     // Dia como no Fluxo: "30 de novembro", ou Hoje.
     const cab = d.data !== dia ? `<h3 class="dia">${d.data === h ? 'Hoje' : new Date(d.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</h3>` : '';
     dia = d.data;
-    return cab + `${d.local ? '<div class="linhaMapa">' : ''}<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}${(d.recibos || []).length ? ` <b class="clipe" title="${d.recibos.length} ${d.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${d.recibos.length > 1 ? d.recibos.length : ''}</b>` : ''}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>${d.local ? `<button type="button" class="btnMapa" data-usamapa="${esc(d.id)}" aria-label="Ver ${esc(d.local.nome)} no mapa">${PINO}</button></div>` : ''}`;
+    return cab + `${d.local ? '<div class="linhaMapa">' : ''}<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}${(d.recibos || []).length ? ` <b class="clipe" title="${d.recibos.length} ${d.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${d.recibos.length > 1 ? d.recibos.length : ''}</b>` : ''}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${d.local ? '<span class="pinoLugar" aria-hidden="true"></span>' : ''}${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>${d.local ? `<button type="button" class="btnMapa" data-usamapa="${esc(d.id)}" aria-label="Ver ${esc(d.local.nome)} no mapa">${PINO}</button></div>` : ''}`;
   }).join('') || '<p class="fraco" style="margin:0">Nenhuma despesa ainda. Toque em + para lançar.</p>';
+  requestAnimationFrame(posicionarMapas);
   // Por categoria, uma parte por moeda (base primeiro); o total de cada moeda e o mesmo do alto da tela.
   $('udCats').innerHTML = htmlCatsViagem(u, v);
   // Viagem corporativa: o mesmo agrupamento so das despesas corporativas e so das pessoais.
@@ -4077,6 +4081,18 @@ async function escolherLocal(placeId) {
   }
 }
 // Tela do mapa: abre por cima e entra no historico, entao o voltar do celular fecha.
+// Coloca cada botao do mapa centralizado sobre o seu lugar reservado (as medidas so existem com a lista visivel).
+function posicionarMapas() {
+  for (const caixa of document.querySelectorAll('#udLista .linhaMapa')) {
+    const lugar = caixa.querySelector('.pinoLugar'), b = caixa.querySelector('.btnMapa');
+    if (!lugar || !b) continue;
+    const c = caixa.getBoundingClientRect(), l = lugar.getBoundingClientRect();
+    if (!l.width) continue;
+    b.style.left = `${l.left - c.left + l.width / 2 - b.offsetWidth / 2}px`;
+    b.style.top = `${l.top - c.top + l.height / 2 - b.offsetHeight / 2}px`;
+  }
+}
+if (window.ResizeObserver) new ResizeObserver(posicionarMapas).observe($('udLista'));
 function abrirMapa(id) {
   const d = usa().despesas.find((x) => x.id === id);
   if (d && d.local) abrirMapaLocal(d.local, `${d.desc} · ${dataBR(d.data)} · ${fmtMoeda(d.valor, d.moeda)}`);
