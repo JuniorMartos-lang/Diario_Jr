@@ -86,6 +86,12 @@
   /* Recibos: lista no popup da despesa e dialogo do recorte. */
   #udRecLista .linha { gap: 8px; }
   /* Local da despesa: marcador vermelho antes do nome, sugestoes da busca e tela do mapa. */
+  /* Linha com local: a linha (abre a edicao) e, na direita, o botao do mapa, com area de toque propria. */
+  .linhaMapa { display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--linha); }
+  .dia + .linhaMapa { border-top: 0; }
+  .linhaMapa > .linha { flex: 1; min-width: 0; border-top: 0; }
+  button.btnMapa { flex: none; width: 44px; height: 44px; min-height: 0; padding: 0; border-radius: 50%; background: var(--campo); color: #c0262d !important; display: grid; place-items: center; }
+  button.btnMapa svg { width: 24px; height: 24px; fill: currentColor; }
   .pino { display: inline-flex; align-items: center; vertical-align: -4px; margin-right: 4px; color: #c0262d; cursor: pointer; }
   .pino svg { width: 20px; height: 20px; fill: currentColor; }
   .localSug .linha { gap: 8px; }
@@ -94,6 +100,7 @@
   .localEsc[hidden] { display: none; }
   .localEsc .q { flex: 1; min-width: 0; overflow-wrap: anywhere; }
   .localEsc button { flex: none; min-height: 36px; padding: 4px 10px; font-size: 13px; }
+  .localBotoes { display: flex; flex-direction: column; gap: 6px; flex: none; }
   dialog#dMapa { width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; border-radius: 0; padding: 12px 16px; }
   #mapaFrame { display: block; width: 100%; height: 55vh; border: 0; border-radius: 12px; background: var(--campo); }
   .mapaEnd { font-weight: 600; margin: 10px 0 2px; overflow-wrap: anywhere; }
@@ -708,7 +715,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.64.0 · 07/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.64.1 · 07/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -3996,7 +4003,7 @@ function renderUsaDesp() {
     // Dia como no Fluxo: "30 de novembro", ou Hoje.
     const cab = d.data !== dia ? `<h3 class="dia">${d.data === h ? 'Hoje' : new Date(d.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</h3>` : '';
     dia = d.data;
-    return cab + `<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${d.local ? `<span class="pino" data-usamapa="${esc(d.id)}" title="Ver ${esc(d.local.nome)} no mapa">${PINO}</span>` : ''}${esc(d.desc)}${(d.recibos || []).length ? ` <b class="clipe" title="${d.recibos.length} ${d.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${d.recibos.length > 1 ? d.recibos.length : ''}</b>` : ''}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>`;
+    return cab + `${d.local ? '<div class="linhaMapa">' : ''}<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}${(d.recibos || []).length ? ` <b class="clipe" title="${d.recibos.length} ${d.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${d.recibos.length > 1 ? d.recibos.length : ''}</b>` : ''}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>${d.local ? `<button type="button" class="btnMapa" data-usamapa="${esc(d.id)}" aria-label="Ver ${esc(d.local.nome)} no mapa">${PINO}</button></div>` : ''}`;
   }).join('') || '<p class="fraco" style="margin:0">Nenhuma despesa ainda. Toque em + para lançar.</p>';
   // Por categoria, uma parte por moeda (base primeiro); o total de cada moeda e o mesmo do alto da tela.
   $('udCats').innerHTML = htmlCatsViagem(u, v);
@@ -4023,9 +4030,12 @@ let udLocal = null, locSessao = '', locTimer = null;
 function mostrarUdLocal() {
   $('udLocalEsc').hidden = !udLocal;
   $('udLocalBusca').hidden = !!udLocal;
-  $('udLocalEsc').innerHTML = udLocal ? `<span class="pino">${PINO}</span><span class="q"><b>${esc(udLocal.nome)}</b><br><small>${esc(udLocal.endereco)}</small></span><button type="button" class="sec" id="udLocalTirar">Remover</button>` : '';
+  $('udLocalEsc').innerHTML = udLocal ? `<span class="pino">${PINO}</span><span class="q"><b>${esc(udLocal.nome)}</b><br><small>${esc(udLocal.endereco)}</small></span><span class="localBotoes"><button type="button" id="udLocalVer">Ver no mapa</button><button type="button" class="sec" id="udLocalTirar">Remover</button></span>` : '';
 }
-$('udLocalEsc').onclick = (e) => { if (e.target.closest('#udLocalTirar')) { udLocal = null; mostrarUdLocal(); $('udLocalBusca').focus(); } };
+$('udLocalEsc').onclick = (e) => {
+  if (e.target.closest('#udLocalVer')) { abrirMapaLocal(udLocal, $('udDesc').value.trim()); return; }
+  if (e.target.closest('#udLocalTirar')) { udLocal = null; mostrarUdLocal(); $('udLocalBusca').focus(); }
+};
 $('udLocalBusca').oninput = () => {
   clearTimeout(locTimer);
   const t = $('udLocalBusca').value.trim();
@@ -4069,11 +4079,13 @@ async function escolherLocal(placeId) {
 // Tela do mapa: abre por cima e entra no historico, entao o voltar do celular fecha.
 function abrirMapa(id) {
   const d = usa().despesas.find((x) => x.id === id);
-  if (!d || !d.local) return;
-  const l = d.local, ponto = `${l.lat},${l.lng}`, chave = chaveMaps();
+  if (d && d.local) abrirMapaLocal(d.local, `${d.desc} · ${dataBR(d.data)} · ${fmtMoeda(d.valor, d.moeda)}`);
+}
+function abrirMapaLocal(l, texto) {
+  const ponto = `${l.lat},${l.lng}`, chave = chaveMaps();
   $('mapaTit').textContent = l.nome;
   $('mapaEnd').textContent = l.endereco || ponto;
-  $('mapaDesp').textContent = `${d.desc} · ${dataBR(d.data)} · ${fmtMoeda(d.valor, d.moeda)}`;
+  $('mapaDesp').textContent = texto || '';
   // Com a chave: mapa incorporado do Google (gratuito); sem ela, o mapa simples pelas coordenadas.
   // Quadro novo a cada abertura: trocar o endereco de um quadro ja na pagina cria uma etapa no historico,
   // e o voltar do celular passaria a voltar o mapa em vez de fechar a tela.
