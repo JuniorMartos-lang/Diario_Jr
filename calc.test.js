@@ -835,8 +835,8 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 }, corporativa: true, pais: 'US' }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {} }],
     contas: [{ id: 'u1', nome: 'Wise', icone: svg, iconeNome: 'Wise' }], cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'V', icone: svg, iconeNome: 'Visa',
       finais: [{ n: '1234', tipo: 'V', dono: 'T' }], finaisInativos: [{ n: '5678', tipo: 'F', dono: 'A', motivo: 'Vencido', em: '2026-11-03' }] }],
-    viajantes: [{ id: 'u3', nome: 'Ana', foto: jpg, inicial: true, passaporte: { num: 'XX000001', emissao: '2020-01-02', validade: '2030-01-01', fotos: [{ id: 'p1', em: '2026-11-08T10:00:00.000Z', pag: 1, arq: 'arquivoPassaporte01', nome: 'Passaporte Ana.pdf' }] },
-      vistos: [{ id: 'vi1', pais: 'US', num: 'V123', emissao: '2021-05-05', validade: '2031-05-04', fotos: [{ id: 'p2', em: '2026-11-08T10:00:00.000Z', pag: 1 }] }, { id: 'vi2', pais: 'CA' }] }],
+    viajantes: [{ id: 'u3', nome: 'Ana', foto: jpg, inicial: true, passaporte: { nome: 'ANA TESTE DA SILVA', num: 'XX000001', emissao: '2020-01-02', validade: '2030-01-01', fotos: [{ id: 'p1', em: '2026-11-08T10:00:00.000Z', pag: 1, arq: 'arquivoPassaporte01', nome: 'Passaporte Ana.pdf' }] },
+      vistos: [{ id: 'vi1', pais: 'US', nome: 'SILVA, ANA TESTE', num: 'V123', emissao: '2021-05-05', validade: '2031-05-04', fotos: [{ id: 'p2', em: '2026-11-08T10:00:00.000Z', pag: 1 }] }, { id: 'vi2', pais: 'CA' }] }],
     categorias: [{ id: 'u4', nome: 'Parques', simbolo: 'carro', cor: '#2f8486', arquivadaEm: '2026-11-03' }],
     itinerario: [{ id: 'i1', viagem: 'v1', tipo: 'aereo', titulo: 'AAA - BBB', data: '2027-04-04', hora: '22:40', fuso: 'GMT-3', fim: '2027-04-05', horaFim: '06:35', fusoFim: 'EST',
       cia: 'Companhia Teste', voo: 'XX 1234', assento: '12A', origem: 'AAA', destino: 'BBB', localizador: 'ABC123', obs: 'Janela', pax: [{ quem: 'u3', loc: 'ABC123', assento: '12A' }] },
@@ -946,6 +946,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.ok(!comViaj({ passaporte: { num: 'A1', emissao: '2030-01-01', validade: '2020-01-01' } }), 'validade antes da emissao');
     assert.ok(!comViaj({ vistos: [{ id: 'x', pais: 'XX' }] }) && !comViaj({ vistos: [{ id: 'x', pais: 'US' }, { id: 'x', pais: 'CA' }] }) && !comViaj({ passaporte: { num: 'A'.repeat(31) } }));
     assert.ok(!comViaj({ passaporte: { fotos: [{ id: 'f' }] } }), 'foto no formato dos recibos');
+    assert.ok(!comViaj({ passaporte: { nome: '' } }) && !comViaj({ passaporte: { nome: 'A'.repeat(81) } }) && comViaj({ passaporte: { nome: 'A'.repeat(80) } }), 'nome como no documento');
     assert.ok(!c.backupValido({ ...comUsa, usa: { ...comUsa.usa, viagens: comUsa.usa.viagens.map((v) => ({ ...v, pais: 'ZZ' })) } }));
     assert.strictEqual(c.nomePais('US'), 'Estados Unidos');
     assert.ok(c.PAISES.length > 240 && c.ehPais('BR') && !c.ehPais('EU'));

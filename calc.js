@@ -1126,7 +1126,7 @@ function usaValido(u) {
   if (!u || typeof u !== 'object' || !itens(u.moedas, (x) => /^[A-Z]{3}$/.test(x.codigo) && typeof x.simbolo === 'string' && x.simbolo.length >= 1 && x.simbolo.length <= 5)
     || !itens(u.viajantes, () => true) || !itens(u.categorias, () => true)) return false;
   const tem = (lista, id) => lista.some((x) => x.id === id);
-  const doc = (d) => !!d && typeof d === 'object' && (d.num === undefined || (typeof d.num === 'string' && d.num.length >= 1 && d.num.length <= 30))
+  const doc = (d) => !!d && typeof d === 'object' && (d.nome === undefined || (typeof d.nome === 'string' && d.nome.length >= 1 && d.nome.length <= 80)) && (d.num === undefined || (typeof d.num === 'string' && d.num.length >= 1 && d.num.length <= 30))
     && data(d.emissao) && data(d.validade) && !(d.emissao && d.validade && d.validade < d.emissao) && recibosValidos(d.fotos);
   const ids = (l, lista) => Array.isArray(l) && l.every((id) => tem(lista, id));
   return itens(u.viagens, (x) => data(x.inicio) && data(x.fim) && jpeg(x.fundo, 800000) && ids(x.moedas, u.moedas) && x.moedas.includes(x.base) && ids(x.viajantes, u.viajantes)
