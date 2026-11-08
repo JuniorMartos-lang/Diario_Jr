@@ -645,7 +645,7 @@ function migrar(d, hoje) {
   // 1.47: moedas, despesas e, em cada viagem, viajantes, moedas, moeda base e cotacoes.
   if (novo.usa && typeof novo.usa === 'object' && Array.isArray(novo.usa.viagens)) {
     const moedas = novo.usa.moedas || MOEDAS_PADRAO.map((m) => ({ ...m }));
-    novo.usa = { ...novo.usa, moedas, despesas: novo.usa.despesas || [],
+    novo.usa = { ...novo.usa, moedas, despesas: novo.usa.despesas || [], itinerario: novo.usa.itinerario || [],
       viagens: novo.usa.viagens.map((v) => (!v || v.moedas ? v : { ...v, moedas: ['USD'], base: 'USD', viajantes: v.viajantes || [], cot: v.cot || {} })) };
   }
   return novo;
@@ -770,6 +770,29 @@ function totaisViagens(u, viagens) {
   for (const v of viagens) for (const x of totaisViagem(u, v)) t.set(x.moeda, (t.get(x.moeda) || 0) + x.valor);
   return [...t].map(([moeda, valor]) => ({ moeda, valor }));
 }
+// Distancia entre duas datas (AAAA-MM-DD) em anos e dias: conta os anos inteiros no calendario e o resto em dias.
+// Ex.: 2026-11-07 a 2027-11-12 = 1 ano e 5 dias. 'de' precisa ser antes ou igual a 'ate'.
+function anosEDias(de, ate) {
+  const d = (s) => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
+  let anos = 0;
+  while (d(`${+de.slice(0, 4) + anos + 1}${de.slice(4)}`) <= d(ate)) anos++;
+  const base = d(`${+de.slice(0, 4) + anos}${de.slice(4)}`);
+  return { anos, dias: Math.round((d(ate) - base) / 864e5) };
+}
+const textoAnosDias = ({ anos, dias }) => [anos ? `${anos} ${anos > 1 ? 'anos' : 'ano'}` : '', dias || !anos ? `${dias} ${dias === 1 ? 'dia' : 'dias'}` : ''].filter(Boolean).join(' e ');
+// Contador da viagem: quanto falta para comecar, ou ha quanto tempo terminou.
+function contadorViagem(v, hoje, finalizada) {
+  if (finalizada) {
+    if (!v.fim) return '';
+    const t = anosEDias(v.fim, hoje);
+    return `Há: ${textoAnosDias(t)}`;
+  }
+  if (!v.inicio) return '';
+  if (v.inicio === hoje) return 'Começa hoje';
+  if (v.inicio < hoje) return 'Em andamento';
+  const t = anosEDias(hoje, v.inicio);
+  return `${!t.anos && t.dias === 1 ? 'Falta' : 'Faltam'}: ${textoAnosDias(t)}`;
+}
 // Viagem finalizada: a partir do dia seguinte ao fim. Sem data de fim, fica em aberto.
 const viagemFinalizada = (v, hoje) => !!v.fim && v.fim < hoje;
 // Filtro da aba USA: viagens escolhidas (nenhuma = todas) e data de inicio entre ini e fim.
@@ -778,7 +801,7 @@ const filtrarViagens = (viagens, f) => viagens.filter((v) => (!f.ids.length || f
 
 // Compara dados antigos (um backup) com os atuais, pelos itens com id: quantos faltam nos atuais e quantos
 // existem nos dois com conteudo diferente. Serve para saber se descartar um backup perde alguma coisa.
-const LISTAS_COMPARADAS = [['lancs'], ['series'], ['contasBanco'], ['cartoes'], ['categorias'], ['usa', 'viagens'], ['usa', 'despesas'], ['usa', 'contas'], ['usa', 'cartoes'], ['usa', 'viajantes'], ['usa', 'categorias']];
+const LISTAS_COMPARADAS = [['lancs'], ['series'], ['contasBanco'], ['cartoes'], ['categorias'], ['usa', 'viagens'], ['usa', 'despesas'], ['usa', 'itinerario'], ['usa', 'contas'], ['usa', 'cartoes'], ['usa', 'viajantes'], ['usa', 'categorias']];
 function compararDados(antigo, atual) {
   const lista = (d, cam) => cam.reduce((o, k) => (o ? o[k] : undefined), d) || [];
   let faltam = 0, diferentes = 0;
@@ -901,6 +924,92 @@ const localValido = (l) => l === undefined || (!!l && typeof l === 'object' && t
 // Chave do Google Maps (busca de enderecos e mapa), gravada pela pessoa em Ajustes.
 const ehChaveMaps = (v) => typeof v === 'string' && /^AIza[\w-]{20,80}$/.test(v);
 
+// Itinerario da viagem: itens por tipo, com data e hora (e fuso) de inicio e de fim, local, codigo do localizador e Obs.
+// Aereo: companhia, voo, assento, origem e destino. Item vindo de uma despesa guarda o id dela (e, no aereo, ida ou volta).
+const TIPOS_ITIN = ['aereo', 'hotel', 'evento', 'carro', 'transporte', 'restaurante', 'nota'];
+function itemItinValido(x, u) {
+  const txt = (v, max) => v === undefined || (typeof v === 'string' && v.length <= max);
+  const dataOk = (v) => v === undefined || /^\d{4}-\d{2}-\d{2}$/.test(v), horaOk = (v) => v === undefined || /^([01]\d|2[0-3]):[0-5]\d$/.test(v);
+  return !!x && typeof x.id === 'string' && x.id.length >= 1 && x.id.length <= 80 && u.viagens.some((v) => v.id === x.viagem) && TIPOS_ITIN.includes(x.tipo)
+    && typeof x.titulo === 'string' && x.titulo.length >= 1 && x.titulo.length <= 120 && /^\d{4}-\d{2}-\d{2}$/.test(x.data) && dataOk(x.fim) && !(x.fim && x.fim < x.data)
+    && horaOk(x.hora) && horaOk(x.horaFim) && txt(x.fuso, 12) && txt(x.fusoFim, 12) && txt(x.localizador, 40) && txt(x.obs, 500)
+    && txt(x.cia, 60) && txt(x.voo, 12) && txt(x.assento, 12) && txt(x.origem, 80) && txt(x.destino, 80) && txt(x.localFim, 200)
+    && localValido(x.local) && txt(x.despesa, 60) && (x.lado === undefined || x.lado === 'ida' || x.lado === 'volta')
+    && (x.cat === undefined || u.categorias.some((c) => c.id === x.cat));
+}
+// Categoria de despesa que vira item do itinerario: hotel, aereo ou carro (pelo nome, sem acento, ou pelo icone).
+function tipoDaCategoriaViagem(c) {
+  if (!c) return null;
+  const n = c.nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (/hotel|hoteis|hosped/.test(n) || c.simbolo === 'hotel') return 'hotel';
+  if (/aereo|aviao|voo|passagem/.test(n) || c.simbolo === 'aviao') return 'aereo';
+  if (/carro|aluguel/.test(n) || c.simbolo === 'carro') return 'carro';
+  return null;
+}
+// Forma do item do itinerario pela categoria de Ajustes Travel: aereo, hotel e carro como nas despesas; trem, onibus,
+// metro, taxi, Uber ou transfer viram transporte (origem e destino); as outras, um item comum (titulo, local, inicio e fim).
+function formaDaCategoria(c) {
+  const t = tipoDaCategoriaViagem(c);
+  if (t || !c) return t || 'evento';
+  const n = c.nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  return /trem|onibus|metro|taxi|uber|lyft|transfer|transporte|translado/.test(n) || ['onibus', 'trem', 'metro', 'taxi'].includes(c.simbolo) ? 'transporte' : 'evento';
+}
+// Traz para o itinerario as despesas de hotel, aereo e carro com check-in: hotel e carro viram um item (entrada e
+// saida); aereo vira ida (check-in) e volta (check-out). Datas (e o local do hotel e do carro) seguem a despesa; o resto
+// (hora, fuso, localizador, voo, Obs...) e da pessoa e nao muda. Item de despesa que saiu some. Devolve se mudou algo.
+function sincronizarItinDespesas(u, vid) {
+  if (!Array.isArray(u.itinerario)) u.itinerario = [];
+  const quer = new Map();
+  for (const d of u.despesas) {
+    if (d.viagem !== vid || !d.checkin) continue;
+    const tipo = tipoDaCategoriaViagem(u.categorias.find((c) => c.id === d.cat));
+    if (!tipo) continue;
+    const base = { viagem: vid, tipo, cat: d.cat, despesa: d.id, titulo: ((tipo === 'hotel' && d.local ? d.local.nome : d.desc) || 'Item').slice(0, 120) };
+    if (tipo === 'aereo') {
+      quer.set(d.id + '|ida', { ...base, lado: 'ida', data: d.checkin });
+      if (d.checkout && d.checkout !== d.checkin) quer.set(d.id + '|volta', { ...base, lado: 'volta', data: d.checkout });
+    } else quer.set(d.id + '|', { ...base, data: d.checkin, fim: d.checkout || undefined, local: d.local || undefined });
+  }
+  const chave = (x) => x.despesa + '|' + (x.lado || '');
+  const antes = u.itinerario.length;
+  u.itinerario = u.itinerario.filter((x) => !x.despesa || x.viagem !== vid || quer.has(chave(x)));
+  let mudou = u.itinerario.length !== antes;
+  for (const [k, m] of quer) {
+    const x = u.itinerario.find((i) => i.despesa && i.viagem === vid && chave(i) === k);
+    if (!x) {
+      const novo = { id: ('it-' + k.replace('|', '-')).replace(/-$/, '').slice(0, 80) };
+      for (const [c, v] of Object.entries(m)) if (v !== undefined) novo[c] = v;
+      u.itinerario.push(novo);
+      mudou = true;
+      continue;
+    }
+    const campos = m.tipo === 'aereo' ? ['tipo', 'cat', 'data'] : ['tipo', 'cat', 'data', 'fim', ...(m.local ? ['local'] : [])];
+    for (const c of campos) {
+      if (JSON.stringify(x[c]) === JSON.stringify(m[c])) continue;
+      if (m[c] === undefined) delete x[c]; else x[c] = m[c];
+      mudou = true;
+    }
+  }
+  return mudou;
+}
+// Linha do tempo: cada item no dia de inicio e, se terminar em outro dia (hotel, carro, evento), tambem no dia do fim.
+// Dentro do dia, o que nao tem hora vem primeiro, depois por hora.
+function diasItinerario(u, vid) {
+  const ent = [];
+  for (const x of u.itinerario || []) {
+    if (x.viagem !== vid) continue;
+    ent.push({ data: x.data, hora: x.hora || '', papel: 'inicio', item: x });
+    if (x.fim && x.fim !== x.data && !['aereo', 'transporte'].includes(x.tipo)) ent.push({ data: x.fim, hora: x.horaFim || '', papel: 'fim', item: x });
+  }
+  ent.sort((a, b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora) || a.item.titulo.localeCompare(b.item.titulo));
+  const dias = [];
+  for (const e of ent) {
+    if (!dias.length || dias[dias.length - 1].data !== e.data) dias.push({ data: e.data, itens: [] });
+    dias[dias.length - 1].itens.push(e);
+  }
+  return dias;
+}
+
 // Area USA: cadastros proprios, sem ligacao com contas, cartoes e lancamentos do resto do app.
 function usaValido(u) {
   if (u === undefined) return true;
@@ -922,6 +1031,7 @@ function usaValido(u) {
       && (d.pagamentos === undefined || (Array.isArray(d.pagamentos) && d.pagamentos.length >= 1 && d.pagamentos.length <= 2
         && d.pagamentos.every((p) => p && (tem(u.contas, p.meio) || tem(u.cartoes, p.meio)) && Number.isInteger(p.valor) && p.valor > 0)
         && new Set(d.pagamentos.map((p) => p.meio)).size === d.pagamentos.length && d.pagamentos.reduce((a, p) => a + p.valor, 0) === d.valor)))
+    && (u.itinerario === undefined || (Array.isArray(u.itinerario) && u.itinerario.every((x) => itemItinValido(x, u))))
     && itens(u.contas, (x) => iconeValido(x.icone))
     && itens(u.cartoes, (x) => iconeValido(x.icone) && (x.tipo === undefined || x.tipo === 'F' || x.tipo === 'V') && finaisValidos(x))
     && itens(u.viajantes, (x) => jpeg(x.foto, 200000) && (x.inicial === undefined || typeof x.inicial === 'boolean'))
@@ -1012,7 +1122,7 @@ function backupValido(d) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    localValido, ehChaveMaps, lembretesAgenda, situacaoLembretes, idEvento, googleValido, ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
+    anosEDias, contadorViagem, formaDaCategoria, TIPOS_ITIN, itemItinValido, tipoDaCategoriaViagem, sincronizarItinDespesas, diasItinerario, localValido, ehChaveMaps, lembretesAgenda, situacaoLembretes, idEvento, googleValido, ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
     protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };

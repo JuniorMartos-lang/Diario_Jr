@@ -87,6 +87,48 @@
   #udRecLista .linha { gap: 8px; }
   /* Local da despesa: marcador vermelho antes do nome, sugestoes da busca e tela do mapa. */
   /* Linha com local: a linha (abre a edicao) e, na direita, o botao do mapa, com area de toque propria. */
+  /* Itinerario: botao nos cards e na lista de viagens, cabecalho e linha do tempo por dia. */
+  .usaCardBox { position: relative; }
+  .usaCardBox > .usaCard { width: 100%; height: 100%; }
+  /* Foto de 140 px + 10 px do texto: o botao fica na altura da etiqueta Corporativa/Pessoal, rente a direita. */
+  .usaCardBox > .btnItin { position: absolute; top: 148px; right: 10px; width: 28px; height: 28px; min-height: 0; padding: 0; justify-content: center; box-shadow: none; }
+  .usaCardBox > .btnItin span { display: none; }
+  .usaCardBox > .btnItin svg { width: 15px; height: 15px; }
+  .linhaItin { display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--linha); }
+  .linhaItin:first-child { border-top: 0; }
+  .linhaItin > .linha { flex: 1; min-width: 0; border-top: 0; }
+  button.btnItin { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 4px 10px; border-radius: 999px; background: #1d4ed8; color: #fff !important; font-size: 12px; font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  button.btnItin svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .linhaItin > .btnItin span { display: none; }
+  .linhaItin > .btnItin { width: 40px; height: 40px; padding: 0; justify-content: center; }
+  small.contadorViag { display: block; margin-top: 2px; font-weight: 700; color: var(--pri); }
+  .itCabeca { display: flex; align-items: center; gap: 12px; }
+  .itCabeca > .q { flex: 1; min-width: 0; }
+  .itCabeca h2 { margin: 0; font-size: 22px; overflow-wrap: anywhere; }
+  .itCabeca p { margin: 4px 0 0; }
+  .itFoto { flex: none; width: 96px; height: 72px; border-radius: 8px; background: #1e3a5f center / cover no-repeat; }
+  .itDia { margin: 14px 0 4px; font-size: 16px; }
+  .itDia:first-child { margin-top: 0; }
+  .itItem { display: grid; grid-template-columns: 52px 32px 1fr auto; column-gap: 8px; align-items: stretch; }
+  .itHora { text-align: right; padding-top: 6px; line-height: 1.2; }
+  .itHora b { display: block; font-size: 14px; }
+  .itHora small { color: var(--mut); font-size: 11px; }
+  .itTrilho { position: relative; display: flex; justify-content: center; }
+  .itTrilho::before { content: ''; position: absolute; top: 4px; bottom: 0; left: 50%; width: 3px; margin-left: -1.5px; background: #1d4ed8; border-radius: 2px; }
+  .itIco { position: relative; z-index: 1; width: 30px; height: 30px; margin-top: 2px; border-radius: 50%; background: #1d4ed8; display: grid; place-items: center; }
+  .itIco svg { width: 17px; height: 17px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  button.itTexto { display: block; width: 100%; min-height: 0; padding: 4px 0 14px; background: none; color: var(--txt) !important; text-align: left; font-weight: 400; border-radius: 0; }
+  .itTexto b { display: block; font-size: 16px; overflow-wrap: anywhere; }
+  .itTexto small { display: block; color: var(--mut); font-size: 13px; overflow-wrap: anywhere; }
+  .itTexto .itObs { font-style: italic; }
+  .itTexto .itTag { display: inline-block; margin-left: 4px; padding: 0 7px; border-radius: 999px; background: #5a6b76; color: #fff; font-size: 10px; font-weight: 700; font-style: normal; vertical-align: 2px; }
+  button.itPino { width: 36px; height: 36px; min-height: 0; padding: 0; margin-top: 2px; border-radius: 50%; background: none; color: #c0262d !important; display: grid; place-items: center; }
+  button.itPino svg { width: 20px; height: 20px; fill: currentColor; }
+  /* Data na linha inteira; hora e fuso lado a lado embaixo (em 375 px, os tres numa linha cortavam a data e a hora). */
+  .tres { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; }
+  .tres > label:first-child { grid-column: 1 / -1; }
+  .tres > * { min-width: 0; }
+  #itMais { position: fixed; z-index: 11; right: 16px; bottom: calc(72px + env(safe-area-inset-bottom)); width: 56px; height: 56px; padding: 0; font-size: 30px; line-height: 1; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
   /* Linha com local: o botao do mapa e separado da linha (que abre a edicao), mas fica por cima do lugar
      reservado na linha das etiquetas, a esquerda do Corp./Pessoal (posicionarMapas). */
   .linhaMapa { position: relative; border-top: 1px solid var(--linha); }
@@ -343,6 +385,9 @@
   #udCatSel summary { margin-left: 0; border-top: 0; }
   #udCatTxt { display: flex; align-items: center; gap: 8px; }
   #udCatTxt .icoCat { margin-right: 0; }
+  #itCatOpcoes button.linha { gap: 8px; justify-content: flex-start; border-top: 0; font-size: 14px; color: var(--txt); }
+  #itCatSel.travado summary { pointer-events: none; opacity: .6; }
+  .itTrilho .icoCat { position: relative; z-index: 1; width: 30px; height: 30px; margin-top: 2px; }
   #udCatOpcoes button.linha { gap: 8px; justify-content: flex-start; border-top: 0; font-size: 14px; color: var(--txt); }
   .usaFoto { height: 140px; padding: 8px; display: flex; align-items: flex-end; background: #1e3a5f center / cover no-repeat; }
   .usaCard .txt { padding: 10px 12px 12px; }
@@ -680,6 +725,12 @@
     <div class="card" id="uUsaVazio"><p class="fraco" style="margin-top:0">Cadastre a viagem, com datas e imagem de fundo, os meios de pagamento, os viajantes e as categorias em Ajustes Travel.</p><button type="button" class="sec gerenciar" data-aba="ajustes" data-tela="tUsaViagem">Abrir Ajustes Travel</button></div>
   </section>
 
+  <section id="s-itin" hidden>
+    <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 class="tituloIco"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7.5a3.5 3.5 0 0 0 0-7h-7a3.5 3.5 0 0 1 0-7H16"/></svg><span>Itinerário</span></h2></div>
+    <div class="card itCabeca"><div class="q"><h2 id="itNome"></h2><p id="itDatas" class="fraco"></p></div><div id="itFoto" class="itFoto"></div></div>
+    <div class="card"><div class="udTopo"><label class="caixaTit"><input type="checkbox" id="itDetalhes">Detalhes</label></div><div id="itLista"></div><button type="button" class="sec gerenciar" data-exportar="itinerario"><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button></div>
+    <button type="button" id="itMais" aria-label="Novo item do itinerário">+</button>
+  </section>
   <section id="s-usadesp" hidden>
     <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 id="udTitulo" class="tituloIco"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 7V4h6v3M9 11v5M15 11v5M8 20v1.5M16 20v1.5"/></svg><span>Despesas de Viagem</span></h2></div>
     <div class="card udCabeca"><div class="udCapa" id="udCapa"><h2 id="udCapaNome"></h2></div>
@@ -718,7 +769,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.64.2 · 07/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.65.3 · 07/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1088,6 +1139,27 @@
   <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="udFechar">Fechar</button><button type="button" class="perigo" id="udExcluir" hidden>Excluir</button></div>
 </form></dialog>
 <input type="file" accept="image/*" capture="environment" id="recCamArq" hidden><input type="file" accept="image/*" multiple id="recGalArq" hidden>
+<datalist id="listaFusos"><option value="GMT-3"><option value="EST"><option value="EDT"><option value="CST"><option value="CDT"><option value="MST"><option value="PST"><option value="PDT"><option value="GMT"><option value="BST"><option value="CET"><option value="CEST"></datalist>
+<dialog id="dItin"><form id="fItin" novalidate>
+  <h3 id="itfTit">Novo item</h3>
+  <div class="rotuloCampo"><span>Categoria</span><details class="multiSel" id="itCatSel"><summary><span id="itCatTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" id="itCatOpcoes"></div></details><input type="hidden" id="itCat"></div>
+  <p id="itDaDesp" class="fraco" hidden>Este item veio de uma despesa: as datas e o local seguem a despesa. Para mudar ou tirar, altere a despesa.</p>
+  <div class="dois" data-it="aereo"><label>Companhia<input id="itCia" maxlength="60" autocomplete="off" placeholder="Ex.: companhia aérea"></label><label>Nº do voo<input id="itVoo" maxlength="12" autocomplete="off" placeholder="Ex.: AB 1234"></label></div>
+  <div class="dois" data-it="aereo transporte"><label>Origem<input id="itOrigem" maxlength="80" autocomplete="off" placeholder="GRU"></label><label>Destino<input id="itDestino" maxlength="80" autocomplete="off" placeholder="BOS"></label></div>
+  <label><span id="itTituloRot">Título</span><input id="itTitulo" maxlength="120" autocomplete="off"></label>
+  <div class="rotuloCampo" data-it="hotel evento carro restaurante"><span id="itLocalRot">Local (endereço)</span>
+    <div id="itLocalEsc" class="localEsc" hidden></div>
+    <input id="itLocalBusca" autocomplete="off" placeholder="Digite o nome do lugar ou o endereço" aria-label="Buscar local">
+    <div id="itLocalSug" class="localSug" aria-live="polite"></div>
+  </div>
+  <div class="tres"><label><span id="itDataRot">Data</span><input id="itData" type="date"></label><label>Hora<input id="itHora" type="time"></label><label>Fuso<input id="itFuso" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
+  <div class="tres" data-it="aereo hotel evento carro transporte"><label><span id="itFimRot">Fim</span><input id="itFim" type="date"></label><label>Hora<input id="itHoraFim" type="time"></label><label>Fuso<input id="itFusoFim" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
+  <label data-it="carro">Local de devolução<input id="itLocalFim" maxlength="200" autocomplete="off"></label>
+  <label data-it="aereo">Assento<input id="itAssento" maxlength="12" autocomplete="off" placeholder="Ex.: 12A"></label>
+  <label>Código do localizador<input id="itLocalizador" maxlength="40" autocomplete="off"></label>
+  <label>Obs<textarea id="itObs" maxlength="500" rows="2" placeholder="Opcional"></textarea></label>
+  <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="itFechar">Fechar</button><button type="button" class="perigo" id="itExcluir" hidden>Excluir</button></div>
+</form></dialog>
 <dialog id="dMapa">
   <div class="topoTela"><button type="button" class="voltarTela" id="mapaVoltar" aria-label="Voltar">‹</button><h2 id="mapaTit"></h2></div>
   <div id="mapaCaixa"></div>
@@ -2351,6 +2423,7 @@ function abrirTela(id) {
 addEventListener('popstate', (e) => {
   const st = e.state || {};
   if ($('dMapa').open) { $('dMapa').close(); return; }
+  if (itinAberta && !st.itin) { fecharItin(); return; }
   if (usaAberta && !st.usaDesp) { fecharUsaDesp(); return; }
   if (catDet && !st.catDet) { voltarAoResumo(); return; }
   if (atrasosDet && !st.atrasos && !lancOrigem) { voltarAoResumo(); return; }
@@ -2762,6 +2835,16 @@ function exportar(tipo) {
         ...moedas.map((m) => numCsv((t.find((x) => x.moeda === m) || { valor: 0 }).valor))];
     });
     return exportarCSV({ 'usa-ab': 'viagens-em-aberto', 'usa-fin': 'viagens-finalizadas', 'usa-cus': 'custos-das-viagens' }[tipo], cab, linhas);
+  }
+  if (tipo === 'itinerario') {
+    const u = usa(), v = viagemDoItin(), nomeCatIt = (x) => (u.categorias.find((c) => c.id === x.cat) || { nome: '' }).nome;
+    const itens = (u.itinerario || []).filter((x) => x.viagem === v.id).sort((a, b) => a.data.localeCompare(b.data) || (a.hora || '').localeCompare(b.hora || ''));
+    const cab = ['Data', 'Hora', 'Fuso', 'Categoria', 'Título', 'Companhia', 'Nº do voo', 'Origem', 'Destino', 'Assento', 'Data fim (chegada, check-out, devolução, término)', 'Hora fim', 'Fuso fim',
+      'Local', 'Endereço', 'Local de devolução', 'Código do localizador', 'Obs', 'Origem do item'];
+    const linhas = itens.map((x) => [dataCsv(x.data), x.hora || '', x.fuso || '', nomeCatIt(x), x.titulo, x.cia || '', x.voo || '', x.origem || '', x.destino || '', x.assento || '',
+      x.fim ? dataCsv(x.fim) : '', x.horaFim || '', x.fusoFim || '', x.local ? x.local.nome : '', x.local ? x.local.endereco : '', x.localFim || '', x.localizador || '', x.obs || '',
+      x.despesa ? `Despesa${x.lado ? ' (' + x.lado + ')' : ''}` : 'Digitado no itinerário']);
+    return exportarCSV(`itinerario-${v.nome}`, cab, linhas);
   }
   if (tipo === 'usadesp') {
     const u = usa(), v = viagemAberta(), nome = (id) => (u.viajantes.find((p) => p.id === id) || { nome: '?' }).nome;
@@ -3510,7 +3593,11 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
   if (d.usaviagem) { abrirUsaDesp(d.usaviagem); return; }
   if ('infousa' in d) { avisar('Filtro das viagens', TEXTO_FILTRO_USA); return; }
   if (d.usadesp) { abrirDespesa(d.usadesp); return; }
-  if (d.udlocal) { escolherLocal(d.udlocal); return; }
+  if (d.escolhelocal) { (d.escolhelocal === 'it' ? locIt : locUd).escolher(d.place); return; }
+  if (d.itin) { abrirItin(d.itin); return; }
+  if (d.itcat) { escolherItCat(d.itcat); return; }
+  if (d.ititem) { abrirItem(d.ititem); return; }
+  if (d.itmapa) { const x = usa().itinerario.find((i) => i.id === d.itmapa); if (x && x.local) abrirMapaLocal(x.local, x.titulo); return; }
   if (d.udcat) { escolherUdCat(d.udcat); $('udCatSel').open = false; return; }
   if (d.udmeio) { escolherUdMeio(d.udmeio, d.id); return; }
   if ('editviagem' in d) { abrirViagem(d.editviagem); return; }
@@ -3543,9 +3630,9 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
     $('rTip').innerHTML = textoMesBal(balancoAtual.find((m) => m.ym === d.balmes));
   } else if (d.aba) {
     // Saindo pelo menu de telas abertas a partir do Resumo: tira do historico as telas empilhadas.
-    if (fluxoDoResumo || catDet || atrasosDet || resDet || parcDet || usaAberta) {
-      const n = (fluxoDoResumo ? 1 : 0) + (catDet ? 1 : 0) + (atrasosDet ? 1 : 0) + (resDet ? 1 : 0) + (parcDet ? 1 : 0) + (usaAberta ? 1 : 0) + (lancOrigem ? 1 : 0) + (fatCartao ? (history.state && history.state.lanc ? 2 : 1) : 0);
-      fluxoDoResumo = false; catDet = null; atrasosDet = false; resDet = null; parcDet = false; usaAberta = null; lancOrigem = null; fatCartao = null;
+    if (fluxoDoResumo || catDet || atrasosDet || resDet || parcDet || usaAberta || itinAberta) {
+      const n = (fluxoDoResumo ? 1 : 0) + (catDet ? 1 : 0) + (atrasosDet ? 1 : 0) + (resDet ? 1 : 0) + (parcDet ? 1 : 0) + (usaAberta ? 1 : 0) + (itinAberta ? 1 : 0) + (lancOrigem ? 1 : 0) + (fatCartao ? (history.state && history.state.lanc ? 2 : 1) : 0);
+      fluxoDoResumo = false; catDet = null; atrasosDet = false; resDet = null; parcDet = false; usaAberta = null; itinAberta = null; lancOrigem = null; fatCartao = null;
       limparLanc();
       history.go(-n);
     }
@@ -3674,7 +3761,7 @@ function aoEscolherImagem(input, lado, quadrada, usar) {
 aoEscolherImagem($('pFotoArq'), 240, true, (f) => { fotoEdit = f; mostrarFotoEdit(); });
 
 // Area USA: controle da viagem, separado do resto do app (db.usa), com cadastros proprios.
-const usa = () => (db.usa ||= { viagens: [], contas: [], cartoes: [], viajantes: [], categorias: [], moedas: MOEDAS_PADRAO.map((m) => ({ ...m })), despesas: [] });
+const usa = () => (db.usa ||= { viagens: [], contas: [], cartoes: [], viajantes: [], categorias: [], moedas: MOEDAS_PADRAO.map((m) => ({ ...m })), despesas: [], itinerario: [] });
 const moedaUsa = (id) => usa().moedas.find((m) => m.id === id) || { simbolo: '?', codigo: '?' };
 // Valor com o simbolo da moeda; com os valores ocultos, pontinhos.
 const fmtTotais = (u, v, nat) => totaisViagem(u, v, nat).map((t) => fmtMoeda(t.valor, t.moeda)).join(' + ');
@@ -3711,10 +3798,14 @@ function renderUsa() {
   const pilTipo = (v) => `<span class="tipoViag ${v.corporativa ? 'corp' : 'pes'}">${v.corporativa ? 'Corporativa' : 'Pessoal'}</span>`;
   const viajantes = (v) => u.viajantes.filter((p) => v.viajantes.includes(p.id)).map(fotoViajante).join('');
   const porInicio = (a, b) => (a.inicio || '9999').localeCompare(b.inicio || '9999');
+  // Itinerario: botao proprio, fora do card ou da linha (que abrem as despesas).
+  const btnItin = (v) => `<button type="button" class="btnItin" data-itin="${esc(v.id)}" aria-label="Itinerário de ${esc(v.nome)}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7.5a3.5 3.5 0 0 0 0-7h-7a3.5 3.5 0 0 1 0-7H16"/></svg><span>Itinerário</span></button>`;
+  // Contador abaixo do custo: quanto falta para a viagem, ou ha quanto tempo terminou (contadorViagem em calc.js).
+  const contador = (v) => { const t = contadorViagem(v, hoje(), viagemFinalizada(v, hoje())); return t ? `<small class="contadorViag">${esc(t)}</small>` : ''; };
   const htmlViagens = (lista, vazio, emLista) => (!lista.length ? `<p class="fraco" style="margin:0">${vazio}</p>` : emLista
-    ? `<div>${lista.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}">${icoViagem(v)}<span class="q">${pilTipo(v)}<br><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small></span>${SETA}</button>`).join('')}</div>`
-    : `<div class="usaGrade">${lista.map((v) => `<button type="button" class="card usaCard" data-usaviagem="${esc(v.id)}"><div class="usaFoto"${v.fundo ? ` style="background-image:url('${v.fundo}')"` : ''}><div class="usaViaj">${viajantes(v)}</div></div>
-      <div class="txt">${pilTipo(v)}<b>${esc(v.nome)}</b><small>${datasViagem(v)}</small><small>${total(v)}</small></div></button>`).join('')}</div>`);
+    ? `<div>${lista.map((v) => `<div class="linhaItin"><button type="button" class="linha" data-usaviagem="${esc(v.id)}">${icoViagem(v)}<span class="q">${pilTipo(v)}<br><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small>${contador(v)}</span>${SETA}</button>${btnItin(v)}</div>`).join('')}</div>`
+    : `<div class="usaGrade">${lista.map((v) => `<div class="usaCardBox"><button type="button" class="card usaCard" data-usaviagem="${esc(v.id)}"><div class="usaFoto"${v.fundo ? ` style="background-image:url('${v.fundo}')"` : ''}><div class="usaViaj">${viajantes(v)}</div></div>
+      <div class="txt">${pilTipo(v)}<b>${esc(v.nome)}</b><small>${datasViagem(v)}</small><small>${total(v)}</small>${contador(v)}</div></button>${btnItin(v)}</div>`).join('')}</div>`);
   const h = hoje(), todas = [...u.viagens].sort(porInicio);
   // Cada secao tem o seu filtro; a lista do combo traz so as viagens daquela secao.
   const filtrar = (id, base) => {
@@ -3741,6 +3832,7 @@ function renderUsa() {
   $('uOlho').setAttribute('aria-pressed', valoresOcultos);
   $('uOlho').setAttribute('aria-label', valoresOcultos ? 'Mostrar valores' : 'Ocultar valores');
   if (usaAberta) renderUsaDesp();
+  if (itinAberta) renderItin();
   $('uUsaVazio').hidden = !!u.viagens.length;
   $('uConteudo').hidden = !u.viagens.length;
 }
@@ -4030,57 +4122,233 @@ function htmlCatsViagem(u, v, nat) {
 // Local da despesa (busca do Google Places): marcador, sugestoes enquanto digita e a tela do mapa.
 const PINO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>';
 const chaveMaps = () => db.google && db.google.mapsKey;
-let udLocal = null, locSessao = '', locTimer = null;
-function mostrarUdLocal() {
-  $('udLocalEsc').hidden = !udLocal;
-  $('udLocalBusca').hidden = !!udLocal;
-  $('udLocalEsc').innerHTML = udLocal ? `<span class="pino">${PINO}</span><span class="q"><b>${esc(udLocal.nome)}</b><br><small>${esc(udLocal.endereco)}</small></span><span class="localBotoes"><button type="button" id="udLocalVer">Ver no mapa</button><button type="button" class="sec" id="udLocalTirar">Remover</button></span>` : '';
+// Campo de local reutilizavel (despesa da viagem e itinerario): sugestoes do Google enquanto digita, escolha,
+// "Ver no mapa" e Remover. pre e o comeco dos ids (udLocalBusca, itLocalBusca...). A "sessao" junta busca e escolha.
+function campoLocal(pre, textoDoMapa) {
+  const el = (n) => $(pre + n), cx = { valor: null, sessao: '', timer: null };
+  cx.mostrar = () => {
+    el('LocalEsc').hidden = !cx.valor;
+    el('LocalBusca').hidden = !!cx.valor;
+    el('LocalEsc').innerHTML = cx.valor ? `<span class="pino">${PINO}</span><span class="q"><b>${esc(cx.valor.nome)}</b><br><small>${esc(cx.valor.endereco)}</small></span><span class="localBotoes"><button type="button" id="${pre}LocalVer">Ver no mapa</button><button type="button" class="sec" id="${pre}LocalTirar">Remover</button></span>` : '';
+  };
+  cx.por = (l) => { cx.valor = l ? { ...l } : null; cx.sessao = ''; el('LocalBusca').value = ''; el('LocalSug').innerHTML = ''; cx.mostrar(); };
+  el('LocalEsc').onclick = (e) => {
+    if (e.target.closest(`#${pre}LocalVer`)) { abrirMapaLocal(cx.valor, textoDoMapa()); return; }
+    if (e.target.closest(`#${pre}LocalTirar`)) { cx.valor = null; cx.mostrar(); el('LocalBusca').focus(); }
+  };
+  el('LocalBusca').oninput = () => {
+    clearTimeout(cx.timer);
+    const t = el('LocalBusca').value.trim();
+    if (t.length < 3) { el('LocalSug').innerHTML = ''; return; }
+    cx.timer = setTimeout(() => cx.buscar(t), 350);
+  };
+  cx.buscar = async (t) => {
+    if (!chaveMaps()) { el('LocalSug').innerHTML = '<p class="fraco">Para buscar endereços, grave a chave do Google Maps em Ajustes > Backup.</p>'; return; }
+    if (!navigator.onLine) { el('LocalSug').innerHTML = '<p class="fraco">Sem internet: a busca volta quando a conexão voltar.</p>'; return; }
+    cx.sessao = cx.sessao || crypto.randomUUID();
+    try {
+      const r = await fetch('https://places.googleapis.com/v1/places:autocomplete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': chaveMaps() },
+        body: JSON.stringify({ input: t, languageCode: 'pt-BR', sessionToken: cx.sessao }) });
+      if (!r.ok) throw new Error(`Google respondeu ${r.status}. ${(await r.text()).slice(0, 160)}`);
+      const j = await r.json();
+      if (el('LocalBusca').value.trim() !== t) return;
+      const sug = (j.suggestions || []).map((x) => x.placePrediction).filter(Boolean), txt = (o) => (o && o.text) || '';
+      el('LocalSug').innerHTML = sug.map((x) => `<button type="button" class="linha" data-escolhelocal="${pre}" data-place="${esc(x.placeId)}"><span class="pino">${PINO}</span><span class="q">${esc(x.structuredFormat ? txt(x.structuredFormat.mainText) : txt(x.text))}<br><small>${esc(x.structuredFormat ? txt(x.structuredFormat.secondaryText) : '')}</small></span></button>`).join('')
+        || '<p class="fraco">Nada encontrado. Tente o nome e a cidade.</p>';
+    } catch (err) {
+      el('LocalSug').innerHTML = `<p class="neg">A busca falhou: ${esc(err.message)}</p>`;
+    }
+  };
+  cx.escolher = async (placeId) => {
+    try {
+      const r = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?languageCode=pt-BR${cx.sessao ? '&sessionToken=' + cx.sessao : ''}`,
+        { headers: { 'X-Goog-Api-Key': chaveMaps(), 'X-Goog-FieldMask': 'id,displayName,formattedAddress,location' } });
+      if (!r.ok) throw new Error(`Google respondeu ${r.status}. ${(await r.text()).slice(0, 160)}`);
+      const x = await r.json();
+      if (!x.location) throw new Error('O Google não devolveu a localização deste lugar.');
+      cx.por({ nome: ((x.displayName && x.displayName.text) || 'Local').slice(0, 200), endereco: (x.formattedAddress || '').slice(0, 400), lat: x.location.latitude, lng: x.location.longitude, id: /^[\w-]{1,300}$/.test(x.id || '') ? x.id : undefined });
+      if (cx.aoEscolher) cx.aoEscolher(cx.valor);
+    } catch (err) {
+      avisar('Local', err.message);
+    }
+  };
+  return cx;
 }
-$('udLocalEsc').onclick = (e) => {
-  if (e.target.closest('#udLocalVer')) { abrirMapaLocal(udLocal, $('udDesc').value.trim()); return; }
-  if (e.target.closest('#udLocalTirar')) { udLocal = null; mostrarUdLocal(); $('udLocalBusca').focus(); }
-};
-$('udLocalBusca').oninput = () => {
-  clearTimeout(locTimer);
-  const t = $('udLocalBusca').value.trim();
-  if (t.length < 3) { $('udLocalSug').innerHTML = ''; return; }
-  locTimer = setTimeout(() => buscarLocal(t), 350);
-};
-// Sugestoes do Google enquanto digita. A "sessao" junta a busca e a escolha numa cobranca so.
-async function buscarLocal(t) {
-  if (!chaveMaps()) { $('udLocalSug').innerHTML = '<p class="fraco">Para buscar endereços, grave a chave do Google Maps em Ajustes > Backup.</p>'; return; }
-  if (!navigator.onLine) { $('udLocalSug').innerHTML = '<p class="fraco">Sem internet: a busca volta quando a conexão voltar.</p>'; return; }
-  locSessao = locSessao || crypto.randomUUID();
-  try {
-    const r = await fetch('https://places.googleapis.com/v1/places:autocomplete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': chaveMaps() },
-      body: JSON.stringify({ input: t, languageCode: 'pt-BR', sessionToken: locSessao }) });
-    if (!r.ok) throw new Error(`Google respondeu ${r.status}. ${(await r.text()).slice(0, 160)}`);
-    const j = await r.json();
-    if ($('udLocalBusca').value.trim() !== t) return;
-    const sug = (j.suggestions || []).map((x) => x.placePrediction).filter(Boolean);
-    const txt = (o) => (o && o.text) || '';
-    $('udLocalSug').innerHTML = sug.map((x) => `<button type="button" class="linha" data-udlocal="${esc(x.placeId)}"><span class="pino">${PINO}</span><span class="q">${esc(x.structuredFormat ? txt(x.structuredFormat.mainText) : txt(x.text))}<br><small>${esc(x.structuredFormat ? txt(x.structuredFormat.secondaryText) : '')}</small></span></button>`).join('')
-      || '<p class="fraco">Nada encontrado. Tente o nome e a cidade.</p>';
-  } catch (err) {
-    $('udLocalSug').innerHTML = `<p class="neg">A busca falhou: ${esc(err.message)}</p>`;
-  }
-}
-async function escolherLocal(placeId) {
-  try {
-    const r = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?languageCode=pt-BR${locSessao ? '&sessionToken=' + locSessao : ''}`,
-      { headers: { 'X-Goog-Api-Key': chaveMaps(), 'X-Goog-FieldMask': 'id,displayName,formattedAddress,location' } });
-    if (!r.ok) throw new Error(`Google respondeu ${r.status}. ${(await r.text()).slice(0, 160)}`);
-    const x = await r.json();
-    if (!x.location) throw new Error('O Google não devolveu a localização deste lugar.');
-    udLocal = { nome: ((x.displayName && x.displayName.text) || 'Local').slice(0, 200), endereco: (x.formattedAddress || '').slice(0, 400), lat: x.location.latitude, lng: x.location.longitude, id: /^[\w-]{1,300}$/.test(x.id || '') ? x.id : undefined };
-    locSessao = '';
-    $('udLocalBusca').value = ''; $('udLocalSug').innerHTML = '';
-    mostrarUdLocal();
-  } catch (err) {
-    avisar('Local', err.message);
-  }
-}
+const locUd = campoLocal('ud', () => $('udDesc').value.trim());
 // Tela do mapa: abre por cima e entra no historico, entao o voltar do celular fecha.
+// ===== Itinerario da viagem =====
+// Tela propria (entra deslizando, o voltar do celular fecha), linha do tempo por dia, + para incluir; hotel, aereo e
+// carro das despesas com check-in entram sozinhos (sincronizarItinDespesas em calc.js).
+const ICO_ITIN = {
+  aereo: '<path d="M10.5 3.5a1.5 1.5 0 0 1 3 0V9l8 5v2l-8-2.5V19l2 1.5V22l-3.5-1-3.5 1v-1.5l2-1.5v-5.5L2.5 16v-2l8-5z"/>',
+  hotel: '<path d="M3 18V8M3 14h18v4M21 18v-4a3 3 0 0 0-3-3h-7v3"/><circle cx="7" cy="11" r="1.6"/>',
+  evento: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  carro: '<path d="M4 13l2-5h12l2 5v4H4zM6 17v2M18 17v2"/><circle cx="8" cy="14.5" r=".8"/><circle cx="16" cy="14.5" r=".8"/>',
+  transporte: '<rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 11h14M8 21l2-4M16 21l-2-4"/>',
+  restaurante: '<path d="M7 3v18M5 3v5a2 2 0 0 0 4 0V3M17 3c-2.5 2.5-2.5 6.5 0 8.5V21"/>',
+  nota: '<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',
+};
+const ROT_ITIN = {
+  aereo: { titulo: 'Descrição (opcional)', ini: 'Partida', fim: 'Chegada' }, hotel: { titulo: 'Hotel', ini: 'Check-in', fim: 'Check-out', local: 'Endereço do hotel' },
+  evento: { titulo: 'Título', ini: 'Início', fim: 'Término' }, carro: { titulo: 'Locadora', ini: 'Retirada', fim: 'Devolução', local: 'Local de retirada' },
+  transporte: { titulo: 'Descrição (ex.: Trem Amtrak)', ini: 'Partida', fim: 'Chegada' }, restaurante: { titulo: 'Restaurante', ini: 'Data' }, nota: { titulo: 'Nota', ini: 'Data' },
+};
+let itinAberta = null, itinRolagem = 0, itemEd = null;
+const locIt = campoLocal('it', () => $('itTitulo').value.trim());
+// Escolher o lugar preenche o titulo vazio (hotel, evento, restaurante, locadora).
+locIt.aoEscolher = (l) => { if (!$('itTitulo').value.trim()) $('itTitulo').value = l.nome.slice(0, 120); };
+const viagemDoItin = () => usa().viagens.find((v) => v.id === itinAberta);
+function abrirItin(id) {
+  itinRolagem = scrollY;
+  itinAberta = id;
+  if (sincronizarItinDespesas(usa(), id)) salvar();
+  history.pushState({ itin: true }, '');
+  document.querySelectorAll('main > section').forEach((x) => { x.hidden = x.id !== 's-itin'; });
+  document.body.classList.add('emAjustes');
+  $('mais').hidden = true;
+  renderItin();
+  deslizar($('s-itin'), 'desliza-d');
+  scrollTo(0, 0);
+}
+function fecharItin() {
+  itinAberta = null;
+  if ($('dItin').open) $('dItin').close();
+  abrirAba('usa');
+  deslizar($('s-usa'), 'desliza-e');
+  scrollTo(0, itinRolagem);
+}
+const dataLongaIt = (d) => new Date(d + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short' });
+const dataCurtaIt = (d) => new Date(d + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
+const catDoItem = (x) => x.cat && usa().categorias.find((c) => c.id === x.cat);
+// Item na linha do tempo. Sem Detalhes: titulo, horarios principais, endereco e localizador. Com Detalhes (caixa no
+// alto do quadro, so na memoria): tudo o que foi digitado, inclusive categoria, assento, datas de fim e Obs.
+function htmlItemItin(e, det) {
+  const x = e.item, fim = e.papel === 'fim', c = catDoItem(x), hora = fim ? x.horaFim : x.hora, fuso = fim ? (x.fusoFim || x.fuso) : x.fuso, P = [], D = [];
+  const hf = (h, f) => [h, f].filter(Boolean).join(' '), quando = (d, h, f) => [d && dataCurtaIt(d), hf(h, f)].filter(Boolean).join(' ');
+  let titulo = x.titulo;
+  if (c) D.push(`Categoria: ${esc(c.nome)}`);
+  if (x.tipo === 'aereo' || x.tipo === 'transporte') {
+    if (x.origem || x.destino) { titulo = `${x.origem || '?'} - ${x.destino || '?'}`; if (x.titulo && x.titulo !== titulo) D.push(`Descrição: ${esc(x.titulo)}`); }
+    if (x.voo || x.cia) P.push(esc([x.voo, x.cia && (x.voo ? `(${x.cia})` : x.cia)].filter(Boolean).join(' ')));
+    if (x.horaFim || x.fim) P.push(`Chegada: ${esc(hf(x.horaFim, x.fusoFim || x.fuso))}${x.fim && x.fim !== x.data ? ` (${dataCurtaIt(x.fim)})` : ''}`);
+    if (x.assento) D.push(`Assento: ${esc(x.assento)}`);
+    D.push(`Partida: ${esc(quando(x.data, x.hora, x.fuso))}`);
+  } else if (x.tipo === 'hotel') {
+    P.push(fim ? `Check-out${hora ? ': ' + esc(hf(hora, fuso)) : ''}` : `Check-in${hora ? ': ' + esc(hf(hora, fuso)) : ''}`);
+    if (!fim && x.fim) D.push(`Check-out: ${esc(quando(x.fim, x.horaFim, x.fusoFim || x.fuso))}`);
+    if (fim) D.push(`Check-in: ${esc(quando(x.data, x.hora, x.fuso))}`);
+  } else if (x.tipo === 'carro') {
+    P.push(fim ? `Devolução${hora ? ': ' + esc(hf(hora, fuso)) : ''}` : `Retirada${hora ? ': ' + esc(hf(hora, fuso)) : ''}`);
+    if (!fim && x.fim) D.push(`Devolução: ${esc(quando(x.fim, x.horaFim, x.fusoFim || x.fuso))}`);
+    if (x.localFim) (fim ? P : D).push(`Local de devolução: ${esc(x.localFim)}`);
+  } else {
+    if (fim) P.push(`Término${hora ? ': ' + esc(hf(hora, fuso)) : ''}`);
+    else if (x.horaFim && (!x.fim || x.fim === x.data)) P.push(`Até ${esc(hf(x.horaFim, x.fusoFim || x.fuso))}`);
+    if (!fim && x.fim && x.fim !== x.data) D.push(`Término: ${esc(quando(x.fim, x.horaFim, x.fusoFim || x.fuso))}`);
+  }
+  if (x.local && !(fim && x.tipo === 'carro')) {
+    P.push(esc(x.local.endereco || x.local.nome));
+    if (x.local.nome && x.local.nome !== titulo && x.local.endereco) D.push(`Local: ${esc(x.local.nome)}`);
+  }
+  if (x.localizador) P.push(`Código do localizador: ${esc(x.localizador)}`);
+  if (x.obs) D.push(`<span class="itObs">Obs: ${esc(x.obs)}</span>`);
+  if (x.despesa) D.push(x.lado ? `Lançado nas despesas (${x.lado === 'ida' ? 'ida' : 'volta'})` : 'Lançado nas despesas');
+  const linhas = det ? [...P, ...D] : P;
+  const tag = x.despesa ? `<span class="itTag">${x.lado === 'volta' ? 'Volta · despesa' : x.lado === 'ida' ? 'Ida · despesa' : 'Da despesa'}</span>` : '';
+  return `<div class="itItem"><div class="itHora">${hora ? `<b>${esc(hora)}</b><small>${esc(fuso || '')}</small>` : ''}</div>`
+    + `<div class="itTrilho">${c ? iconeCat(c) : `<span class="itIco"><svg viewBox="0 0 24 24" aria-hidden="true">${ICO_ITIN[x.tipo]}</svg></span>`}</div>`
+    + `<button type="button" class="itTexto" data-ititem="${esc(x.id)}"><b>${esc(titulo)}${tag}</b>${linhas.map((l) => `<small>${l}</small>`).join('')}</button>`
+    + `${x.local ? `<button type="button" class="itPino" data-itmapa="${esc(x.id)}" aria-label="Ver ${esc(x.local.nome)} no mapa">${PINO}</button>` : '<span></span>'}</div>`;
+}
+function renderItin() {
+  const v = viagemDoItin();
+  if (!v) return;
+  $('itNome').textContent = v.nome;
+  $('itDatas').textContent = v.inicio ? `${dataCurtaIt(v.inicio)}${v.fim ? ' – ' + dataCurtaIt(v.fim) : ''}` : 'Sem datas';
+  $('itFoto').style.backgroundImage = v.fundo ? `url("${v.fundo}")` : '';
+  $('itFoto').hidden = !v.fundo;
+  const dias = diasItinerario(usa(), v.id);
+  const det = $('itDetalhes').checked;
+  $('itLista').innerHTML = dias.map((d) => `<h3 class="itDia">${dataLongaIt(d.data)}</h3>${d.itens.map((e) => htmlItemItin(e, det)).join('')}`).join('')
+    || '<p class="fraco" style="margin:0">Nenhum item ainda. Toque em + para incluir. Hotel, aéreo e carro lançados nas despesas, com check-in, aparecem aqui sozinhos.</p>';
+}
+// Formulario: os campos mudam com o tipo; item vindo de despesa nao muda datas nem local aqui.
+// Categoria de Ajustes Travel escolhida no item; a forma (campos) vem dela (formaDaCategoria em calc.js).
+const catItem = () => usa().categorias.find((c) => c.id === $('itCat').value);
+const formaItemAtual = () => formaDaCategoria(catItem());
+function escolherItCat(id) {
+  const c = usa().categorias.find((x) => x.id === id);
+  $('itCat').value = c ? id : '';
+  $('itCatTxt').innerHTML = c ? `${iconeCat(c, 'peq')}<span>${esc(c.nome)}</span>` : '<span>Escolha</span>';
+  $('itCatSel').open = false;
+  formaItem();
+}
+function formaItem() {
+  const t = formaItemAtual(), rot = ROT_ITIN[t], daDesp = !!(itemEd && usa().itinerario.find((x) => x.id === itemEd && x.despesa));
+  document.querySelectorAll('#fItin [data-it]').forEach((el) => { el.hidden = !el.dataset.it.split(' ').includes(t); });
+  $('itTituloRot').textContent = rot.titulo;
+  $('itDataRot').textContent = rot.ini;
+  if (rot.fim) $('itFimRot').textContent = rot.fim;
+  $('itLocalRot').textContent = rot.local || 'Local (endereço)';
+  $('itDaDesp').hidden = !daDesp;
+  for (const id of ['itData', 'itFim']) $(id).disabled = daDesp;
+  $('itCatSel').classList.toggle('travado', daDesp);
+  $('itLocalBusca').disabled = daDesp && !!locIt.valor;
+}
+function abrirItem(id) {
+  const v = viagemDoItin(), x = usa().itinerario.find((i) => i.id === id);
+  itemEd = x ? x.id : null;
+  $('itfTit').textContent = x ? 'Editar item' : 'Novo item';
+  // Categorias de Ajustes Travel, sem as arquivadas (a do item editado continua).
+  const u = usa(), cats = u.categorias.filter((c) => !c.arquivadaEm || (x && c.id === x.cat));
+  if (!cats.length) return avisar('Falta categoria', 'Cadastre ao menos uma categoria em Ajustes > Ajustes Travel > Categorias.');
+  $('itCatOpcoes').innerHTML = cats.map((c) => `<button type="button" class="linha" data-itcat="${esc(c.id)}">${iconeCat(c)}<span class="q">${esc(c.nome)}</span></button>`).join('');
+  // Item sem categoria (feito antes dela existir): a primeira com a mesma forma; item novo: a primeira da lista.
+  const catIni = x ? (x.cat || (cats.find((c) => formaDaCategoria(c) === x.tipo) || cats[0]).id) : cats[0].id;
+  $('itCat').value = catIni;
+  const val = (c) => (x && x[c]) || '';
+  for (const [el, c] of [['itTitulo', 'titulo'], ['itCia', 'cia'], ['itVoo', 'voo'], ['itOrigem', 'origem'], ['itDestino', 'destino'], ['itHora', 'hora'], ['itFuso', 'fuso'], ['itFim', 'fim'], ['itHoraFim', 'horaFim'], ['itFusoFim', 'fusoFim'], ['itLocalFim', 'localFim'], ['itAssento', 'assento'], ['itLocalizador', 'localizador'], ['itObs', 'obs']]) $(el).value = val(c);
+  // Item novo comeca no primeiro dia da viagem (ou hoje, se a viagem ja comecou e nao terminou).
+  const h = hoje();
+  $('itData').value = x ? x.data : v.inicio && !(h >= v.inicio && (!v.fim || h <= v.fim)) ? v.inicio : h;
+  // Fuso: o do ultimo item com fuso desta viagem, para nao digitar sempre.
+  if (!x) { const ult = usa().itinerario.filter((i) => i.viagem === v.id && i.fuso).pop(); $('itFuso').value = ult ? ult.fuso : ''; }
+  locIt.por(x && x.local);
+  $('itExcluir').hidden = !x || !!x.despesa;
+  escolherItCat(catIni);
+  $('dItin').showModal();
+}
+$('itMais').onclick = () => abrirItem(null);
+$('itDetalhes').addEventListener('change', renderItin);
+$('itFechar').onclick = () => $('dItin').close();
+$('fItin').onsubmit = (e) => {
+  e.preventDefault();
+  const v = viagemDoItin(), t = formaItemAtual(), txt = (id) => $(id).value.trim() || undefined, atual = usa().itinerario.find((i) => i.id === itemEd);
+  if (!catItem()) return avisar('Falta informação', 'Escolha a categoria.');
+  const usaFim = !!ROT_ITIN[t].fim, data = $('itData').value, fim = usaFim ? $('itFim').value || undefined : undefined;
+  if (!data) return avisar('Falta informação', `Informe a data (${ROT_ITIN[t].ini}).`);
+  if (fim && fim < data) return avisar('Datas inválidas', `${ROT_ITIN[t].fim} não pode ser antes de ${ROT_ITIN[t].ini.toLowerCase()}.`);
+  const origem = ['aereo', 'transporte'].includes(t) ? txt('itOrigem') : undefined, destino = ['aereo', 'transporte'].includes(t) ? txt('itDestino') : undefined;
+  const titulo = txt('itTitulo') || (origem || destino ? `${origem || '?'} - ${destino || '?'}` : t === 'aereo' ? [txt('itVoo'), txt('itCia')].filter(Boolean).join(' ') || 'Voo' : locIt.valor ? locIt.valor.nome : catItem().nome);
+  if (!titulo) return avisar('Falta informação', `Informe ${ROT_ITIN[t].titulo.toLowerCase()}.`);
+  const comLocal = ['hotel', 'evento', 'carro', 'restaurante'].includes(t);  // transporte e aereo usam origem e destino
+  const item = { id: atual ? atual.id : novoId(), viagem: v.id, tipo: t, cat: $('itCat').value, titulo: titulo.slice(0, 120), data, hora: txt('itHora'), fuso: txt('itFuso'),
+    fim, horaFim: usaFim ? txt('itHoraFim') : undefined, fusoFim: usaFim ? txt('itFusoFim') : undefined,
+    local: comLocal ? locIt.valor || undefined : undefined, localFim: t === 'carro' ? txt('itLocalFim') : undefined,
+    cia: t === 'aereo' ? txt('itCia') : undefined, voo: t === 'aereo' ? txt('itVoo') : undefined, assento: t === 'aereo' ? txt('itAssento') : undefined,
+    origem, destino, localizador: txt('itLocalizador'), obs: txt('itObs'), despesa: atual && atual.despesa, lado: atual && atual.lado };
+  for (const k of Object.keys(item)) if (item[k] === undefined) delete item[k];
+  if (!itemItinValido(item, usa())) return avisar('Não foi possível salvar', 'Confira a hora (hh:mm) e o tamanho dos textos.');
+  if (atual) usa().itinerario[usa().itinerario.indexOf(atual)] = item; else usa().itinerario.push(item);
+  $('dItin').close();
+  salvar();
+};
+$('itExcluir').onclick = async () => {
+  if (!await modal('Excluir item?', $('itTitulo').value || '', 'Sim, excluir', 'Cancelar')) return;
+  usa().itinerario = usa().itinerario.filter((i) => i.id !== itemEd);
+  $('dItin').close();
+  salvar();
+};
 // Coloca cada botao do mapa centralizado sobre o seu lugar reservado (as medidas so existem com a lista visivel).
 function posicionarMapas() {
   for (const caixa of document.querySelectorAll('#udLista .linhaMapa')) {
@@ -4184,9 +4452,7 @@ function abrirDespesa(id) {
   mostrarDoisMeios();
   $('udExcluir').hidden = !d;
   recUd.lista = ((d && d.recibos) || []).map((x) => ({ ...x }));
-  udLocal = d && d.local ? { ...d.local } : null;
-  locSessao = ''; $('udLocalBusca').value = ''; $('udLocalSug').innerHTML = '';
-  mostrarUdLocal();
+  locUd.por(d && d.local);
   recUd.novos = []; recUd.tirados = []; udSalvou = false;
   renderRec(recUd);
   $('dUsaDesp').showModal();
@@ -4202,7 +4468,7 @@ function escolherUdCat(id) {
 function temCheckin(c) {
   if (!c) return false;
   const nome = c.nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-  return /hotel|hosped|aereo|aviao|voo|passagem|carro|aluguel/.test(nome) || ['hotel', 'aviao', 'carro'].includes(c.simbolo);
+  return /hotel|hoteis|hosped|aereo|aviao|voo|passagem|carro|aluguel/.test(nome) || ['hotel', 'aviao', 'carro'].includes(c.simbolo);
 }
 function escolherUdMeio(n, id) {
   const x = [...usa().contas, ...usa().cartoes].find((m) => m.id === id);
@@ -4250,7 +4516,7 @@ $('fUsaDesp').onsubmit = (e) => {
   if (checkin && checkout && checkout < checkin) return avisar('Datas inválidas', 'O check-out não pode ser antes do check-in.');
   // Nenhum marcado ou Todos: divide entre todos os viajantes da viagem.
   const sel = marcados($('udQuemBox')), quem = $('udQuemBox').hidden ? [] : sel.length ? sel : [...udPessoas];
-  const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem, pago: $('udPago').checked, natureza: v.corporativa ? $('udNat').value : undefined, obs: $('udObs').value.trim() || undefined, checkin, checkout, pagamentos, local: udLocal || undefined };
+  const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem, pago: $('udPago').checked, natureza: v.corporativa ? $('udNat').value : undefined, obs: $('udObs').value.trim() || undefined, checkin, checkout, pagamentos, local: locUd.valor || undefined };
   const atual = usa().despesas.find((x) => x.id === despEd);
   dados.recibos = mesclarRecibos(recUd.lista, atual && atual.recibos);
   if (atual) Object.assign(atual, dados); else usa().despesas.push({ id: novoId(), ...dados });
