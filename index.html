@@ -431,6 +431,21 @@
   .tipoViag.fim { background: #5a6b76; }
   .usaCard small { display: block; color: var(--mut); margin-top: 2px; }
   .usaViaj { display: flex; flex-wrap: wrap; gap: 4px; }
+  .usaFoto { position: relative; }
+  .usaFoto > img.bandeira { position: absolute; top: 8px; left: 8px; width: 30px; height: 22px; box-shadow: 0 1px 4px rgba(0, 0, 0, .45); }
+  .linha .q > img.bandeira { width: 22px; height: 16px; margin-left: 4px; vertical-align: -3px; }
+  .bandDatas { display: block; margin-top: 4px; }
+  #itDatas { font-size: 12px; white-space: nowrap; }
+  #itDatas img.bandeira { width: 20px; height: 14px; margin-left: 5px; vertical-align: -2px; }
+  #fItin .multiSel summary, .selPais summary { margin-left: 0; border-top: 0; }
+  #fItin #itBuscarVoo { min-height: 32px; padding: 4px 14px; font-size: 13px; white-space: nowrap; }
+  .botaoInfo { display: flex; align-items: center; gap: 2px; }
+  .botaoInfo button.infoBtn { margin: 0; }
+  .rotLocal { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .rotLocal label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; white-space: nowrap; }
+  .rotLocal input[type=checkbox] { width: 18px; height: 18px; min-height: 0; margin: 0; }
+  #fItin #itDespBox > button { min-height: 32px; padding: 4px 14px; font-size: 13px; white-space: nowrap; }
+  #itDespBox > button:disabled { opacity: 1; background: var(--campo); color: var(--mut); }
   .usaViaj .ico { width: 28px; height: 28px; border: 2px solid #fff; }
   .ico.foto { padding: 0; object-fit: cover; }
   .usaFundoPrev img { display: block; width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; }
@@ -805,7 +820,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.70.0 · 08/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.70.2 · 08/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1267,21 +1282,21 @@
 <datalist id="listaFusos"><option value="GMT-3"><option value="EST"><option value="EDT"><option value="CST"><option value="CDT"><option value="MST"><option value="PST"><option value="PDT"><option value="GMT"><option value="BST"><option value="CET"><option value="CEST"></datalist>
 <dialog id="dItin"><form id="fItin" novalidate>
   <h3 id="itfTit">Novo item</h3>
-  <div id="itDespBox" class="vooBusca" hidden><button type="button" class="mini sec" id="itDoDesp"></button><small class="fraco">Hotel, aéreo, carro, transporte, parques, shows e passeios lançados nas despesas desta viagem. Escolha um para preencher o item.</small><div id="itDespOpcoes" class="localSug"></div></div>
+  <div id="itDespBox" class="vooBusca" hidden><button type="button" class="mini" id="itDoDesp"></button><small class="fraco">Hotel, aéreo, carro, transporte, parques, shows e passeios lançados nas despesas desta viagem. Escolha um para preencher o item.</small><div id="itDespOpcoes" class="localSug"></div></div>
   <div class="rotuloCampo"><span>Categoria</span><details class="multiSel" id="itCatSel"><summary><span id="itCatTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" id="itCatOpcoes"></div></details><input type="hidden" id="itCat"></div>
   <p id="itDaDesp" class="fraco" hidden>Este item veio de uma despesa com check-in: as datas e o local seguem a despesa. Para mudar, altere a despesa.</p>
   <div class="dois" data-it="aereo"><div class="rotuloCampo"><span>Companhia</span><details class="multiSel" id="itCiaSel"><summary><span id="itCiaTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input id="itCiaFiltro" type="search" autocomplete="off" placeholder="Buscar companhia" aria-label="Buscar companhia"><div id="itCiaOpcoes"></div></div></details><input type="hidden" id="itCia"></div><label>Nº do voo<input id="itVoo" maxlength="12" autocomplete="off" inputmode="text" placeholder="Ex.: 1234"></label></div>
-  <div data-it="aereo" class="vooBusca"><button type="button" class="mini sec" id="itBuscarVoo">Buscar dados do voo</button><small class="fraco">Pela companhia e o nº do voo, sem a data. Mostra o voo, você escolhe a data e o app preenche origem, destino, horários e fusos. Dados: AeroDataBox.</small><div id="itVooOpcoes" class="localSug" aria-live="polite"></div></div>
+  <div data-it="aereo" class="vooBusca"><div class="botaoInfo"><button type="button" class="mini" id="itBuscarVoo">Buscar dados do voo</button><button type="button" class="infoBtn" id="itVooInfo" aria-label="Como funciona a busca do voo"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button></div><small class="fraco">Dados: AeroDataBox.</small><div id="itVooOpcoes" class="localSug" aria-live="polite"></div></div>
   <div class="dois" data-it="aereo transporte"><label>Origem<input id="itOrigem" maxlength="80" autocomplete="off" placeholder="GRU"></label><label>Destino<input id="itDestino" maxlength="80" autocomplete="off" placeholder="BOS"></label></div>
   <label><span id="itTituloRot">Título</span><input id="itTitulo" maxlength="120" autocomplete="off"></label>
-  <div class="rotuloCampo" data-it="hotel evento carro restaurante"><span id="itLocalRot">Local (endereço)</span>
+  <div class="rotuloCampo" data-it="hotel evento carro restaurante"><span class="rotLocal"><span id="itLocalRot">Local (endereço)</span><label data-it="carro"><input type="checkbox" id="itOutro">Devolver em outro local</label></span>
     <div id="itLocalEsc" class="localEsc" hidden></div>
     <input id="itLocalBusca" autocomplete="off" placeholder="Digite o nome do lugar ou o endereço" aria-label="Buscar local">
     <div id="itLocalSug" class="localSug" aria-live="polite"></div>
   </div>
   <div class="tres"><label><span id="itDataRot">Data</span><input id="itData" type="date"></label><label>Hora<input id="itHora" type="time"></label><label>Fuso<input id="itFuso" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
+  <label id="itLocalFimBox" hidden>Local de devolução<input id="itLocalFim" maxlength="200" autocomplete="off" placeholder="Nome do lugar ou endereço"></label>
   <div class="tres" data-it="aereo hotel evento carro transporte"><label><span id="itFimRot">Fim</span><input id="itFim" type="date"></label><label>Hora<input id="itHoraFim" type="time"></label><label>Fuso<input id="itFusoFim" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
-  <label data-it="carro">Local de devolução<input id="itLocalFim" maxlength="200" autocomplete="off"></label>
   <div class="rotuloCampo" id="itPaxBox"><span id="itPaxRot">Passageiros: localizador e assento</span><div id="itPax"></div></div>
   <label data-it="aereo transporte evento" id="itAssRot">Assento<input id="itAssento" maxlength="12" autocomplete="off" placeholder="Ex.: 12A"></label>
   <label id="itLocRot">Código do localizador<input id="itLocalizador" maxlength="40" autocomplete="off"></label>
@@ -3995,7 +4010,8 @@ function renderUsa() {
   $('uCatsArq').innerHTML = arq('categorias', (c) => iconeCat(c));
   $('uMoedasArq').innerHTML = arq('moedas', icoMoeda);
   const total = (v) => fmtTotais(u, v);
-  const pilTipo = (v) => `<span class="tipoViag ${v.corporativa ? 'corp' : 'pes'}">${v.corporativa ? 'Corporativa' : 'Pessoal'}</span>`;
+  // Bandeira do pais de destino logo depois da etiqueta Corporativa/Pessoal (nas listas).
+  const pilTipo = (v) => `<span class="tipoViag ${v.corporativa ? 'corp' : 'pes'}">${v.corporativa ? 'Corporativa' : 'Pessoal'}</span>${v.pais ? bandeiraHtml(v.pais) : ''}`;
   const viajantes = (v) => u.viajantes.filter((p) => v.viajantes.includes(p.id)).map(fotoViajante).join('');
   const porInicio = (a, b) => (a.inicio || '9999').localeCompare(b.inicio || '9999');
   // Itinerario: botao proprio, fora do card ou da linha (que abrem as despesas).
@@ -4004,8 +4020,8 @@ function renderUsa() {
   const contador = (v) => { const t = contadorViagem(v, hoje(), viagemFinalizada(v, hoje())); return t ? `<small class="contadorViag">${esc(t)}</small>` : ''; };
   const htmlViagens = (lista, vazio, emLista) => (!lista.length ? `<p class="fraco" style="margin:0">${vazio}</p>` : emLista
     ? `<div>${lista.map((v) => `<div class="linhaItin"><button type="button" class="linha" data-usaviagem="${esc(v.id)}">${icoViagem(v)}<span class="q">${pilTipo(v)}<br><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small>${contador(v)}</span>${SETA}</button>${btnItin(v)}</div>`).join('')}</div>`
-    : `<div class="usaGrade">${lista.map((v) => `<div class="usaCardBox"><button type="button" class="card usaCard" data-usaviagem="${esc(v.id)}"><div class="usaFoto"${v.fundo ? ` style="background-image:url('${v.fundo}')"` : ''}><div class="usaViaj">${viajantes(v)}</div></div>
-      <div class="txt">${pilTipo(v)}<b>${esc(v.nome)}</b><small>${datasViagem(v)}</small><small>${total(v)}</small>${contador(v)}</div></button>${btnItin(v)}</div>`).join('')}</div>`);
+    : `<div class="usaGrade">${lista.map((v) => `<div class="usaCardBox"><button type="button" class="card usaCard" data-usaviagem="${esc(v.id)}"><div class="usaFoto"${v.fundo ? ` style="background-image:url('${v.fundo}')"` : ''}>${v.pais ? bandeiraHtml(v.pais) : ''}<div class="usaViaj">${viajantes(v)}</div></div>
+      <div class="txt">${pilTipo(v).replace(/<img[^>]*>/, '')}<b>${esc(v.nome)}</b><small>${datasViagem(v)}</small><small>${total(v)}</small>${contador(v)}</div></button>${btnItin(v)}</div>`).join('')}</div>`);
   const h = hoje(), todas = [...u.viagens].sort(porInicio);
   // Cada secao tem o seu filtro; a lista do combo traz so as viagens daquela secao.
   const filtrar = (id, base) => {
@@ -4384,7 +4400,7 @@ function renderUsaDesp() {
   // Faixa com a foto da viagem e o nome em destaque; sem foto, a faixa fica na cor do app.
   $('udCapa').style.backgroundImage = v.fundo ? `linear-gradient(rgba(0, 0, 0, .35), rgba(0, 0, 0, .35)), url("${v.fundo}")` : '';
   $('udCapaNome').textContent = v.nome;
-  $('udDatas').textContent = datasViagem(v);
+  $('udDatas').innerHTML = esc(datasViagem(v)) + (v.pais ? `<span class="bandDatas">${bandeiraHtml(v.pais)}</span>` : '');
   $('udQtd').textContent = `Total (${desp.length})`;
   $('udTotal').textContent = fmtTotais(u, v);
   $('udCorp').innerHTML = htmlCorpPes(u, v);
@@ -4593,7 +4609,7 @@ function renderItin() {
   const v = viagemDoItin();
   if (!v) return;
   $('itNome').textContent = v.nome;
-  $('itDatas').textContent = v.inicio ? `${dataCurtaIt(v.inicio)}${v.fim ? ' – ' + dataCurtaIt(v.fim) : ''}` : 'Sem datas';
+  $('itDatas').innerHTML = esc(v.inicio ? `${dataCurtaIt(v.inicio)}${v.fim ? ' – ' + dataCurtaIt(v.fim) : ''}` : 'Sem datas') + (v.pais ? bandeiraHtml(v.pais) : '');
   $('itFoto').style.backgroundImage = v.fundo ? `url("${v.fundo}")` : '';
   $('itFoto').hidden = !v.fundo;
   renderDocsItin(v);
@@ -4621,6 +4637,7 @@ function formaItem() {
   $('itDataRot').textContent = rot.ini;
   if (rot.fim) $('itFimRot').textContent = rot.fim;
   $('itLocalRot').textContent = rot.local || 'Local (endereço)';
+  $('itLocalFimBox').hidden = t !== 'carro' || !$('itOutro').checked;
   $('itDaDesp').hidden = !daDesp;
   const comPax = !!$('itPax').children.length, comAss = ASSENTO_ITIN.includes(t);
   $('itPaxBox').hidden = !comPax;
@@ -4726,6 +4743,7 @@ function aplicarVoo(v) {
   $('itVooOpcoes').innerHTML = `<p class="fraco" style="margin:6px 0 0">Preenchido: ${esc(v.origem)} → ${esc(v.destino)} em ${dataBR(v.data)}. Confira e toque em Salvar.</p>`;
 }
 $('itBuscarVoo').onclick = buscarVoo;
+$('itVooInfo').onclick = () => avisar('Buscar dados do voo', 'Escolha a companhia e digite o número do voo (só os números bastam). A busca não usa a data: ela mostra o voo mais próximo de hoje, com origem, destino, horários e duração. Você escolhe a data do voo e o app preenche origem, destino, partida, chegada e fusos, calculando o fuso de cada aeroporto naquela data (inclusive horário de verão). Localizador e assento não são preenchidos. Cada busca gasta 1 consulta do plano gratuito do AeroDataBox (cerca de 200 por mês). Dados: AeroDataBox.');
 function abrirItem(id) {
   const v = viagemDoItin(), x = usa().itinerario.find((i) => i.id === id);
   itemEd = x ? x.id : null;
@@ -4746,19 +4764,23 @@ function abrirItem(id) {
   // Fuso: o do ultimo item com fuso desta viagem, para nao digitar sempre.
   if (!x) { const ult = usa().itinerario.filter((i) => i.viagem === v.id && i.fuso).pop(); $('itFuso').value = ult ? ult.fuso : ''; }
   locIt.por(x && x.local);
+  $('itOutro').checked = !!(x && x.localFim);
   $('itVooOpcoes').innerHTML = '';
   montarPax(x);
   $('itExcluir').hidden = !x;
   // Item novo: oferece as despesas da viagem que podem virar item e ainda nao viraram.
   itDespSel = null;
   itDespOps = x ? [] : despesasParaItin(u, v.id);
-  $('itDespBox').hidden = !itDespOps.length;
+  $('itDespBox').hidden = !!x;
+  $('itDoDesp').disabled = !itDespOps.length;
+  $('itDoDesp').classList.toggle('sec', !itDespOps.length);
   $('itDoDesp').textContent = `Trazer de uma despesa (${itDespOps.length})`;
   $('itDespOpcoes').innerHTML = '';
   escolherItCat(catIni);
   $('dItin').showModal();
 }
 $('itMais').onclick = () => abrirItem(null);
+$('itOutro').addEventListener('change', () => { formaItem(); if ($('itOutro').checked) $('itLocalFim').focus(); });
 $('itDoDesp').onclick = () => {
   const u = usa(), lado = { ida: ' · ida', volta: ' · volta' };
   $('itDespOpcoes').innerHTML = $('itDespOpcoes').innerHTML ? '' : itDespOps.map((o, i) => {
@@ -4792,7 +4814,7 @@ $('fItin').onsubmit = (e) => {
   const comLocal = ['hotel', 'evento', 'carro', 'restaurante'].includes(t);  // transporte e aereo usam origem e destino
   const item = { id: atual ? atual.id : novoId(), viagem: v.id, tipo: t, cat: $('itCat').value, titulo: titulo.slice(0, 120), data, hora: txt('itHora'), fuso: txt('itFuso'),
     fim, horaFim: usaFim ? txt('itHoraFim') : undefined, fusoFim: usaFim ? txt('itFusoFim') : undefined,
-    local: comLocal ? locIt.valor || undefined : undefined, localFim: t === 'carro' ? txt('itLocalFim') : undefined,
+    local: comLocal ? locIt.valor || undefined : undefined, localFim: t === 'carro' && $('itOutro').checked ? txt('itLocalFim') : undefined,
     cia: t === 'aereo' ? txt('itCia') : undefined, voo: t === 'aereo' ? txt('itVoo') : undefined, assento: ASSENTO_ITIN.includes(t) ? txt('itAssento') : undefined,
     origem, destino, localizador: txt('itLocalizador'), obs: txt('itObs'), pax: undefined, despesa: (atual || itDespSel || {}).despesa, lado: (atual || itDespSel || {}).lado };
   if (!$('itPaxBox').hidden) {
