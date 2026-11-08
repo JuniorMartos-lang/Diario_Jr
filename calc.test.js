@@ -832,12 +832,14 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
       pagamentos: [{ meio: 'u1', valor: 10000 }, { meio: 'u2', valor: 2345 }], natureza: 'P',
       recibos: [{ id: 'r1', em: '2027-04-05T15:00:00.000Z', pag: 2, arq: '1AbCdEfGhIjKlMnOp_q-r', nome: '2027-04-05 Parque R$ 123,45 (1).pdf' }, { id: 'r2', em: '2027-04-05T15:05:00.000Z', pag: 1 }],
       local: { nome: 'Hotel Teste', endereco: 'Rua Teste, 100, Cidade, EUA', lat: 40.1, lng: -70.1, id: 'ChIJ_abc-123' } }],
-    viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 }, corporativa: true }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {} }],
+    viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 }, corporativa: true, pais: 'US' }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {} }],
     contas: [{ id: 'u1', nome: 'Wise', icone: svg, iconeNome: 'Wise' }], cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'V', icone: svg, iconeNome: 'Visa',
       finais: [{ n: '1234', tipo: 'V', dono: 'T' }], finaisInativos: [{ n: '5678', tipo: 'F', dono: 'A', motivo: 'Vencido', em: '2026-11-03' }] }],
-    viajantes: [{ id: 'u3', nome: 'Ana', foto: jpg, inicial: true }], categorias: [{ id: 'u4', nome: 'Parques', simbolo: 'carro', cor: '#2f8486', arquivadaEm: '2026-11-03' }],
+    viajantes: [{ id: 'u3', nome: 'Ana', foto: jpg, inicial: true, passaporte: { num: 'XX000001', emissao: '2020-01-02', validade: '2030-01-01', fotos: [{ id: 'p1', em: '2026-11-08T10:00:00.000Z', pag: 1, arq: 'arquivoPassaporte01', nome: 'Passaporte Ana.pdf' }] },
+      vistos: [{ id: 'vi1', pais: 'US', num: 'V123', emissao: '2021-05-05', validade: '2031-05-04', fotos: [{ id: 'p2', em: '2026-11-08T10:00:00.000Z', pag: 1 }] }, { id: 'vi2', pais: 'CA' }] }],
+    categorias: [{ id: 'u4', nome: 'Parques', simbolo: 'carro', cor: '#2f8486', arquivadaEm: '2026-11-03' }],
     itinerario: [{ id: 'i1', viagem: 'v1', tipo: 'aereo', titulo: 'AAA - BBB', data: '2027-04-04', hora: '22:40', fuso: 'GMT-3', fim: '2027-04-05', horaFim: '06:35', fusoFim: 'EST',
-      cia: 'Companhia Teste', voo: 'XX 1234', assento: '12A', origem: 'AAA', destino: 'BBB', localizador: 'ABC123', obs: 'Janela' },
+      cia: 'Companhia Teste', voo: 'XX 1234', assento: '12A', origem: 'AAA', destino: 'BBB', localizador: 'ABC123', obs: 'Janela', pax: [{ quem: 'u3', loc: 'ABC123', assento: '12A' }] },
     { id: 'i2', viagem: 'v1', tipo: 'hotel', titulo: 'Hotel', data: '2027-04-05', hora: '15:00', fim: '2027-04-10', horaFim: '11:00', localizador: 'H123', despesa: 'd1',
       local: { nome: 'Hotel', endereco: 'Rua 1', lat: 28.5, lng: -81.4 } }] } };
   comUsa.usa.moedas = c.MOEDAS_PADRAO.map((m) => (m.id === 'EUR' ? { ...m, arquivadaEm: '2026-11-03' } : m));
@@ -849,7 +851,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.deepStrictEqual(volta.usa, comUsa.usa);
   }
   // ID do cliente do Google (Ajustes > Backup) passa pelos dois tipos de backup; formato errado nao restaura
-  const comGoogle = { ...JSON.parse(JSON.stringify(dp)), google: { cliente: '729588885596-abc123.apps.googleusercontent.com', mapsKey: 'AIzaSyA1b2C3d4E5f6G7h8I9j0K_lmnoPQRst-u', ultimoAutoEm: '2026-11-07T18:30:05.000Z', agenda: { ativo: true, id: 'abc123def@group.calendar.google.com', tarefas: 'MDQ0NjE3ODM4NjU1NjIxNzk0NDk6MDow' } } };
+  const comGoogle = { ...JSON.parse(JSON.stringify(dp)), google: { cliente: '729588885596-abc123.apps.googleusercontent.com', mapsKey: 'AIzaSyA1b2C3d4E5f6G7h8I9j0K_lmnoPQRst-u', aeroKey: 'a1b2c3d4e5f6a7b8c9d0a1b2c3d4e5f6a7b8c9d0a1b2c3d4e5', ultimoAutoEm: '2026-11-07T18:30:05.000Z', agenda: { ativo: true, id: 'abc123def@group.calendar.google.com', tarefas: 'MDQ0NjE3ODM4NjU1NjIxNzk0NDk6MDow' } } };
   for (const arq of [await c.cifrarBackup(comGoogle, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comGoogle, gApp)]) {
     const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
     const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-07');
@@ -862,6 +864,26 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.ok(!c.backupValido({ ...comGoogle, google: { ultimoAutoEm: 'ontem' } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { agenda: { ativo: 'sim' } } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { mapsKey: 'chave-errada' } }));
+  assert.ok(!c.backupValido({ ...comGoogle, google: { aeroKey: 'chave com espaco e curta' } }));
+  // AeroDataBox: resposta do voo vira os campos do item aereo
+  assert.strictEqual(c.fusoDeOffset('-03:00'), 'GMT-3');
+  assert.strictEqual(c.fusoDeOffset('+05:30'), 'GMT+5:30');
+  assert.strictEqual(c.fusoDeOffset('+00:00'), 'GMT');
+  assert.strictEqual(c.fusoDeOffset('Z'), 'GMT');
+  assert.strictEqual(c.fusoDeOffset(undefined), '');
+  assert.deepStrictEqual(c.horaLocalVoo('2026-11-13 22:40-03:00'), { data: '2026-11-13', hora: '22:40', fuso: 'GMT-3' });
+  assert.deepStrictEqual(c.horaLocalVoo('2026-11-14T06:35:00-05:00'), { data: '2026-11-14', hora: '06:35', fuso: 'GMT-5' });
+  assert.strictEqual(c.horaLocalVoo('amanha'), null);
+  const trecho = (de, para, hp, hc) => ({ number: 'XX 1234', status: 'Expected', airline: { name: 'Companhia Teste', iata: 'XX' },
+    departure: { airport: { iata: de, name: 'Aeroporto ' + de, municipalityName: 'Cidade ' + de }, scheduledTime: { utc: '', local: hp } },
+    arrival: { airport: { iata: para, name: 'Aeroporto ' + para }, scheduledTime: { utc: '', local: hc } } });
+  const voos = c.dadosDoVoo([trecho('AAA', 'BBB', '2026-11-13 22:40-03:00', '2026-11-14 06:35-05:00'), trecho('AAA', 'BBB', '2026-11-13 22:40-03:00', '2026-11-14 06:35-05:00'),
+    { ...trecho('BBB', 'CCC', '2026-11-14 08:00-05:00', '2026-11-14 09:10-05:00'), status: 'Canceled' }, { number: 'só lixo' }]);
+  assert.strictEqual(voos.length, 2, 'repetido e incompleto saem');
+  assert.deepStrictEqual(voos[0], { cia: 'Companhia Teste', voo: 'XX 1234', origem: 'AAA', destino: 'BBB', origemNome: 'Cidade AAA', destinoNome: 'Aeroporto BBB',
+    data: '2026-11-13', hora: '22:40', fuso: 'GMT-3', fim: '2026-11-14', horaFim: '06:35', fusoFim: 'GMT-5', situacao: 'Previsto' });
+  assert.strictEqual(voos[1].situacao, 'Cancelado');
+  assert.deepStrictEqual(c.dadosDoVoo(null), []);
   assert.ok(!c.backupValido({ ...comGoogle, google: { agenda: { ativo: true, id: '<script>' } } }));
   assert.ok(c.backupValido({ ...comGoogle, google: { agenda: { ativo: true, id: 'x@group.calendar.google.com', tarefas: 'MDQ0NjE3ODM4NjU1NjIxNzk0NDk6MDow' } } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { agenda: { ativo: true, tarefas: 'a b' } } }));
@@ -918,6 +940,31 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     const it0 = comUsa.usa.itinerario[0];
     assert.ok(okIt(it0));
     assert.ok(okIt({ ...it0, cat: 'u4' }) && !okIt({ ...it0, cat: 'nenhuma' }), 'categoria do item tem de existir');
+    // Passaporte, vistos e pais de destino
+    const comViaj = (p) => c.backupValido({ ...comUsa, usa: { ...comUsa.usa, viajantes: [{ ...comUsa.usa.viajantes[0], ...p }] } });
+    assert.ok(comViaj({}) && comViaj({ passaporte: undefined, vistos: undefined }) && comViaj({ passaporte: { num: 'A1' } }));
+    assert.ok(!comViaj({ passaporte: { num: 'A1', emissao: '2030-01-01', validade: '2020-01-01' } }), 'validade antes da emissao');
+    assert.ok(!comViaj({ vistos: [{ id: 'x', pais: 'XX' }] }) && !comViaj({ vistos: [{ id: 'x', pais: 'US' }, { id: 'x', pais: 'CA' }] }) && !comViaj({ passaporte: { num: 'A'.repeat(31) } }));
+    assert.ok(!comViaj({ passaporte: { fotos: [{ id: 'f' }] } }), 'foto no formato dos recibos');
+    assert.ok(!c.backupValido({ ...comUsa, usa: { ...comUsa.usa, viagens: comUsa.usa.viagens.map((v) => ({ ...v, pais: 'ZZ' })) } }));
+    assert.strictEqual(c.nomePais('US'), 'Estados Unidos');
+    assert.ok(c.PAISES.length > 240 && c.ehPais('BR') && !c.ehPais('EU'));
+    // Passageiros: viajante cadastrado, sem repetir, com localizador ou assento
+    assert.ok(okIt({ ...it0, pax: [{ quem: 'u3', assento: '3C' }] }) && okIt({ ...it0, pax: undefined }));
+    assert.ok(!okIt({ ...it0, pax: [{ quem: 'xx', loc: 'A' }] }) && !okIt({ ...it0, pax: [{ quem: 'u3', loc: 'A' }, { quem: 'u3', loc: 'B' }] }) && !okIt({ ...it0, pax: [{ quem: 'u3' }] }) && !okIt({ ...it0, pax: [] }));
+    // Voo sem data: o mais proximo vira modelo e e levado para a data escolhida (horario de verao nas duas pontas)
+    const vooRef = [{ number: 'XX 1234', airline: { name: 'Companhia Teste' }, status: 'Arrived',
+      departure: { airport: { iata: 'AAA', municipalityName: 'Cidade A', timeZone: 'America/New_York' }, scheduledTime: { utc: '2026-11-07 23:25Z', local: '2026-11-07 18:25-05:00' } },
+      arrival: { airport: { iata: 'BBB', municipalityName: 'Cidade B', timeZone: 'Europe/London' }, scheduledTime: { utc: '2026-11-08 06:20Z', local: '2026-11-08 06:20+00:00' } } }];
+    const mv = c.modelosDoVoo(vooRef)[0];
+    assert.deepStrictEqual([mv.origem, mv.destino, mv.hora, mv.duracao, mv.offOrigem, mv.offDestino], ['AAA', 'BBB', '18:25', 415, -300, 0]);
+    assert.deepStrictEqual(c.vooNaData(mv, '2026-11-20'), { data: '2026-11-20', hora: '18:25', fuso: 'GMT-5', fim: '2026-11-21', horaFim: '06:20', fusoFim: 'GMT' });
+    assert.deepStrictEqual(c.vooNaData(mv, '2026-07-01'), { data: '2026-07-01', hora: '18:25', fuso: 'GMT-4', fim: '2026-07-02', horaFim: '06:20', fusoFim: 'GMT+1' });
+    assert.deepStrictEqual(c.vooNaData({ ...mv, tzOrigem: '', tzDestino: '' }, '2026-07-01'), { data: '2026-07-01', hora: '18:25', fuso: 'GMT-5', fim: '2026-07-02', horaFim: '06:20', fusoFim: 'GMT' }, 'sem fuso IANA: offsets da referencia');
+    assert.deepStrictEqual(c.vooNaData({ ...mv, duracao: null }, '2026-11-20'), { data: '2026-11-20', hora: '18:25', fuso: 'GMT-5' });
+    assert.strictEqual(c.offsetFuso('America/Sao_Paulo', Date.parse('2026-11-08T12:00Z')), -180);
+    assert.strictEqual(c.offsetFuso('Lugar/Nenhum', 0), null);
+    assert.strictEqual(c.modelosDoVoo([...vooRef, ...vooRef]).length, 1, 'mesmo trecho uma vez so');
     assert.ok(!okIt({ ...it0, tipo: 'nave' }) && !okIt({ ...it0, hora: '25:00' }) && !okIt({ ...it0, fim: '2027-04-01' }) && !okIt({ ...it0, viagem: 'nenhuma' }) && !okIt({ ...it0, titulo: '' }));
     assert.strictEqual(c.tipoDaCategoriaViagem({ nome: '02 - Hotéis', simbolo: 'cama' }), 'hotel');
     assert.strictEqual(c.tipoDaCategoriaViagem({ nome: '01 - Aéreo', simbolo: 'x' }), 'aereo');
@@ -926,24 +973,35 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     // Forma do item pela categoria de Ajustes Travel
     assert.deepStrictEqual(['01 - Aéreo', '02 - Hotéis', 'Aluguel de Carro', 'Uber / Táxi', 'Trem Amtrak', '10 - Ingressos', 'Alimentação'].map((nome) => c.formaDaCategoria({ nome, simbolo: 'x' })),
       ['aereo', 'hotel', 'carro', 'transporte', 'transporte', 'evento', 'evento']);
-    const uI = { viagens: [{ id: 'v' }], categorias: [{ id: 'ch', nome: 'Hotel' }, { id: 'ca', nome: 'Aéreo' }, { id: 'cc', nome: 'Carro' }, { id: 'cx', nome: 'Comida' }],
+    const uI = { viagens: [{ id: 'v', inicio: '2026-11-13', fim: '2026-11-21' }], categorias: [{ id: 'ch', nome: 'Hotel' }, { id: 'ca', nome: 'Aéreo' }, { id: 'cc', nome: 'Carro' }, { id: 'cx', nome: 'Comida' }],
       despesas: [{ id: 'h', viagem: 'v', desc: 'Hotel', cat: 'ch', checkin: '2026-11-14', checkout: '2026-11-21', local: { nome: 'Hotel Teste', endereco: 'Rua', lat: 1, lng: 1 } },
         { id: 'a', viagem: 'v', desc: 'Passagem', cat: 'ca', checkin: '2026-11-13', checkout: '2026-11-21' },
         { id: 'c', viagem: 'v', desc: 'Hertz', cat: 'cc', checkin: '2026-11-14', checkout: '2026-11-20' },
         { id: 'x', viagem: 'v', desc: 'Jantar', cat: 'cx', checkin: '2026-11-15' },
-        { id: 's', viagem: 'v', desc: 'Hotel sem data', cat: 'ch' }], itinerario: [{ id: 'n1', viagem: 'v', tipo: 'nota', titulo: 'Feira', data: '2026-11-16', hora: '08:00' }] };
-    assert.ok(c.sincronizarItinDespesas(uI, 'v'));
-    assert.deepStrictEqual(uI.itinerario.filter((x) => x.despesa).map((x) => x.cat).sort(), ['ca', 'ca', 'cc', 'ch'], 'item da despesa leva a categoria dela');
-    assert.deepStrictEqual(uI.itinerario.map((x) => [x.tipo, x.titulo, x.data, x.fim || '', x.lado || '']).sort(),
-      [['aereo', 'Passagem', '2026-11-13', '', 'ida'], ['aereo', 'Passagem', '2026-11-21', '', 'volta'], ['carro', 'Hertz', '2026-11-14', '2026-11-20', ''], ['hotel', 'Hotel Teste', '2026-11-14', '2026-11-21', ''], ['nota', 'Feira', '2026-11-16', '', '']]);
-    assert.ok(!c.sincronizarItinDespesas(uI, 'v'), 'segunda vez nao muda nada');
+        { id: 's', viagem: 'v', desc: 'Hotel sem data', cat: 'ch', data: '2026-09-01' }], itinerario: [{ id: 'n1', viagem: 'v', tipo: 'nota', titulo: 'Feira', data: '2026-11-16', hora: '08:00' }] };
+    // Nada entra sozinho; a pessoa escolhe entre as despesas que podem virar item
+    assert.ok(!c.sincronizarItinDespesas(uI, 'v'));
+    assert.deepStrictEqual(uI.itinerario.map((x) => x.id), ['n1']);
+    assert.deepStrictEqual(['Parques Disney', 'Shows', '10 - Ingressos', 'Uber', 'Compras', 'Alimentação', 'Gorjetas', '12 - Alimentação Parques/Atrac', '09 - Cruzeiro', 'Estacionamento'].map((nome) => c.categoriaDeItinerario({ nome, simbolo: 'x' })),
+      [true, true, true, true, false, false, false, false, true, false]);
+    const ops = c.despesasParaItin(uI, 'v');
+    assert.deepStrictEqual(ops.map((o) => [o.despesa, o.lado || '', o.forma, o.titulo, o.data, o.fim || '']),
+      [['h', '', 'hotel', 'Hotel Teste', '2026-11-14', '2026-11-21'], ['a', 'ida', 'aereo', 'Passagem', '2026-11-13', ''], ['a', 'volta', 'aereo', 'Passagem', '2026-11-21', ''],
+        ['c', '', 'carro', 'Hertz', '2026-11-14', '2026-11-20'], ['s', '', 'hotel', 'Hotel sem data', '2026-11-13', '']], 'comida fica de fora; sem check-in e compra fora da viagem: inicio');
+    // escolhidas, viram itens ligados a despesa; nao aparecem mais na lista
+    for (const o of ops.slice(0, 4)) uI.itinerario.push({ id: 'it' + o.despesa + (o.lado || ''), viagem: 'v', tipo: o.forma, cat: o.cat, titulo: o.titulo, data: o.data, ...(o.fim ? { fim: o.fim } : {}), ...(o.local ? { local: o.local } : {}), despesa: o.despesa, ...(o.lado ? { lado: o.lado } : {}) });
+    assert.deepStrictEqual(c.despesasParaItin(uI, 'v').map((o) => o.despesa), ['s']);
+    assert.ok(!c.sincronizarItinDespesas(uI, 'v'), 'nada mudou');
+    assert.ok(c.despesaComCheckin(uI, uI.despesas[0]) && !c.despesaComCheckin(uI, uI.despesas[4]));
     // o que a pessoa completou fica; a data segue a despesa
     const hot = uI.itinerario.find((x) => x.tipo === 'hotel');
     Object.assign(hot, { hora: '15:00', localizador: 'H9', obs: 'Andar alto' });
     uI.despesas[0].checkout = '2026-11-20';
+    uI.despesas[1].checkout = '2026-11-22';
     assert.ok(c.sincronizarItinDespesas(uI, 'v'));
     assert.deepStrictEqual([hot.fim, hot.hora, hot.localizador, hot.obs], ['2026-11-20', '15:00', 'H9', 'Andar alto']);
-    // despesa excluida: o item dela sai; o item feito a mao fica
+    assert.strictEqual(uI.itinerario.find((x) => x.lado === 'volta').data, '2026-11-22');
+    // despesa excluida: os itens dela saem; o item feito a mao fica
     uI.despesas = uI.despesas.filter((d) => d.id !== 'a');
     assert.ok(c.sincronizarItinDespesas(uI, 'v'));
     assert.deepStrictEqual(uI.itinerario.map((x) => x.tipo).sort(), ['carro', 'hotel', 'nota']);

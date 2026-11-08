@@ -140,6 +140,37 @@
   .pino { display: inline-flex; align-items: center; vertical-align: -4px; margin-right: 4px; color: #c0262d; cursor: pointer; }
   .pino svg { width: 20px; height: 20px; fill: currentColor; }
   .localSug .linha { gap: 8px; }
+  .vooBusca { margin: -4px 0 12px; }
+  .ciaOpcoes { padding-top: 0; }
+  .opcPais .q small, #itCiaOpcoes .q small { display: block; font-size: 12px; color: var(--mut); }
+  img.bandeira { flex: none; width: 26px; height: 19px; border-radius: 3px; object-fit: cover; vertical-align: middle; box-shadow: 0 0 0 1px var(--linha); }
+  .paisTxt { display: flex; align-items: center; gap: 8px; }
+  .recLista .linha { gap: 8px; }
+  .recLista .linha button { flex: none; min-height: 36px; padding: 4px 10px; font-size: 13px; }
+  #itPax.semAssento .paxAss { display: none; }
+  #itPax.semAssento .paxLoc { grid-column: 1 / 4; }
+  .docViaj { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--linha); }
+  .docViaj:last-child { border-bottom: 0; }
+  .docViaj .q { flex: 1; min-width: 0; }
+  .docViaj small { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 3px; font-size: 13px; color: var(--mut); }
+  .docViaj small b { color: var(--txt); font-weight: 600; }
+  .docAlerta { color: #c0262d; font-weight: 700; }
+  .docViaj button.docFoto { min-height: 0; padding: 2px 8px; font-size: 12px; }
+  .ciaOpcoes input { position: sticky; top: 0; z-index: 1; margin: 0 0 4px; box-shadow: 0 6px 6px -6px rgba(0, 0, 0, .3); }
+  #itCiaTxt { display: flex; align-items: center; gap: 6px; }
+  #itCiaTxt .ico, #vooTit .ico { width: 26px; height: 26px; padding: 2px; }
+  #vooTit { display: flex; align-items: center; gap: 8px; }
+  .vooTrecho { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; margin-bottom: 8px; border-radius: 12px; background: var(--campo); font-size: 14px; }
+  .vooTrecho input { width: auto; min-height: 0; margin: 3px 0 0; }
+  .vooTrecho b { display: block; font-size: 16px; }
+  .vooTrecho small { display: block; color: var(--mut); }
+  .paxLinha { display: grid; grid-template-columns: 32px 1fr 1fr; gap: 6px 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--linha); }
+  .paxLinha .q { grid-column: 2 / 4; font-size: 14px; font-weight: 600; }
+  .paxLinha input { grid-row: 2; margin: 0; min-width: 0; }
+  .paxLinha input.paxLoc { grid-column: 1 / 3; }
+  .paxLinha input.paxAss { grid-column: 3; }
+  .vooBusca small { display: block; margin-top: 4px; font-size: 12px; }
+  .vooBusca .linha small { margin: 0; }
   .localSug .linha .pino, .localEsc .pino { cursor: default; }
   .localEsc { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; background: var(--campo); margin: 4px 0; }
   .localEsc[hidden] { display: none; }
@@ -425,10 +456,14 @@
   .infoTela { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 14px; color: var(--mut); font-size: 14px; line-height: 1.4; }
   .infoTela svg { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
   button.infoBtn { flex: none; width: 44px; height: 44px; min-height: 0; margin: -11px -6px -11px -11px; padding: 0; background: none; color: var(--pri); }
-  dialog#dInfoBackup, dialog#dInfoMes { max-height: calc(100dvh - 32px); overflow-y: auto; }
-  #dInfoBackup h4, #dInfoMes h4 { margin: 12px 0 4px; font-size: 15px; }
-  #dInfoBackup p, #dInfoMes p { margin: 0; font-size: 14px; color: var(--mut); }
-  #dInfoBackup button, #dInfoMes button { width: 100%; margin-top: 16px; }
+  .rotChave { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .rotChave label { margin: 0; }
+  #dInfoChave ol { margin: 0; padding-left: 20px; font-size: 14px; color: var(--mut); }
+  #dInfoChave li { margin-bottom: 4px; }
+  dialog#dInfoChave, dialog#dInfoBackup, dialog#dInfoMes { max-height: calc(100dvh - 32px); overflow-y: auto; }
+  #dInfoChave h4, #dInfoBackup h4, #dInfoMes h4 { margin: 12px 0 4px; font-size: 15px; }
+  #dInfoChave p, #dInfoBackup p, #dInfoMes p { margin: 0; font-size: 14px; color: var(--mut); }
+  #dInfoChave button, #dInfoBackup button, #dInfoMes button { width: 100%; margin-top: 16px; }
   #dInfoMes .linha { padding: 5px 0; font-size: 14px; }
   .tituloMes { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
   /* Titulos do Resumo: faixa de ponta a ponta no alto do quadro, na cor das contas atrasadas do Fluxo. */
@@ -728,6 +763,7 @@
   <section id="s-itin" hidden>
     <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2 class="tituloIco"><svg class="icoTit" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7.5a3.5 3.5 0 0 0 0-7h-7a3.5 3.5 0 0 1 0-7H16"/></svg><span>Itinerário</span></h2></div>
     <div class="card itCabeca"><div class="q"><h2 id="itNome"></h2><p id="itDatas" class="fraco"></p></div><div id="itFoto" class="itFoto"></div></div>
+    <div class="card" id="itDocs" hidden></div>
     <div class="card"><div class="udTopo"><label class="caixaTit"><input type="checkbox" id="itDetalhes">Detalhes</label></div><div id="itLista"></div><button type="button" class="sec gerenciar" data-exportar="itinerario"><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button></div>
     <button type="button" id="itMais" aria-label="Novo item do itinerário">+</button>
   </section>
@@ -769,7 +805,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.66.1 · 08/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.70.0 · 08/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -822,12 +858,15 @@
           <button type="button" class="mini sec" id="aConflitos">Revisar backups de conflito</button>
         </div>
         <p id="aDriveMsg" class="fraco" aria-live="polite"></p>
-        <label for="aGoogleCliente">ID do cliente do projeto no Google</label>
+        <div class="rotChave"><label for="aGoogleCliente">ID do cliente do projeto no Google</label><button type="button" class="infoBtn" data-infochave="google" aria-label="O que é e como habilitar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button></div>
         <div class="campoGravar"><input type="text" id="aGoogleCliente" autocomplete="off" spellcheck="false" maxlength="200" placeholder="....apps.googleusercontent.com"><button type="button" class="mini" id="aGoogleGravar">Gravar</button></div>
         <p class="fraco" id="aGoogleMsg" style="margin:0" aria-live="polite">Fica gravado aqui e vai no backup, para você consultar quando quiser. Vazio, o app usa o do projeto atual.</p>
-        <label for="aMapsKey" style="margin-top:12px">Chave do Google Maps (busca de endereços)</label>
+        <div class="rotChave" style="margin-top:12px"><label for="aMapsKey">Chave do Google Maps (busca de endereços)</label><button type="button" class="infoBtn" data-infochave="maps" aria-label="O que é e como habilitar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button></div>
         <div class="campoGravar"><input type="text" id="aMapsKey" autocomplete="off" spellcheck="false" maxlength="100" placeholder="AIza..."><button type="button" class="mini" id="aMapsGravar">Gravar</button></div>
         <p class="fraco" id="aMapsMsg" style="margin:0" aria-live="polite">Usada no campo Local das despesas da viagem. Fica nos seus dados e no backup, não no GitHub.</p>
+        <div class="rotChave" style="margin-top:12px"><label for="aAeroKey">Chave do AeroDataBox (dados do voo)</label><button type="button" class="infoBtn" data-infochave="aero" aria-label="O que é e como habilitar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button></div>
+        <div class="campoGravar"><input type="text" id="aAeroKey" autocomplete="off" spellcheck="false" maxlength="100" placeholder="Chave do RapidAPI"><button type="button" class="mini" id="aAeroGravar">Gravar</button></div>
+        <p class="fraco" id="aAeroMsg" style="margin:0" aria-live="polite">Usada no botão Buscar dados do voo do itinerário. Fica nos seus dados e no backup, não no GitHub.</p>
       </div>
     </div>
     <div class="tela" id="tAgenda" hidden>
@@ -900,6 +939,7 @@
           <label>Fim<input id="uFim" type="date"></label>
         </div>
         <label><input id="uCorp" type="checkbox">Viagem Corporativa</label>
+        <div class="rotuloCampo"><span>País de destino</span><details class="multiSel selPais" id="uViagPaisSel"><summary><span id="uViagPaisTxt" class="paisTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input type="search" class="filtroPais" autocomplete="off" placeholder="Buscar país" aria-label="Buscar país"><div class="opcPais"></div></div></details><input type="hidden" id="uViagPais"></div>
         <h3 class="dia">Viajantes nesta viagem</h3>
         <details class="multiSel selViagem"><summary><span id="uViagViajTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" id="uViagViaj"></div></details>
         <div class="gradeViaj" id="uViagViajGrade"></div>
@@ -957,6 +997,17 @@
       </div>
       <label>Nome<input id="uNome" maxlength="30" autocomplete="off"></label>
       <label id="uInicialBox"><input id="uInicial" type="checkbox">Visualizar inicialmente (foto no alto da aba Travel)</label>
+      <div id="uDocsBox">
+        <h3 class="dia">Passaporte</h3>
+        <label>Número do passaporte<input id="uPassNum" maxlength="30" autocomplete="off" autocapitalize="characters"></label>
+        <div class="dois"><label>Emissão<input id="uPassEmi" type="date"></label><label>Validade<input id="uPassVal" type="date"></label></div>
+        <div class="rotuloCampo"><span>Foto do passaporte</span><div id="uPassFotos" class="recLista"></div>
+          <div class="botoesMini"><button type="button" class="mini sec" id="uPassCam">Escanear</button><button type="button" class="mini sec" id="uPassGal">Foto do celular</button></div></div>
+        <h3 class="dia">Vistos</h3>
+        <div id="uVistos"></div>
+        <button type="button" class="sec gerenciar" id="uVistoNovo">+ Adicionar visto</button>
+        <p class="fraco" style="font-size:13px">As fotos viram PDF e vão para a pasta "Controle Diário/Documentos/(nome do viajante)" do seu Google Drive, como os recibos.</p>
+      </div>
       <label id="uBancoBox">Ícone: banco<input id="uBanco" list="listaIcones" autocomplete="off" placeholder="Toque e escolha, ou deixe vazio"></label>
       <div id="uCartaoBox">
         <label>Ícone: bandeira<input id="uBand" list="listaBandeiras" autocomplete="off" placeholder="Toque e escolha, ou deixe vazio"></label>
@@ -1093,6 +1144,66 @@
   <button type="button" class="sec" id="dMesFechar">Fechar</button>
 </dialog>
 
+<dialog id="dInfoChave">
+  <div data-chave="google">
+    <h3>ID do cliente do Google</h3>
+    <h4>O que é</h4>
+    <p>É a identificação do app no Google, do seu projeto "Controle Diario" no Google Cloud. Não é senha nem segredo: só diz ao Google qual app está pedindo para você entrar com a sua conta.</p>
+    <h4>Para que serve</h4>
+    <p>Para tudo o que usa a sua conta Google: backup e restaurar no Google Drive, sincronização entre aparelhos, envio dos recibos e os lembretes no Google Agenda e Tarefas. Com o campo vazio, o app usa o ID que já vem nele.</p>
+    <h4>Como habilitar (se precisar criar de novo)</h4>
+    <ol>
+      <li>Entre em console.cloud.google.com com a sua conta Google e escolha (ou crie) o projeto "Controle Diario".</li>
+      <li>Em APIs e serviços &gt; Biblioteca, ative a Google Drive API, a Google Calendar API e a Google Tasks API.</li>
+      <li>Em Tela de consentimento OAuth (Google Auth Platform): tipo Externo, em modo de teste; em Público-alvo, inclua o seu e-mail como usuário de teste; em Acesso a dados, inclua as permissões drive.file, calendar.app.created e tasks.</li>
+      <li>Em Credenciais &gt; Criar credenciais &gt; ID do cliente OAuth, tipo Aplicativo da Web.</li>
+      <li>Em Origens JavaScript autorizadas, coloque https://juniormartos-lang.github.io, http://localhost:8767 e http://127.0.0.1:8767.</li>
+      <li>Copie o ID do cliente (termina em .apps.googleusercontent.com), cole aqui e toque em Gravar.</li>
+    </ol>
+    <h4>Bom saber</h4>
+    <p>Em modo de teste, o Google pede para entrar de novo de tempos em tempos. Trocar o ID desconecta o Google neste aparelho até o próximo login.</p>
+  </div>
+  <div data-chave="maps">
+    <h3>Chave do Google Maps</h3>
+    <h4>O que é</h4>
+    <p>Uma chave do seu projeto no Google Cloud que libera os serviços de mapas do Google para o app. Começa com "AIza".</p>
+    <h4>Para que serve</h4>
+    <p>Para a busca de endereços enquanto você digita no campo Local (despesas e itinerário da viagem) e para o mapa que abre no 📍. Sem a chave, a busca fica desligada.</p>
+    <h4>Como habilitar (se precisar criar de novo)</h4>
+    <ol>
+      <li>Entre em console.cloud.google.com, no projeto "Controle Diario".</li>
+      <li>Em Faturamento, vincule uma conta de faturamento (o Google pede cartão, mas dá uma cota mensal gratuita, que o uso pessoal não costuma passar).</li>
+      <li>Em APIs e serviços &gt; Biblioteca, ative a Places API (New) e a Maps Embed API.</li>
+      <li>Em Credenciais &gt; Criar credenciais &gt; Chave de API.</li>
+      <li>Edite a chave: em Restrições do aplicativo, escolha Sites e coloque https://juniormartos-lang.github.io/*, http://localhost:8767/* e http://127.0.0.1:8767/*; em Restrições de API, deixe só Places API (New) e Maps Embed API.</li>
+      <li>Para não ter surpresa na fatura, em APIs e serviços &gt; Places API (New) &gt; Cotas, coloque um limite por dia.</li>
+      <li>Copie a chave, cole aqui e toque em Gravar.</li>
+    </ol>
+    <h4>Bom saber</h4>
+    <p>A chave fica nos seus dados, no backup e na sincronização, nunca no GitHub. Para desligar, apague o campo e toque em Gravar.</p>
+  </div>
+  <div data-chave="aero">
+    <h3>Chave do AeroDataBox</h3>
+    <h4>O que é</h4>
+    <p>A sua chave do RapidAPI, o site por onde se assina o AeroDataBox, um serviço com os horários dos voos do mundo todo. Tem cerca de 50 letras e números.</p>
+    <h4>Para que serve</h4>
+    <p>Para o botão Buscar dados do voo do itinerário: pelo número do voo e a data, o app preenche companhia, origem, destino, horários e fusos. Sem a chave, o resto do itinerário funciona normalmente.</p>
+    <h4>Como habilitar (se precisar criar de novo)</h4>
+    <ol>
+      <li>Entre em rapidapi.com e crie uma conta (pode ser com a conta Google).</li>
+      <li>Na busca do site, procure AeroDataBox e abra a API do autor "API.Market Enterprise / aedbx".</li>
+      <li>Em Pricing, escolha o plano Basic, que é gratuito.</li>
+      <li>Abra a aba Endpoints: à direita aparece X-RapidAPI-Key. Copie esse valor.</li>
+      <li>Cole aqui e toque em Gravar.</li>
+    </ol>
+    <h4>Limites do plano gratuito</h4>
+    <p>Cerca de 200 buscas por mês, que renovam todo mês; uma busca por segundo; voos até 1 ano para a frente ou para trás; só uso pessoal, e a fonte tem de aparecer ("Dados: AeroDataBox" no formulário). Quantas buscas já foram usadas aparece no painel do rapidapi.com, em My Apps &gt; Analytics: o app não consegue ler esse número.</p>
+    <h4>Bom saber</h4>
+    <p>A chave fica nos seus dados, no backup e na sincronização, nunca no GitHub. Para desligar, apague o campo e toque em Gravar.</p>
+  </div>
+  <button type="button" class="sec" id="dInfoChaveFechar">Fechar</button>
+</dialog>
+
 <dialog id="dInfoBackup">
   <h3>Regras do backup</h3>
   <h4>Criptografia</h4>
@@ -1156,9 +1267,11 @@
 <datalist id="listaFusos"><option value="GMT-3"><option value="EST"><option value="EDT"><option value="CST"><option value="CDT"><option value="MST"><option value="PST"><option value="PDT"><option value="GMT"><option value="BST"><option value="CET"><option value="CEST"></datalist>
 <dialog id="dItin"><form id="fItin" novalidate>
   <h3 id="itfTit">Novo item</h3>
+  <div id="itDespBox" class="vooBusca" hidden><button type="button" class="mini sec" id="itDoDesp"></button><small class="fraco">Hotel, aéreo, carro, transporte, parques, shows e passeios lançados nas despesas desta viagem. Escolha um para preencher o item.</small><div id="itDespOpcoes" class="localSug"></div></div>
   <div class="rotuloCampo"><span>Categoria</span><details class="multiSel" id="itCatSel"><summary><span id="itCatTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" id="itCatOpcoes"></div></details><input type="hidden" id="itCat"></div>
-  <p id="itDaDesp" class="fraco" hidden>Este item veio de uma despesa: as datas e o local seguem a despesa. Para mudar ou tirar, altere a despesa.</p>
-  <div class="dois" data-it="aereo"><label>Companhia<input id="itCia" maxlength="60" autocomplete="off" placeholder="Ex.: companhia aérea"></label><label>Nº do voo<input id="itVoo" maxlength="12" autocomplete="off" placeholder="Ex.: AB 1234"></label></div>
+  <p id="itDaDesp" class="fraco" hidden>Este item veio de uma despesa com check-in: as datas e o local seguem a despesa. Para mudar, altere a despesa.</p>
+  <div class="dois" data-it="aereo"><div class="rotuloCampo"><span>Companhia</span><details class="multiSel" id="itCiaSel"><summary><span id="itCiaTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input id="itCiaFiltro" type="search" autocomplete="off" placeholder="Buscar companhia" aria-label="Buscar companhia"><div id="itCiaOpcoes"></div></div></details><input type="hidden" id="itCia"></div><label>Nº do voo<input id="itVoo" maxlength="12" autocomplete="off" inputmode="text" placeholder="Ex.: 1234"></label></div>
+  <div data-it="aereo" class="vooBusca"><button type="button" class="mini sec" id="itBuscarVoo">Buscar dados do voo</button><small class="fraco">Pela companhia e o nº do voo, sem a data. Mostra o voo, você escolhe a data e o app preenche origem, destino, horários e fusos. Dados: AeroDataBox.</small><div id="itVooOpcoes" class="localSug" aria-live="polite"></div></div>
   <div class="dois" data-it="aereo transporte"><label>Origem<input id="itOrigem" maxlength="80" autocomplete="off" placeholder="GRU"></label><label>Destino<input id="itDestino" maxlength="80" autocomplete="off" placeholder="BOS"></label></div>
   <label><span id="itTituloRot">Título</span><input id="itTitulo" maxlength="120" autocomplete="off"></label>
   <div class="rotuloCampo" data-it="hotel evento carro restaurante"><span id="itLocalRot">Local (endereço)</span>
@@ -1169,11 +1282,28 @@
   <div class="tres"><label><span id="itDataRot">Data</span><input id="itData" type="date"></label><label>Hora<input id="itHora" type="time"></label><label>Fuso<input id="itFuso" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
   <div class="tres" data-it="aereo hotel evento carro transporte"><label><span id="itFimRot">Fim</span><input id="itFim" type="date"></label><label>Hora<input id="itHoraFim" type="time"></label><label>Fuso<input id="itFusoFim" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
   <label data-it="carro">Local de devolução<input id="itLocalFim" maxlength="200" autocomplete="off"></label>
-  <label data-it="aereo">Assento<input id="itAssento" maxlength="12" autocomplete="off" placeholder="Ex.: 12A"></label>
-  <label>Código do localizador<input id="itLocalizador" maxlength="40" autocomplete="off"></label>
+  <div class="rotuloCampo" id="itPaxBox"><span id="itPaxRot">Passageiros: localizador e assento</span><div id="itPax"></div></div>
+  <label data-it="aereo transporte evento" id="itAssRot">Assento<input id="itAssento" maxlength="12" autocomplete="off" placeholder="Ex.: 12A"></label>
+  <label id="itLocRot">Código do localizador<input id="itLocalizador" maxlength="40" autocomplete="off"></label>
   <label>Obs<textarea id="itObs" maxlength="500" rows="2" placeholder="Opcional"></textarea></label>
   <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="itFechar">Fechar</button><button type="button" class="perigo" id="itExcluir" hidden>Excluir</button></div>
 </form></dialog>
+<dialog id="dVisto"><form id="fVisto" novalidate>
+  <h3 id="vstTit">Visto</h3>
+  <div class="rotuloCampo"><span>País</span><details class="multiSel selPais" id="vstPaisSel"><summary><span id="vstPaisTxt" class="paisTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input type="search" class="filtroPais" autocomplete="off" placeholder="Buscar país" aria-label="Buscar país"><div class="opcPais"></div></div></details><input type="hidden" id="vstPais"></div>
+  <label>Número do visto<input id="vstNum" maxlength="30" autocomplete="off" autocapitalize="characters"></label>
+  <div class="dois"><label>Emissão<input id="vstEmi" type="date"></label><label>Expiração<input id="vstVal" type="date"></label></div>
+  <div class="rotuloCampo"><span>Foto do visto</span><div id="vstFotos" class="recLista"></div>
+    <div class="botoesMini"><button type="button" class="mini sec" id="vstCam">Escanear</button><button type="button" class="mini sec" id="vstGal">Foto do celular</button></div></div>
+  <div class="botoes botoes2"><button type="submit">OK</button><button type="button" class="sec" id="vstFechar">Cancelar</button><button type="button" class="perigo" id="vstExcluir" hidden>Excluir</button></div>
+</form></dialog>
+<dialog id="dVoo">
+  <h3 id="vooTit"></h3>
+  <div id="vooTrechos"></div>
+  <label>Data do voo<input id="vooData" type="date"></label>
+  <p class="fraco" id="vooRef" style="font-size:13px"></p>
+  <div class="botoes botoes2"><button type="button" id="vooPreencher">Preencher</button><button type="button" class="sec" id="vooFechar">Cancelar</button></div>
+</dialog>
 <dialog id="dMapa">
   <div class="topoTela"><button type="button" class="voltarTela" id="mapaVoltar" aria-label="Voltar">‹</button><h2 id="mapaTit"></h2></div>
   <div id="mapaCaixa"></div>
@@ -1278,7 +1408,8 @@ let agendaRodando = false, agendaTimer = null, agendaErro = '';
 // Recibos guardados no aparelho (IndexedDB) ainda sem envio ao Drive; detalhes junto da despesa da viagem.
 let recLocais = new Set(), enviandoRec = false, recErro = '';
 // Recibos deste aparelho ainda sem envio (deixam a nuvem vermelha).
-const recPendentes = () => [...(db.usa ? db.usa.despesas : []), ...db.lancs].reduce((n, d) => n + (d.recibos || []).filter((x) => !x.arq && recLocais.has(x.id)).length, 0);
+const recPendentes = () => [...(db.usa ? db.usa.despesas : []), ...db.lancs].reduce((n, d) => n + (d.recibos || []).filter((x) => !x.arq && recLocais.has(x.id)).length, 0)
+  + (db.usa ? db.usa.viajantes : []).flatMap((p) => [p.passaporte, ...(p.vistos || [])]).filter(Boolean).flatMap((d) => d.fotos || []).filter((x) => !x.arq && recLocais.has(x.id)).length;
 function salvar() {
   try { localStorage.setItem(CHAVE, JSON.stringify(db)); }
   catch { modal('Não foi possível gravar', 'O aparelho recusou a gravação. Salve um backup e libere espaço.', 'Entendi'); }
@@ -1337,6 +1468,34 @@ function iconeHtml(o) {
   const cor = CORES_ICONE[[...o.nome].reduce((s, l) => s + l.charCodeAt(0), 0) % CORES_ICONE.length];
   return `<span class="ico ini" style="background:${cor}" aria-hidden="true">${esc(letras)}</span>`;
 }
+const bandeiraHtml = (c) => (c ? `<img class="bandeira" src="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/flags/4x3/${c.toLowerCase()}.svg" alt="">` : '');
+// Combo de pais com filtro (destino da viagem, pais do visto): devolve por(codigo) e valor().
+function comboPais(pref, aoEscolher) {
+  const det = $(pref + 'Sel'), filtro = det.querySelector('.filtroPais'), opc = det.querySelector('.opcPais'), sem = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const todos = () => PAISES.map((c) => [c, nomePais(c)]).sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'));
+  const por = (c) => {
+    $(pref).value = c || '';
+    $(pref + 'Txt').innerHTML = c ? `${bandeiraHtml(c)}<span>${esc(nomePais(c))}</span>` : '<span>Escolha</span>';
+    det.open = false;
+    if (aoEscolher) aoEscolher(c);
+  };
+  const listar = () => {
+    const q = sem(filtro.value.trim());
+    opc.innerHTML = todos().filter(([c, n]) => !q || sem(n).includes(q) || c.toLowerCase() === q).map(([c, n]) => `<button type="button" class="linha" data-pais="${c}">${bandeiraHtml(c)}<span class="q">${esc(n)}</span></button>`).join('')
+      || '<p class="fraco" style="margin:8px 0">Nenhum país com esse nome.</p>';
+  };
+  filtro.addEventListener('input', listar);
+  det.addEventListener('toggle', () => { if (det.open) { filtro.value = ''; listar(); filtro.focus(); } });
+  opc.addEventListener('click', (e) => { const b = e.target.closest('[data-pais]'); if (b) por(b.dataset.pais); });
+  return { por, valor: () => $(pref).value || undefined };
+}
+const ciaPorNome = (n) => CIAS_AEREAS.find((c) => c[1] === n);
+const ciaPorVoo = (voo) => CIAS_AEREAS.find((c) => (voo || '').replace(/\s+/g, '').toUpperCase().startsWith(c[0]));
+function logoCiaHtml(nome) {
+  const c = ciaPorNome(nome);
+  return c ? `<img class="ico" src="${logoCia(c[0])}" alt="" data-logocia="${esc(nome)}">` : iconeHtml({ nome: nome || '?' });
+}
+document.addEventListener('error', (e) => { const im = e.target; if (im.dataset && im.dataset.logocia !== undefined) im.outerHTML = iconeHtml({ nome: im.dataset.logocia || '?' }); }, true);
 const iconeDoMeio = (m) => iconeHtml([...db.contasBanco, ...db.cartoes].find((c) => c.id === m) || { nome: '?' });
 
 // Baixa o logo so quando a escolha muda; depois disso o app nao consulta mais a internet para ele.
@@ -2853,11 +3012,12 @@ function exportar(tipo) {
   }
   if (tipo === 'itinerario') {
     const u = usa(), v = viagemDoItin(), nomeCatIt = (x) => (u.categorias.find((c) => c.id === x.cat) || { nome: '' }).nome;
+    const paxCsv = (x, k) => x.pax.filter((p) => p[k]).map((p) => `${(u.viajantes.find((q) => q.id === p.quem) || { nome: '?' }).nome}: ${p[k]}`).join('; ');
     const itens = (u.itinerario || []).filter((x) => x.viagem === v.id).sort((a, b) => a.data.localeCompare(b.data) || (a.hora || '').localeCompare(b.hora || ''));
     const cab = ['Data', 'Hora', 'Fuso', 'Categoria', 'Título', 'Companhia', 'Nº do voo', 'Origem', 'Destino', 'Assento', 'Data fim (chegada, check-out, devolução, término)', 'Hora fim', 'Fuso fim',
       'Local', 'Endereço', 'Local de devolução', 'Código do localizador', 'Obs', 'Origem do item'];
-    const linhas = itens.map((x) => [dataCsv(x.data), x.hora || '', x.fuso || '', nomeCatIt(x), x.titulo, x.cia || '', x.voo || '', x.origem || '', x.destino || '', x.assento || '',
-      x.fim ? dataCsv(x.fim) : '', x.horaFim || '', x.fusoFim || '', x.local ? x.local.nome : '', x.local ? x.local.endereco : '', x.localFim || '', x.localizador || '', x.obs || '',
+    const linhas = itens.map((x) => [dataCsv(x.data), x.hora || '', x.fuso || '', nomeCatIt(x), x.titulo, x.cia || '', x.voo || '', x.origem || '', x.destino || '', x.pax ? paxCsv(x, 'assento') : x.assento || '',
+      x.fim ? dataCsv(x.fim) : '', x.horaFim || '', x.fusoFim || '', x.local ? x.local.nome : '', x.local ? x.local.endereco : '', x.localFim || '', x.pax ? paxCsv(x, 'loc') : x.localizador || '', x.obs || '',
       x.despesa ? `Despesa${x.lado ? ' (' + x.lado + ')' : ''}` : 'Digitado no itinerário']);
     return exportarCSV(`itinerario-${v.nome}`, cab, linhas);
   }
@@ -2935,6 +3095,12 @@ async function salvarBackup() {
 }
 $('aInfoBackup').onclick = () => $('dInfoBackup').showModal();
 $('dInfoFechar').onclick = () => $('dInfoBackup').close();
+document.querySelectorAll('[data-infochave]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#dInfoChave [data-chave]').forEach(d => d.hidden = d.dataset.chave !== b.dataset.infochave);
+  $('dInfoChave').showModal();
+  $('dInfoChave').scrollTop = 0;
+});
+$('dInfoChaveFechar').onclick = () => $('dInfoChave').close();
 $('aBackup').onclick = salvarBackup;
 $('aRestaurar').onclick = () => $('aArquivo').click();
 $('aArquivo').onchange = async () => {
@@ -3000,6 +3166,18 @@ function gravarChaveMaps() {
   $('aMapsMsg').textContent = v ? 'Chave gravada. Ela vai no próximo backup.' : 'Chave apagada: a busca de endereços fica desligada.';
 }
 $('aMapsGravar').onclick = gravarChaveMaps;
+function gravarChaveAero() {
+  const v = $('aAeroKey').value.trim(), antes = (db.google && db.google.aeroKey) || '';
+  if (v && !ehChaveAero(v)) { $('aAeroMsg').textContent = 'Chave inválida: nada foi gravado.'; return avisar('Chave inválida', 'A chave do RapidAPI tem só letras e números (cerca de 50). Confira se copiou inteira. Nada foi gravado.'); }
+  delete $('aAeroKey').dataset.editando;
+  if (v === antes) { $('aAeroMsg').textContent = 'Nada mudou: esta chave já está gravada.'; return; }
+  if (v) db.google = { ...(db.google || {}), aeroKey: v }; else if (db.google) delete db.google.aeroKey;
+  salvar();
+  $('aAeroMsg').textContent = v ? 'Chave gravada. Ela vai no próximo backup.' : 'Chave apagada: a busca de voo fica desligada.';
+}
+$('aAeroGravar').onclick = gravarChaveAero;
+$('aAeroKey').oninput = () => { $('aAeroKey').dataset.editando = '1'; };
+$('aAeroKey').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); gravarChaveAero(); } };
 $('aMapsKey').oninput = () => { $('aMapsKey').dataset.editando = '1'; };
 $('aMapsKey').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); gravarChaveMaps(); } };
 $('aGoogleCliente').oninput = () => { $('aGoogleCliente').dataset.editando = '1'; };
@@ -3293,6 +3471,7 @@ function mostrarSync() {
   // Enquanto a pessoa digita (sem Gravar), o campo nao e trocado pelo valor gravado.
   if (!$('aGoogleCliente').dataset.editando) $('aGoogleCliente').value = (db.google && db.google.cliente) || '';
   if (!$('aMapsKey').dataset.editando) $('aMapsKey').value = (db.google && db.google.mapsKey) || '';
+  if (!$('aAeroKey').dataset.editando) $('aAeroKey').value = (db.google && db.google.aeroKey) || '';
 }
 async function sincronizarComToque() {
   try { await tokenGoogle(); } catch (err) { return avisar('Google Drive', err.message); }
@@ -3615,6 +3794,8 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
   if (d.escolhelocal) { (d.escolhelocal === 'it' ? locIt : locUd).escolher(d.place); return; }
   if (d.itin) { abrirItin(d.itin); return; }
   if (d.itcat) { escolherItCat(d.itcat); return; }
+  if (d.itdesp) { aplicarDespItin(itDespOps[Number(d.itdesp)]); return; }
+  if (d.itcia) { porCia(d.itcia); return; }
   if (d.ititem) { abrirItem(d.ititem); return; }
   if (d.itmapa) { const x = usa().itinerario.find((i) => i.id === d.itmapa); if (x && x.local) abrirMapaLocal(x.local, x.titulo); return; }
   if (d.udcat) { escolherUdCat(d.udcat); $('udCatSel').open = false; return; }
@@ -3877,6 +4058,7 @@ function mostrarFundo() {
   $('uFundoPrev').innerHTML = fundoEdit ? `<img src="${esc(fundoEdit)}" alt="Imagem de fundo escolhida">` : '<p class="fraco">Nenhuma imagem escolhida.</p>';
   $('uFundoTirar').hidden = !fundoEdit;
 }
+const paisViagem = comboPais('uViagPais');
 function abrirViagem(id) {
   const v = usa().viagens.find((x) => x.id === id) || {};
   viagemEd = v.id || null;
@@ -3884,6 +4066,7 @@ function abrirViagem(id) {
   $('uViagem').value = v.nome || '';
   $('uInicio').value = v.inicio || '';
   $('uCorp').checked = !!v.corporativa;
+  paisViagem.por(v.pais);
   $('uFim').value = v.fim || '';
   fundoEdit = v.fundo;
   mostrarFundo();
@@ -3950,7 +4133,7 @@ $('fUsaViagem').onsubmit = (e) => {
   if (desp.some((d) => !moedas.includes(d.moeda))) return avisar('Moeda em uso', 'Há despesas desta viagem numa moeda desmarcada. Mude essas despesas antes.');
   if (desp.some((d) => d.quem.some((p) => !viajantes.includes(p)))) return avisar('Viajante em uso', 'Há despesas desta viagem com um viajante desmarcado. Mude essas despesas antes.');
   // Cotacoes saíram por enquanto; cot fica vazio nos dados para a conversao voltar sem mudar o formato.
-  const dados = { nome, inicio, fim, fundo: fundoEdit, viajantes, moedas, base, cot: {}, corporativa: $('uCorp').checked || undefined }, atual = usa().viagens.find((x) => x.id === id);
+  const dados = { nome, inicio, fim, fundo: fundoEdit, viajantes, moedas, base, cot: {}, corporativa: $('uCorp').checked || undefined, pais: paisViagem.valor() }, atual = usa().viagens.find((x) => x.id === id);
   if (atual) Object.assign(atual, dados); else usa().viagens.push({ id: novoId(), ...dados });
   fecharEditor();
   salvar();
@@ -3963,6 +4146,79 @@ function mostrarFotoUsa() {
 $('uFotoTrocar').onclick = () => $('uFotoArq').click();
 $('uFotoTirar').onclick = () => { fotoUsa = undefined; mostrarFotoUsa(); };
 aoEscolherImagem($('uFotoArq'), 240, true, (f) => { fotoUsa = f; mostrarFotoUsa(); });
+// Documentos do viajante: passaporte (uma caixa de fotos) e vistos (lista editada no popup dVisto). Tudo vale so ao
+// Salvar o viajante; fotos feitas e nao gravadas saem do aparelho, e as removidas vao para a lixeira do Drive ao gravar.
+const recPass = { lista: [], novos: [], tirados: [], el: 'uPassFotos', rotulo: 'Foto' }, recVisto = { lista: [], novos: [], tirados: [], el: 'vstFotos', rotulo: 'Foto' };
+let vistosEd = [], vistoEd = null, docNovos = [], docTirados = [], vstSalvou = false;
+const copia = (x) => (x === undefined ? undefined : JSON.parse(JSON.stringify(x)));
+const dataBR4 = (d) => d.split('-').reverse().join('/');
+function soltarDocs() {
+  for (const id of [...docNovos, ...recPass.novos]) { recLocais.delete(id); recApagar(id); }
+  docNovos = []; docTirados = []; recPass.novos = []; recPass.tirados = [];
+}
+function renderVistos() {
+  $('uVistos').innerHTML = vistosEd.map((v, i) => `<button type="button" class="linha" data-vistoed="${i}">${bandeiraHtml(v.pais)}<span class="q">${esc(nomePais(v.pais))}`
+    + `<small>${esc([v.num && 'Nº ' + v.num, v.validade && 'expira ' + dataBR4(v.validade), v.fotos && `📎 ${v.fotos.length}`].filter(Boolean).join(' · ') || 'Sem dados')}</small></span><span class="seta" aria-hidden="true">›</span></button>`).join('')
+    || '<p class="fraco" style="margin:0 0 8px">Nenhum visto cadastrado.</p>';
+}
+const paisVisto = comboPais('vstPais');
+function abrirVisto(i) {
+  const v = i === null ? {} : vistosEd[i];
+  vistoEd = i;
+  $('vstTit').textContent = i === null ? 'Novo visto' : 'Visto';
+  paisVisto.por(v.pais || (viagemPaisPadrao() || undefined));
+  $('vstNum').value = v.num || '';
+  $('vstEmi').value = v.emissao || '';
+  $('vstVal').value = v.validade || '';
+  recVisto.lista = copia(v.fotos) || []; recVisto.novos = []; recVisto.tirados = [];
+  renderRec(recVisto);
+  $('vstExcluir').hidden = i === null;
+  vstSalvou = false;
+  $('dVisto').showModal();
+}
+// Visto novo comeca nos Estados Unidos, o destino mais comum que pede visto.
+const viagemPaisPadrao = () => 'US';
+$('uVistoNovo').onclick = () => abrirVisto(null);
+$('uVistos').onclick = (e) => { const b = e.target.closest('[data-vistoed]'); if (b) abrirVisto(Number(b.dataset.vistoed)); };
+$('vstFechar').onclick = () => $('dVisto').close();
+$('dVisto').addEventListener('close', () => {
+  if (!vstSalvou) for (const id of recVisto.novos) { recLocais.delete(id); recApagar(id); }
+  recVisto.novos = []; recVisto.tirados = [];
+});
+$('fVisto').onsubmit = (e) => {
+  e.preventDefault();
+  const pais = paisVisto.valor(), num = $('vstNum').value.trim() || undefined, emissao = $('vstEmi').value || undefined, validade = $('vstVal').value || undefined;
+  if (!pais) return avisar('Falta informação', 'Escolha o país do visto.');
+  if (emissao && validade && validade < emissao) return avisar('Datas inválidas', 'A expiração não pode ser antes da emissão.');
+  const atual = vistoEd === null ? null : vistosEd[vistoEd];
+  const v = { id: atual ? atual.id : novoId(), pais, num, emissao, validade, fotos: recVisto.lista.length ? recVisto.lista : undefined };
+  for (const k of Object.keys(v)) if (v[k] === undefined) delete v[k];
+  if (atual) vistosEd[vistoEd] = v; else vistosEd.push(v);
+  docNovos.push(...recVisto.novos); docTirados.push(...recVisto.tirados);
+  recVisto.novos = []; recVisto.tirados = [];
+  vstSalvou = true;
+  $('dVisto').close();
+  renderVistos();
+};
+$('vstExcluir').onclick = async () => {
+  if (!await modal('Excluir visto?', 'Ao salvar o viajante, as fotos dele vão para a lixeira do Google Drive.', 'Sim, excluir', 'Cancelar')) return;
+  const v = vistosEd[vistoEd];
+  for (const r of recVisto.lista) if (recVisto.novos.includes(r.id) || docNovos.includes(r.id)) { recLocais.delete(r.id); recApagar(r.id); docNovos = docNovos.filter((x) => x !== r.id); } else docTirados.push(r);
+  docTirados.push(...recVisto.tirados);
+  for (const r of (v && v.fotos) || []) if (!recVisto.lista.includes(r) && !docTirados.some((x) => x.id === r.id)) docTirados.push(r);
+  recVisto.novos = [];
+  vistosEd.splice(vistoEd, 1);
+  vstSalvou = true;
+  $('dVisto').close();
+  renderVistos();
+};
+// cliqueRecibos e definido mais abaixo: so chamado no toque.
+$('uPassFotos').onclick = (e) => cliqueRecibos(recPass)(e);
+$('vstFotos').onclick = (e) => cliqueRecibos(recVisto)(e);
+$('uPassCam').onclick = () => comecarScan(recPass, $('recCamArq'));
+$('uPassGal').onclick = () => comecarScan(recPass, $('recGalArq'));
+$('vstCam').onclick = () => comecarScan(recVisto, $('recCamArq'));
+$('vstGal').onclick = () => comecarScan(recVisto, $('recGalArq'));
 // Um formulario so para os quatro cadastros: cada tipo mostra os seus campos.
 function abrirUsa(tipo, id) {
   const x = usa()[tipo].find((i) => i.id === id);
@@ -3977,6 +4233,15 @@ function abrirUsa(tipo, id) {
   $('uCartaoBox').hidden = tipo !== 'cartoes';
   $('uFotoBox').hidden = $('uInicialBox').hidden = tipo !== 'viajantes';
   $('uInicial').checked = !!(x && x.inicial);
+  // Documentos: o que ficou de uma edicao anterior sem salvar sai do aparelho.
+  soltarDocs();
+  $('uDocsBox').hidden = tipo !== 'viajantes';
+  const pp = (x && x.passaporte) || {};
+  $('uPassNum').value = pp.num || ''; $('uPassEmi').value = pp.emissao || ''; $('uPassVal').value = pp.validade || '';
+  recPass.lista = copia(pp.fotos) || [];
+  renderRec(recPass);
+  vistosEd = copia(x && x.vistos) || [];
+  renderVistos();
   $('uCatBox').hidden = tipo !== 'categorias';
   $('uMoedaBox').hidden = tipo !== 'moedas';
   $('uCodigo').value = (x && x.codigo) || '';
@@ -4018,7 +4283,17 @@ $('fUsa').onsubmit = async (e) => {
       Object.assign(dados, { finais: lerFinais($('uFinaisBox')), finaisInativos: $('uFinaisBox').inativos.length ? $('uFinaisBox').inativos : undefined });
     }
   }
-  if (tipo === 'viajantes') Object.assign(dados, { foto: fotoUsa, inicial: $('uInicial').checked });
+  let docsTirar = null;
+  if (tipo === 'viajantes') {
+    const num = $('uPassNum').value.trim() || undefined, emissao = $('uPassEmi').value || undefined, validade = $('uPassVal').value || undefined;
+    if (emissao && validade && validade < emissao) return avisar('Datas inválidas', 'A validade do passaporte não pode ser antes da emissão.');
+    // O que subiu para o Drive com a tela aberta continua com o endereco do arquivo.
+    const fotosPass = mesclarRecibos(recPass.lista, atual && atual.passaporte && atual.passaporte.fotos);
+    const passaporte = num || emissao || validade || fotosPass ? Object.fromEntries(Object.entries({ num, emissao, validade, fotos: fotosPass }).filter(([, v]) => v !== undefined)) : undefined;
+    const vistos = vistosEd.length ? vistosEd.map((v) => { const a = ((atual && atual.vistos) || []).find((y) => y.id === v.id); const f = mesclarRecibos(v.fotos || [], a && a.fotos); const o = { ...v, fotos: f }; if (!f) delete o.fotos; return o; }) : undefined;
+    Object.assign(dados, { foto: fotoUsa, inicial: $('uInicial').checked, passaporte, vistos });
+    docsTirar = [...recPass.tirados, ...docTirados];
+  }
   if (tipo === 'categorias') Object.assign(dados, { simbolo: catSimbolo, cor: catCor });
   if (tipo === 'moedas') {
     dados.codigo = $('uCodigo').value.trim().toUpperCase();
@@ -4029,6 +4304,8 @@ $('fUsa').onsubmit = async (e) => {
   }
   if (atual) Object.assign(atual, dados);
   else usa()[tipo].push({ id: novoId(), ...dados });
+  for (const k of ['passaporte', 'vistos']) { const it = atual || usa()[tipo][usa()[tipo].length - 1]; if (it[k] === undefined) delete it[k]; }
+  if (docsTirar) { descartarRecibos(docsTirar); docNovos = []; docTirados = []; recPass.novos = []; recPass.tirados = []; setTimeout(enviarRecibos, 300); }
   fecharEditor();
   salvar();
   if (ic) avisoGravado(ic); else avisar('Gravado com sucesso');
@@ -4049,6 +4326,8 @@ $('uExcluir').onclick = async () => {
         : u.despesas.some((d) => (d.pagamentos || []).some((p) => p.meio === id));
   if (emUso) return avisar('Não é possível excluir', 'Este cadastro está em uso em uma viagem ou despesa. Use Arquivar para tirá-lo das listas sem perder o histórico.');
   if (!await modal(`Excluir ${USA_ITEM[tipo]}?`, $('uNome').value, 'Sim, excluir', 'Cancelar')) return;
+  const sai = usa()[tipo].find((x) => x.id === id);
+  if (tipo === 'viajantes' && sai) { soltarDocs(); descartarRecibos([...((sai.passaporte && sai.passaporte.fotos) || []), ...(sai.vistos || []).flatMap((v) => v.fotos || [])]); }
   usa()[tipo] = usa()[tipo].filter((x) => x.id !== id);
   fecharEditor();
   salvar();
@@ -4196,8 +4475,8 @@ function campoLocal(pre, textoDoMapa) {
 const locUd = campoLocal('ud', () => $('udDesc').value.trim());
 // Tela do mapa: abre por cima e entra no historico, entao o voltar do celular fecha.
 // ===== Itinerario da viagem =====
-// Tela propria (entra deslizando, o voltar do celular fecha), linha do tempo por dia, + para incluir; hotel, aereo e
-// carro das despesas com check-in entram sozinhos (sincronizarItinDespesas em calc.js).
+// Tela propria (entra deslizando, o voltar do celular fecha), linha do tempo por dia, + para incluir; no item novo, a
+// pessoa pode trazer uma despesa (despesasParaItin); nada entra sozinho. Ligados a despesa com check-in seguem as datas dela.
 const ICO_ITIN = {
   aereo: '<path d="M10.5 3.5a1.5 1.5 0 0 1 3 0V9l8 5v2l-8-2.5V19l2 1.5V22l-3.5-1-3.5 1v-1.5l2-1.5v-5.5L2.5 16v-2l8-5z"/>',
   hotel: '<path d="M3 18V8M3 14h18v4M21 18v-4a3 3 0 0 0-3-3h-7v3"/><circle cx="7" cy="11" r="1.6"/>',
@@ -4212,7 +4491,7 @@ const ROT_ITIN = {
   evento: { titulo: 'Título', ini: 'Início', fim: 'Término' }, carro: { titulo: 'Locadora', ini: 'Retirada', fim: 'Devolução', local: 'Local de retirada' },
   transporte: { titulo: 'Descrição (ex.: Trem Amtrak)', ini: 'Partida', fim: 'Chegada' }, restaurante: { titulo: 'Restaurante', ini: 'Data' }, nota: { titulo: 'Nota', ini: 'Data' },
 };
-let itinAberta = null, itinRolagem = 0, itemEd = null;
+let itinAberta = null, itinRolagem = 0, itemEd = null, itDespOps = [], itDespSel = null;
 const locIt = campoLocal('it', () => $('itTitulo').value.trim());
 // Escolher o lugar preenche o titulo vazio (hotel, evento, restaurante, locadora).
 locIt.aoEscolher = (l) => { if (!$('itTitulo').value.trim()) $('itTitulo').value = l.nome.slice(0, 120); };
@@ -4270,6 +4549,13 @@ function htmlItemItin(e, det) {
     if (x.local.nome && x.local.nome !== titulo && x.local.endereco) D.push(`Local: ${esc(x.local.nome)}`);
   }
   if (x.localizador) P.push(`Código do localizador: ${esc(x.localizador)}`);
+  if (x.pax && !fim) {
+    const nomeP = (id) => (usa().viajantes.find((p) => p.id === id) || { nome: '?' }).nome, locs = new Map();
+    for (const p of x.pax) if (p.loc) locs.set(p.loc, [...(locs.get(p.loc) || []), nomeP(p.quem)]);
+    for (const [l, ns] of locs) P.push(`Localizador: ${esc(l)} (${esc(ns.join(', '))})`);
+    const ass = x.pax.filter((p) => p.assento).map((p) => `${nomeP(p.quem)} ${p.assento}`);
+    if (ass.length) D.push(`Assentos: ${esc(ass.join(', '))}`);
+  }
   if (x.obs) D.push(`<span class="itObs">Obs: ${esc(x.obs)}</span>`);
   if (x.despesa) D.push(x.lado ? `Lançado nas despesas (${x.lado === 'ida' ? 'ida' : 'volta'})` : 'Lançado nas despesas');
   const linhas = det ? [...P, ...D] : P;
@@ -4279,6 +4565,30 @@ function htmlItemItin(e, det) {
     + `<button type="button" class="itTexto" data-ititem="${esc(x.id)}"><b>${esc(titulo)}${tag}</b>${linhas.map((l) => `<small>${l}</small>`).join('')}</button>`
     + `${x.local ? `<button type="button" class="itPino" data-itmapa="${esc(x.id)}" aria-label="Ver ${esc(x.local.nome)} no mapa">${PINO}</button>` : '<span></span>'}</div>`;
 }
+// Documentos dos viajantes da viagem: passaporte e, se a viagem tem pais de destino, o visto desse pais (o de maior
+// validade). Vencido, ou vencendo antes do fim da viagem, fica em vermelho. Sem nada cadastrado, o quadro some.
+function renderDocsItin(v) {
+  const u = usa(), fimV = v.fim || v.inicio, h = hoje();
+  const alerta = (val) => (!val ? '' : val < h ? ' <span class="docAlerta">Vencido</span>' : fimV && val < fimV ? ' <span class="docAlerta">Vence antes do fim da viagem</span>' : '');
+  const fotos = (p, d) => (d.fotos || []).map((r, i) => `<button type="button" class="sec docFoto" data-docabrir="${esc(p.id)}|${esc(r.id)}">📎 Foto${d.fotos.length > 1 ? ' ' + (i + 1) : ''}</button>`).join('');
+  const linhas = u.viajantes.filter((p) => v.viajantes.includes(p.id)).map((p) => {
+    const pp = p.passaporte, vs = v.pais ? (p.vistos || []).filter((x) => x.pais === v.pais).sort((a, b) => (b.validade || '').localeCompare(a.validade || ''))[0] : null;
+    if (!pp && !vs) return '';
+    const L = [];
+    if (pp) L.push(`<small>Passaporte: <b>${esc(pp.num || '—')}</b>${pp.validade ? ` · validade ${dataBR4(pp.validade)}` : ''}${alerta(pp.validade)} ${fotos(p, pp)}</small>`);
+    if (vs) L.push(`<small>${bandeiraHtml(vs.pais)} Visto ${esc(nomePais(vs.pais))}: <b>${esc(vs.num || '—')}</b>${vs.validade ? ` · expira ${dataBR4(vs.validade)}` : ''}${alerta(vs.validade)} ${fotos(p, vs)}</small>`);
+    return `<div class="docViaj">${fotoViajante(p)}<div class="q"><b>${esc(p.nome)}</b>${L.join('')}</div></div>`;
+  }).join('');
+  $('itDocs').innerHTML = linhas ? `<h3 class="itDia" style="margin-top:0">Documentos${v.pais ? ` · ${bandeiraHtml(v.pais)} ${esc(nomePais(v.pais))}` : ''}</h3>${linhas}` : '';
+  $('itDocs').hidden = !linhas;
+}
+$('itDocs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-docabrir]');
+  if (!b) return;
+  const [pid, rid] = b.dataset.docabrir.split('|'), p = usa().viajantes.find((x) => x.id === pid);
+  const r = p && [p.passaporte, ...(p.vistos || [])].filter(Boolean).flatMap((d) => d.fotos || []).find((x) => x.id === rid);
+  if (r) abrirRecibo(r);
+});
 function renderItin() {
   const v = viagemDoItin();
   if (!v) return;
@@ -4286,10 +4596,11 @@ function renderItin() {
   $('itDatas').textContent = v.inicio ? `${dataCurtaIt(v.inicio)}${v.fim ? ' – ' + dataCurtaIt(v.fim) : ''}` : 'Sem datas';
   $('itFoto').style.backgroundImage = v.fundo ? `url("${v.fundo}")` : '';
   $('itFoto').hidden = !v.fundo;
+  renderDocsItin(v);
   const dias = diasItinerario(usa(), v.id);
   const det = $('itDetalhes').checked;
   $('itLista').innerHTML = dias.map((d) => `<h3 class="itDia">${dataLongaIt(d.data)}</h3>${d.itens.map((e) => htmlItemItin(e, det)).join('')}`).join('')
-    || '<p class="fraco" style="margin:0">Nenhum item ainda. Toque em + para incluir. Hotel, aéreo e carro lançados nas despesas, com check-in, aparecem aqui sozinhos.</p>';
+    || '<p class="fraco" style="margin:0">Nenhum item ainda. Toque em + para incluir. No item novo, "Trazer de uma despesa" preenche com hotel, aéreo, carro, parques e passeios já lançados nas despesas.</p>';
 }
 // Formulario: os campos mudam com o tipo; item vindo de despesa nao muda datas nem local aqui.
 // Categoria de Ajustes Travel escolhida no item; a forma (campos) vem dela (formaDaCategoria em calc.js).
@@ -4303,17 +4614,118 @@ function escolherItCat(id) {
   formaItem();
 }
 function formaItem() {
-  const t = formaItemAtual(), rot = ROT_ITIN[t], daDesp = !!(itemEd && usa().itinerario.find((x) => x.id === itemEd && x.despesa));
+  const u = usa(), lig = itDespSel || u.itinerario.find((x) => x.id === itemEd) || {};
+  const t = formaItemAtual(), rot = ROT_ITIN[t], daDesp = !!lig.despesa && despesaComCheckin(u, u.despesas.find((d) => d.id === lig.despesa));
   document.querySelectorAll('#fItin [data-it]').forEach((el) => { el.hidden = !el.dataset.it.split(' ').includes(t); });
   $('itTituloRot').textContent = rot.titulo;
   $('itDataRot').textContent = rot.ini;
   if (rot.fim) $('itFimRot').textContent = rot.fim;
   $('itLocalRot').textContent = rot.local || 'Local (endereço)';
   $('itDaDesp').hidden = !daDesp;
+  const comPax = !!$('itPax').children.length, comAss = ASSENTO_ITIN.includes(t);
+  $('itPaxBox').hidden = !comPax;
+  $('itPax').classList.toggle('semAssento', !comAss);
+  $('itPaxRot').textContent = comAss ? 'Passageiros: localizador e assento' : 'Passageiros: localizador';
+  $('itAssRot').hidden = !comAss || comPax;
+  $('itLocRot').hidden = comPax;
   for (const id of ['itData', 'itFim']) $(id).disabled = daDesp;
   $('itCatSel').classList.toggle('travado', daDesp);
   $('itLocalBusca').disabled = daDesp && !!locIt.valor;
 }
+// Companhia: escolhida na lista (CIAS_AEREAS em icones.js), com filtro; a que veio do voo e nao esta na lista tambem vale.
+function porCia(nome) {
+  $('itCia').value = nome || '';
+  $('itCiaTxt').innerHTML = nome ? `${logoCiaHtml(nome)}<span>${esc(nome)}</span>` : '<span>Escolha</span>';
+  $('itCiaSel').open = false;
+}
+function listarCias() {
+  const q = $('itCiaFiltro').value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  const achou = CIAS_AEREAS.filter((c) => !q || (c[0] + ' ' + c[1]).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(q));
+  $('itCiaOpcoes').innerHTML = achou.map((c) => `<button type="button" class="linha" data-itcia="${esc(c[1])}">${logoCiaHtml(c[1])}<span class="q">${esc(c[1])}<small>${c[0]}</small></span></button>`).join('')
+    || '<p class="fraco" style="margin:8px 0">Nenhuma companhia com esse nome.</p>';
+}
+$('itCiaFiltro').addEventListener('input', listarCias);
+$('itCiaSel').addEventListener('toggle', () => { if ($('itCiaSel').open) { $('itCiaFiltro').value = ''; listarCias(); $('itCiaFiltro').focus(); } });
+const ASSENTO_ITIN = ['aereo', 'transporte', 'evento'];
+// Passageiros do item: uma linha por viajante da viagem (os arquivados so se ja estao no item), com localizador e assento.
+function montarPax(x) {
+  const u = usa(), v = viagemDoItin(), pax = (x && x.pax) || [];
+  const pessoas = u.viajantes.filter((p) => (v.viajantes.includes(p.id) && !p.arquivadaEm) || pax.some((q) => q.quem === p.id));
+  // Item antigo (localizador e assento unicos): localizador para todos, assento no primeiro.
+  const antigo = x && !x.pax ? { loc: x.localizador || '', assento: x.assento || '' } : null;
+  $('itPax').innerHTML = pessoas.map((p, i) => {
+    const q = pax.find((y) => y.quem === p.id) || (antigo ? { loc: antigo.loc, assento: i ? '' : antigo.assento } : {});
+    return `<div class="paxLinha" data-pax="${esc(p.id)}">${fotoViajante(p)}<span class="q">${esc(p.nome)}</span><input class="paxLoc" maxlength="40" autocomplete="off" placeholder="Localizador" aria-label="Localizador de ${esc(p.nome)}" value="${esc(q.loc || '')}"><input class="paxAss" maxlength="12" autocomplete="off" placeholder="Assento" aria-label="Assento de ${esc(p.nome)}" value="${esc(q.assento || '')}"></div>`;
+  }).join('');
+  return pessoas.length;
+}
+const lerPax = () => [...document.querySelectorAll('#itPax [data-pax]')].map((l) => ({ quem: l.dataset.pax, loc: l.querySelector('.paxLoc').value.trim() || undefined, assento: l.querySelector('.paxAss').value.trim() || undefined }))
+  .filter((p) => p.loc || p.assento).map((p) => Object.fromEntries(Object.entries(p).filter(([, val]) => val !== undefined)));
+// AeroDataBox pelo RapidAPI (aceita chamada direto do navegador). Plano gratuito: cerca de 200 buscas por mes.
+const chaveAero = () => db.google && db.google.aeroKey;
+let vooModelos = [];
+async function buscarVoo() {
+  const cia = ciaPorNome($('itCia').value);
+  let voo = $('itVoo').value.replace(/\s+/g, '').toUpperCase();
+  $('itVooOpcoes').innerHTML = '';
+  if (!chaveAero()) return avisar('Falta a chave do AeroDataBox', 'Grave a chave em Ajustes > Backup, no campo "Chave do AeroDataBox (dados do voo)".');
+  // So o numero: junta o codigo da companhia escolhida.
+  if (/^\d{1,5}$/.test(voo)) {
+    if (!cia) return avisar('Falta a companhia', 'Escolha a companhia ou digite o número com as letras dela (ex.: AB 1234).');
+    voo = cia[0] + voo;
+  }
+  if (!/^[A-Z0-9]{3,10}$/.test(voo)) return avisar('Falta o número do voo', 'Digite o número do voo. Ex.: 1234.');
+  const b = $('itBuscarVoo'), txt = b.textContent;
+  b.disabled = true;
+  b.textContent = 'Buscando...';
+  try {
+    const r = await fetch(`https://aerodatabox.p.rapidapi.com/flights/number/${encodeURIComponent(voo)}?withAircraftImage=false&withLocation=false`,
+      { headers: { 'X-RapidAPI-Key': chaveAero(), 'X-RapidAPI-Host': 'aerodatabox.p.rapidapi.com' } });
+    if (r.status === 401 || r.status === 403) throw new Error('A chave foi recusada. Confira a chave em Ajustes > Backup e se o plano Basic do AeroDataBox está assinado no RapidAPI.');
+    if (r.status === 429) throw new Error('Acabou o limite de buscas do mês ou foram muitas seguidas. Tente de novo mais tarde; o plano gratuito renova todo mês.');
+    if (!r.ok && r.status !== 204 && r.status !== 404) throw new Error(`O AeroDataBox respondeu com erro ${r.status}. Tente de novo mais tarde.`);
+    vooModelos = r.status === 200 ? modelosDoVoo(await r.json()) : [];
+    if (!vooModelos.length) return avisar('Voo não encontrado', `Nenhum voo ${voo} nos dias perto de hoje. Confira a companhia e o número.`);
+    abrirVoo();
+  } catch (err) {
+    avisar('Não foi possível buscar o voo', err instanceof TypeError ? 'Sem internet ou o serviço não respondeu. Tente de novo.' : err.message);
+  } finally {
+    b.disabled = false;
+    b.textContent = txt;
+  }
+}
+const duracaoTxt = (m) => (m === null || m === undefined ? '' : `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')} de voo`);
+// Popup: o voo encontrado (o mais proximo de hoje), cada trecho para escolher se houver mais de um, e a data.
+function abrirVoo() {
+  const m0 = vooModelos[0], cia = (ciaPorVoo(m0.voo) || [])[1] || m0.cia;
+  $('vooTit').innerHTML = `${logoCiaHtml(cia)}<span>${esc(m0.voo)}${cia ? ' · ' + esc(cia) : ''}</span>`;
+  const mais = (a, b) => { const d = (Date.parse(b) - Date.parse(a)) / 864e5; return d > 0 ? ` (+${d} dia${d > 1 ? 's' : ''})` : ''; };
+  $('vooTrechos').innerHTML = vooModelos.map((m, i) => `<label class="vooTrecho">${vooModelos.length > 1 ? `<input type="radio" name="vooTrecho" value="${i}"${i ? '' : ' checked'}>` : ''}<span>`
+    + `<b>${esc(m.origem)} → ${esc(m.destino)}</b><small>${esc([m.origemNome, m.destinoNome].filter(Boolean).join(' → '))}</small>`
+    + `<small>Partida ${esc(m.hora)} ${esc(m.fuso)} · Chegada ${esc(m.horaFim || '?')} ${esc(m.fusoFim || '')}${m.fim ? mais(m.data, m.fim) : ''}</small>`
+    + `${m.duracao ? `<small>${duracaoTxt(m.duracao)}</small>` : ''}</span></label>`).join('');
+  $('vooData').value = $('itData').value || '';
+  $('vooData').disabled = $('itData').disabled;
+  $('vooRef').textContent = `Horários do voo de ${dataBR(m0.data)}, o mais próximo de hoje. Na data escolhida, o app calcula a partida e a chegada pelo fuso de cada aeroporto, inclusive horário de verão. Confira no seu bilhete.`;
+  $('dVoo').showModal();
+}
+$('vooFechar').onclick = () => $('dVoo').close();
+$('vooPreencher').onclick = () => {
+  const sel = document.querySelector('#vooTrechos input:checked'), m = vooModelos[sel ? Number(sel.value) : 0], d = vooNaData(m, $('vooData').value);
+  if (!d) return avisar('Falta a data', 'Escolha a data do voo.');
+  $('dVoo').close();
+  aplicarVoo({ ...m, ...d });
+};
+// Preenche o que veio do voo; campo travado (item vindo de despesa: datas) fica como esta. Localizador e assento nao.
+function aplicarVoo(v) {
+  const por = (id, val) => { if (val && !$(id).disabled) $(id).value = val; };
+  const cia = ciaPorVoo(v.voo);
+  porCia(cia ? cia[1] : v.cia);
+  for (const [id, val] of [['itVoo', v.voo], ['itOrigem', v.origem], ['itDestino', v.destino], ['itData', v.data], ['itHora', v.hora], ['itFuso', v.fuso],
+    ['itFim', v.fim], ['itHoraFim', v.horaFim], ['itFusoFim', v.fusoFim]]) por(id, val);
+  $('itVooOpcoes').innerHTML = `<p class="fraco" style="margin:6px 0 0">Preenchido: ${esc(v.origem)} → ${esc(v.destino)} em ${dataBR(v.data)}. Confira e toque em Salvar.</p>`;
+}
+$('itBuscarVoo').onclick = buscarVoo;
 function abrirItem(id) {
   const v = viagemDoItin(), x = usa().itinerario.find((i) => i.id === id);
   itemEd = x ? x.id : null;
@@ -4326,18 +4738,45 @@ function abrirItem(id) {
   const catIni = x ? (x.cat || (cats.find((c) => formaDaCategoria(c) === x.tipo) || cats[0]).id) : cats[0].id;
   $('itCat').value = catIni;
   const val = (c) => (x && x[c]) || '';
-  for (const [el, c] of [['itTitulo', 'titulo'], ['itCia', 'cia'], ['itVoo', 'voo'], ['itOrigem', 'origem'], ['itDestino', 'destino'], ['itHora', 'hora'], ['itFuso', 'fuso'], ['itFim', 'fim'], ['itHoraFim', 'horaFim'], ['itFusoFim', 'fusoFim'], ['itLocalFim', 'localFim'], ['itAssento', 'assento'], ['itLocalizador', 'localizador'], ['itObs', 'obs']]) $(el).value = val(c);
+  porCia(x && x.cia);
+  for (const [el, c] of [['itTitulo', 'titulo'], ['itVoo', 'voo'], ['itOrigem', 'origem'], ['itDestino', 'destino'], ['itHora', 'hora'], ['itFuso', 'fuso'], ['itFim', 'fim'], ['itHoraFim', 'horaFim'], ['itFusoFim', 'fusoFim'], ['itLocalFim', 'localFim'], ['itAssento', 'assento'], ['itLocalizador', 'localizador'], ['itObs', 'obs']]) $(el).value = val(c);
   // Item novo comeca no primeiro dia da viagem (ou hoje, se a viagem ja comecou e nao terminou).
   const h = hoje();
   $('itData').value = x ? x.data : v.inicio && !(h >= v.inicio && (!v.fim || h <= v.fim)) ? v.inicio : h;
   // Fuso: o do ultimo item com fuso desta viagem, para nao digitar sempre.
   if (!x) { const ult = usa().itinerario.filter((i) => i.viagem === v.id && i.fuso).pop(); $('itFuso').value = ult ? ult.fuso : ''; }
   locIt.por(x && x.local);
-  $('itExcluir').hidden = !x || !!x.despesa;
+  $('itVooOpcoes').innerHTML = '';
+  montarPax(x);
+  $('itExcluir').hidden = !x;
+  // Item novo: oferece as despesas da viagem que podem virar item e ainda nao viraram.
+  itDespSel = null;
+  itDespOps = x ? [] : despesasParaItin(u, v.id);
+  $('itDespBox').hidden = !itDespOps.length;
+  $('itDoDesp').textContent = `Trazer de uma despesa (${itDespOps.length})`;
+  $('itDespOpcoes').innerHTML = '';
   escolherItCat(catIni);
   $('dItin').showModal();
 }
 $('itMais').onclick = () => abrirItem(null);
+$('itDoDesp').onclick = () => {
+  const u = usa(), lado = { ida: ' · ida', volta: ' · volta' };
+  $('itDespOpcoes').innerHTML = $('itDespOpcoes').innerHTML ? '' : itDespOps.map((o, i) => {
+    const c = u.categorias.find((x) => x.id === o.cat);
+    return `<button type="button" class="linha" data-itdesp="${i}">${c ? iconeCat(c, 'peq') : ''}<span class="q"><b>${esc(o.titulo)}</b><small>${esc(c ? c.nome : '')}${lado[o.lado] || ''} · ${dataBR(o.data)}${o.fim ? ' a ' + dataBR(o.fim) : ''}</small></span></button>`;
+  }).join('');
+};
+// Despesa escolhida: preenche categoria, titulo, datas e local; o item fica ligado a ela ao salvar.
+function aplicarDespItin(o) {
+  itDespSel = o;
+  escolherItCat(o.cat);
+  $('itTitulo').value = o.titulo;
+  $('itData').value = o.data;
+  $('itFim').value = o.fim || '';
+  locIt.por(o.local);
+  formaItem();
+  $('itDespOpcoes').innerHTML = `<p class="fraco" style="margin:6px 0 0">Preenchido com a despesa "${esc(o.titulo)}". Complete o que faltar e toque em Salvar.</p>`;
+}
 $('itDetalhes').addEventListener('change', renderItin);
 $('itFechar').onclick = () => $('dItin').close();
 $('fItin').onsubmit = (e) => {
@@ -4354,8 +4793,13 @@ $('fItin').onsubmit = (e) => {
   const item = { id: atual ? atual.id : novoId(), viagem: v.id, tipo: t, cat: $('itCat').value, titulo: titulo.slice(0, 120), data, hora: txt('itHora'), fuso: txt('itFuso'),
     fim, horaFim: usaFim ? txt('itHoraFim') : undefined, fusoFim: usaFim ? txt('itFusoFim') : undefined,
     local: comLocal ? locIt.valor || undefined : undefined, localFim: t === 'carro' ? txt('itLocalFim') : undefined,
-    cia: t === 'aereo' ? txt('itCia') : undefined, voo: t === 'aereo' ? txt('itVoo') : undefined, assento: t === 'aereo' ? txt('itAssento') : undefined,
-    origem, destino, localizador: txt('itLocalizador'), obs: txt('itObs'), despesa: atual && atual.despesa, lado: atual && atual.lado };
+    cia: t === 'aereo' ? txt('itCia') : undefined, voo: t === 'aereo' ? txt('itVoo') : undefined, assento: ASSENTO_ITIN.includes(t) ? txt('itAssento') : undefined,
+    origem, destino, localizador: txt('itLocalizador'), obs: txt('itObs'), pax: undefined, despesa: (atual || itDespSel || {}).despesa, lado: (atual || itDespSel || {}).lado };
+  if (!$('itPaxBox').hidden) {
+    const pax = lerPax().map((q) => { if (!ASSENTO_ITIN.includes(t)) delete q.assento; return q; }).filter((q) => q.loc || q.assento);
+    item.pax = pax.length ? pax : undefined;
+    item.localizador = item.assento = undefined;
+  }
   for (const k of Object.keys(item)) if (item[k] === undefined) delete item[k];
   if (!itemItinValido(item, usa())) return avisar('Não foi possível salvar', 'Confira a hora (hh:mm) e o tamanho dos textos.');
   if (atual) usa().itinerario[usa().itinerario.indexOf(atual)] = item; else usa().itinerario.push(item);
@@ -4629,6 +5073,24 @@ async function enviarRecibos() {
         recLocais.delete(r.id); await recApagar(r.id);
       }
     }
+    // Documentos dos viajantes: "Documentos/<viajante>", com o nome do documento.
+    const limpo = (t) => t.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ').replace(/\s+/g, ' ').trim();
+    for (const p of u.viajantes) {
+      const docs = [...(p.passaporte ? [[p.passaporte, `Passaporte ${p.nome}`]] : []), ...(p.vistos || []).map((v) => [v, `Visto ${nomePais(v.pais)} ${p.nome}`])];
+      for (const [d, nomeD] of docs) {
+        for (const [i, r] of (d.fotos || []).entries()) {
+          if (r.arq || !recLocais.has(r.id)) continue;
+          const blob = await recLer(r.id);
+          if (!blob) { recLocais.delete(r.id); continue; }
+          const nomeP = limpo(p.nome) || 'Viajante';
+          if (!pastas['d:' + nomeP]) pastas['d:' + nomeP] = await subpasta(nomeP, await subpasta('Documentos', await pastaDrive()));
+          const nome = `${limpo(nomeD)}${d.fotos.length > 1 ? ` (${i + 1})` : ''}.pdf`;
+          const f = await enviarDrive(nome, new File([blob], nome, { type: 'application/pdf' }), pastas['d:' + nomeP]);
+          r.arq = f.id; r.nome = nome; mudou = true;
+          recLocais.delete(r.id); await recApagar(r.id);
+        }
+      }
+    }
     for (const id of lixoLer()) {
       try { await drive(`/drive/v3/files/${encodeURIComponent(id)}?fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }) }); } catch (err) { if (!/ 404\./.test(err.message)) throw err; }
       lixoGravar(lixoLer().filter((x) => x !== id));
@@ -4648,23 +5110,23 @@ function renderRec(cx) {
   const n = cx.lista.length;
   $(cx.el).innerHTML = cx.lista.map((r, i) => {
     const sit = r.arq ? 'No Google Drive' : recLocais.has(r.id) ? 'Aguardando envio ao Google Drive' : 'Ainda no aparelho onde foi escaneado';
-    return `<div class="linha"><span class="q">📎 Recibo${n > 1 ? ' ' + (i + 1) : ''}<br><small class="fraco">${sit}${r.pag ? ` · ${r.pag} ${r.pag > 1 ? 'páginas' : 'página'}` : ''}</small></span>`
+    return `<div class="linha"><span class="q">📎 ${cx.rotulo || 'Recibo'}${n > 1 ? ' ' + (i + 1) : ''}<br><small class="fraco">${sit}${r.pag ? ` · ${r.pag} ${r.pag > 1 ? 'páginas' : 'página'}` : ''}</small></span>`
       + `${r.arq || recLocais.has(r.id) ? `<button type="button" class="sec" data-recabrir="${esc(r.id)}">Abrir</button>` : ''}<button type="button" class="perigo" data-rectirar="${esc(r.id)}">Remover</button></div>`;
   }).join('');
 }
+async function abrirRecibo(r) {
+  if (recLocais.has(r.id)) {
+    const janela = window.open('', '_blank'), blob = await recLer(r.id);
+    if (!blob) { if (janela) janela.close(); return avisar('Arquivo', 'O arquivo não está mais neste aparelho.'); }
+    const url = URL.createObjectURL(blob);
+    if (janela) janela.location.href = url; else location.href = url;
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } else if (r.arq) window.open(`https://drive.google.com/file/d/${encodeURIComponent(r.arq)}/view`, '_blank');
+  else avisar('Arquivo', 'A foto ainda está no aparelho onde foi tirada e não chegou ao Google Drive.');
+}
 const cliqueRecibos = (cx) => async (e) => {
   const ab = e.target.closest('[data-recabrir]'), ti = e.target.closest('[data-rectirar]');
-  if (ab) {
-    const r = cx.lista.find((x) => x.id === ab.dataset.recabrir);
-    if (recLocais.has(r.id)) {
-      const janela = window.open('', '_blank'), blob = await recLer(r.id);
-      if (!blob) { if (janela) janela.close(); return avisar('Recibo', 'O arquivo não está mais neste aparelho.'); }
-      const url = URL.createObjectURL(blob);
-      if (janela) janela.location.href = url; else location.href = url;
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
-    } else window.open(`https://drive.google.com/file/d/${encodeURIComponent(r.arq)}/view`, '_blank');
-    return;
-  }
+  if (ab) return abrirRecibo(cx.lista.find((x) => x.id === ab.dataset.recabrir));
   if (ti) {
     const r = cx.lista.find((x) => x.id === ti.dataset.rectirar);
     if (!await modal('Remover recibo?', r.arq ? 'Ao salvar, o PDF vai para a lixeira do Google Drive (dá para recuperar por 30 dias).' : 'O PDF ainda não foi enviado e será apagado deste aparelho.', 'Sim, remover', 'Cancelar')) return;
