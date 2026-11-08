@@ -85,6 +85,18 @@
   @media (prefers-reduced-motion: reduce) { input.chave, input.chave::before { transition: none; } }
   /* Recibos: lista no popup da despesa e dialogo do recorte. */
   #udRecLista .linha { gap: 8px; }
+  /* Local da despesa: marcador vermelho antes do nome, sugestoes da busca e tela do mapa. */
+  .pino { display: inline-flex; align-items: center; vertical-align: -4px; margin-right: 4px; color: #c0262d; cursor: pointer; }
+  .pino svg { width: 20px; height: 20px; fill: currentColor; }
+  .localSug .linha { gap: 8px; }
+  .localSug .linha .pino, .localEsc .pino { cursor: default; }
+  .localEsc { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; background: var(--campo); margin: 4px 0; }
+  .localEsc[hidden] { display: none; }
+  .localEsc .q { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .localEsc button { flex: none; min-height: 36px; padding: 4px 10px; font-size: 13px; }
+  dialog#dMapa { width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; border-radius: 0; padding: 12px 16px; }
+  #mapaFrame { display: block; width: 100%; height: 55vh; border: 0; border-radius: 12px; background: var(--campo); }
+  .mapaEnd { font-weight: 600; margin: 10px 0 2px; overflow-wrap: anywhere; }
   b.clipe { display: inline-flex; align-items: center; gap: 1px; vertical-align: -3px; font-weight: 800; white-space: nowrap; }
   b.clipe svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
   #udRecLista .linha button { flex: none; min-height: 36px; padding: 4px 10px; font-size: 13px; }
@@ -696,7 +708,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.63.1 · 07/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.64.0 · 07/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -744,6 +756,9 @@
         <label for="aGoogleCliente">ID do cliente do projeto no Google</label>
         <div class="campoGravar"><input type="text" id="aGoogleCliente" autocomplete="off" spellcheck="false" maxlength="200" placeholder="....apps.googleusercontent.com"><button type="button" class="mini" id="aGoogleGravar">Gravar</button></div>
         <p class="fraco" id="aGoogleMsg" style="margin:0" aria-live="polite">Fica gravado aqui e vai no backup, para você consultar quando quiser. Vazio, o app usa o do projeto atual.</p>
+        <label for="aMapsKey" style="margin-top:12px">Chave do Google Maps (busca de endereços)</label>
+        <div class="campoGravar"><input type="text" id="aMapsKey" autocomplete="off" spellcheck="false" maxlength="100" placeholder="AIza..."><button type="button" class="mini" id="aMapsGravar">Gravar</button></div>
+        <p class="fraco" id="aMapsMsg" style="margin:0" aria-live="polite">Usada no campo Local das despesas da viagem. Fica nos seus dados e no backup, não no GitHub.</p>
       </div>
     </div>
     <div class="tela" id="tAgenda" hidden>
@@ -1038,6 +1053,11 @@
 <dialog id="dUsaDesp"><form id="fUsaDesp" novalidate>
   <h3 id="udfTit">Nova despesa</h3>
   <label>Descrição<input id="udDesc" maxlength="60" autocomplete="off"></label>
+  <div class="rotuloCampo" id="udLocalBox"><span>Local (endereço)</span>
+    <div id="udLocalEsc" class="localEsc" hidden></div>
+    <input id="udLocalBusca" autocomplete="off" placeholder="Digite o nome do lugar ou o endereço" aria-label="Buscar local">
+    <div id="udLocalSug" class="localSug" aria-live="polite"></div>
+  </div>
   <label id="udNatBox">Tipo de despesa<select id="udNat"><option value="C">Corporativa</option><option value="P">Pessoal</option></select></label>
   <div class="rotuloCampo" id="udCatBox"><span>Categoria</span><details class="multiSel" id="udCatSel"><summary><span id="udCatTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" id="udCatOpcoes"></div></details><input type="hidden" id="udCat"></div>
   <div class="rotuloCampo" id="udQuemBox"><span>Despesa compartilhada</span><details class="multiSel" id="udQuem"><summary><span>Todos</span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes"></div></details></div>
@@ -1058,6 +1078,13 @@
   <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="udFechar">Fechar</button><button type="button" class="perigo" id="udExcluir" hidden>Excluir</button></div>
 </form></dialog>
 <input type="file" accept="image/*" capture="environment" id="recCamArq" hidden><input type="file" accept="image/*" multiple id="recGalArq" hidden>
+<dialog id="dMapa">
+  <div class="topoTela"><button type="button" class="voltarTela" id="mapaVoltar" aria-label="Voltar">‹</button><h2 id="mapaTit"></h2></div>
+  <div id="mapaCaixa"></div>
+  <p id="mapaEnd" class="mapaEnd"></p>
+  <p id="mapaDesp" class="fraco"></p>
+  <div class="botoes"><button type="button" id="mapaAbrir">Abrir no Google Maps</button><button type="button" class="sec" id="mapaRota">Como chegar</button></div>
+</dialog>
 <dialog id="dRecibo">
   <h3 id="recTit">Ajuste os cantos</h3>
   <div id="recModoCorte">
@@ -2313,6 +2340,7 @@ function abrirTela(id) {
 }
 addEventListener('popstate', (e) => {
   const st = e.state || {};
+  if ($('dMapa').open) { $('dMapa').close(); return; }
   if (usaAberta && !st.usaDesp) { fecharUsaDesp(); return; }
   if (catDet && !st.catDet) { voltarAoResumo(); return; }
   if (atrasosDet && !st.atrasos && !lancOrigem) { voltarAoResumo(); return; }
@@ -2733,14 +2761,14 @@ function exportar(tipo) {
     const pessoas = [...new Set([...v.viajantes, ...desp.flatMap((d) => d.quem)])];
     const partes = (d) => { const n = d.quem.length, base = Math.floor(d.valor / n), sobra = d.valor - base * n; return Object.fromEntries(d.quem.map((id, i) => [id, base + (i < sobra ? 1 : 0)])); };
     const cab = ['Data', 'Descrição', 'Categoria', 'Moeda', 'Valor', 'Situação', ...(v.corporativa ? ['Tipo de despesa'] : []), 'Dividida entre',
-      ...pessoas.map((id) => 'Parte de ' + nome(id)), 'Pago com', 'Valor pago', 'Pago com (2)', 'Valor pago (2)', 'Check-in', 'Check-out', 'Obs', 'Recibos (Google Drive)'];
+      ...pessoas.map((id) => 'Parte de ' + nome(id)), 'Pago com', 'Valor pago', 'Pago com (2)', 'Valor pago (2)', 'Check-in', 'Check-out', 'Obs', 'Local', 'Endereço', 'Recibos (Google Drive)'];
     const linhas = desp.map((d) => {
       const pt = d.quem.length ? partes(d) : {}, pg = d.pagamentos || [];
       return [dataCsv(d.data), d.desc, (u.categorias.find((c) => c.id === d.cat) || { nome: '?' }).nome, moedaUsa(d.moeda).codigo, numCsv(d.valor), d.pago === false ? 'A pagar' : 'Pago',
         ...(v.corporativa ? [naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corporativa'] : []), d.quem.map(nome).join(', '),
         ...pessoas.map((id) => (id in pt ? numCsv(pt[id]) : '')),
         pg[0] ? meio(pg[0].meio) : '', pg[0] ? numCsv(pg[0].valor) : '', pg[1] ? meio(pg[1].meio) : '', pg[1] ? numCsv(pg[1].valor) : '',
-        d.checkin ? dataCsv(d.checkin) : '', d.checkout ? dataCsv(d.checkout) : '', d.obs || '',
+        d.checkin ? dataCsv(d.checkin) : '', d.checkout ? dataCsv(d.checkout) : '', d.obs || '', d.local ? d.local.nome : '', d.local ? d.local.endereco : '',
         (d.recibos || []).map((x) => (x.arq ? `https://drive.google.com/file/d/${x.arq}/view` : 'pendente')).join(' ')];
     });
     return exportarCSV(`despesas-${v.nome}`, cab, linhas);
@@ -2851,6 +2879,18 @@ function gravarClienteGoogle() {
   $('aGoogleMsg').textContent = v ? 'ID gravado. Ele vai no próximo backup.' : 'Campo vazio gravado: o app usa o ID do projeto atual.';
 }
 $('aGoogleGravar').onclick = gravarClienteGoogle;
+function gravarChaveMaps() {
+  const v = $('aMapsKey').value.trim(), antes = (db.google && db.google.mapsKey) || '';
+  if (v && !ehChaveMaps(v)) { $('aMapsMsg').textContent = 'Chave inválida: nada foi gravado.'; return avisar('Chave inválida', 'A chave do Google Maps começa com "AIza". Confira se copiou inteira. Nada foi gravado.'); }
+  delete $('aMapsKey').dataset.editando;
+  if (v === antes) { $('aMapsMsg').textContent = 'Nada mudou: esta chave já está gravada.'; return; }
+  if (v) db.google = { ...(db.google || {}), mapsKey: v }; else if (db.google) delete db.google.mapsKey;
+  salvar();
+  $('aMapsMsg').textContent = v ? 'Chave gravada. Ela vai no próximo backup.' : 'Chave apagada: a busca de endereços fica desligada.';
+}
+$('aMapsGravar').onclick = gravarChaveMaps;
+$('aMapsKey').oninput = () => { $('aMapsKey').dataset.editando = '1'; };
+$('aMapsKey').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); gravarChaveMaps(); } };
 $('aGoogleCliente').oninput = () => { $('aGoogleCliente').dataset.editando = '1'; };
 $('aGoogleCliente').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); gravarClienteGoogle(); } };
 const CHAVE_GTOKEN = 'controle-diario-gtoken';
@@ -3140,6 +3180,7 @@ function mostrarSync() {
   $('aSyncAgora').disabled = !ativo;
   // Enquanto a pessoa digita (sem Gravar), o campo nao e trocado pelo valor gravado.
   if (!$('aGoogleCliente').dataset.editando) $('aGoogleCliente').value = (db.google && db.google.cliente) || '';
+  if (!$('aMapsKey').dataset.editando) $('aMapsKey').value = (db.google && db.google.mapsKey) || '';
 }
 async function sincronizarComToque() {
   try { await tokenGoogle(); } catch (err) { return avisar('Google Drive', err.message); }
@@ -3385,6 +3426,8 @@ $('mesProx').onclick = () => { mes = addMes(mes, 1); if (completarSeries(db, mes
 document.addEventListener('click', async (e) => {
   const b = e.target.closest('button');
   if (!b) return;
+  const pinoMapa = e.target.closest('[data-usamapa]');
+  if (pinoMapa) { abrirMapa(pinoMapa.dataset.usamapa); return; }
   let d = b.dataset;
   // Fluxo: tocar no valor ou na situacao paga ou desfaz o pagamento, sem abrir a edicao.
   if (e.target.closest('#lLista .lado, #atLista .linha')) {
@@ -3457,6 +3500,7 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
   if (d.usaviagem) { abrirUsaDesp(d.usaviagem); return; }
   if ('infousa' in d) { avisar('Filtro das viagens', TEXTO_FILTRO_USA); return; }
   if (d.usadesp) { abrirDespesa(d.usadesp); return; }
+  if (d.udlocal) { escolherLocal(d.udlocal); return; }
   if (d.udcat) { escolherUdCat(d.udcat); $('udCatSel').open = false; return; }
   if (d.udmeio) { escolherUdMeio(d.udmeio, d.id); return; }
   if ('editviagem' in d) { abrirViagem(d.editviagem); return; }
@@ -3925,6 +3969,7 @@ function detalhesDesp(d, u) {
   if (viagemAberta() && viagemAberta().corporativa) linhas.push(naturezaDesp(d) === 'P' ? 'Despesa pessoal' : 'Despesa corporativa');
   linhas.push(`Compra em ${dataBR(d.data)} · ${esc(moedaUsa(d.moeda).codigo)} · ${d.pago === false ? 'A pagar' : 'Pago'}`);
   if (d.checkin || d.checkout) linhas.push(`Check-in ${d.checkin ? dataBR(d.checkin) : '-'} · Check-out ${d.checkout ? dataBR(d.checkout) : '-'}`);
+  if (d.local) linhas.push(`Local: ${esc(d.local.nome)}${d.local.endereco ? ' — ' + esc(d.local.endereco) : ''}`);
   if (d.obs) linhas.push(`Obs: ${esc(d.obs)}`);
   return `<small class="detUd">${linhas.join('<br>')}</small>`;
 }
@@ -3951,7 +3996,7 @@ function renderUsaDesp() {
     // Dia como no Fluxo: "30 de novembro", ou Hoje.
     const cab = d.data !== dia ? `<h3 class="dia">${d.data === h ? 'Hoje' : new Date(d.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</h3>` : '';
     dia = d.data;
-    return cab + `<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}${(d.recibos || []).length ? ` <b class="clipe" title="${d.recibos.length} ${d.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${d.recibos.length > 1 ? d.recibos.length : ''}</b>` : ''}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>`;
+    return cab + `<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${d.local ? `<span class="pino" data-usamapa="${esc(d.id)}" title="Ver ${esc(d.local.nome)} no mapa">${PINO}</span>` : ''}${esc(d.desc)}${(d.recibos || []).length ? ` <b class="clipe" title="${d.recibos.length} ${d.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${d.recibos.length > 1 ? d.recibos.length : ''}</b>` : ''}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>`;
   }).join('') || '<p class="fraco" style="margin:0">Nenhuma despesa ainda. Toque em + para lançar.</p>';
   // Por categoria, uma parte por moeda (base primeiro); o total de cada moeda e o mesmo do alto da tela.
   $('udCats').innerHTML = htmlCatsViagem(u, v);
@@ -3971,6 +4016,80 @@ function htmlCatsViagem(u, v, nat) {
     + `<div class="linha"><b class="q">Total${grupos.length > 1 ? ' em ' + esc(moedaUsa(g.moeda).simbolo) : ''}</b><b class="valor neg">${fmtMoeda(g.total, g.moeda)}</b></div>`).join('')
     || '<p class="fraco" style="margin:0">Nenhuma despesa.</p>';
 }
+// Local da despesa (busca do Google Places): marcador, sugestoes enquanto digita e a tela do mapa.
+const PINO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>';
+const chaveMaps = () => db.google && db.google.mapsKey;
+let udLocal = null, locSessao = '', locTimer = null;
+function mostrarUdLocal() {
+  $('udLocalEsc').hidden = !udLocal;
+  $('udLocalBusca').hidden = !!udLocal;
+  $('udLocalEsc').innerHTML = udLocal ? `<span class="pino">${PINO}</span><span class="q"><b>${esc(udLocal.nome)}</b><br><small>${esc(udLocal.endereco)}</small></span><button type="button" class="sec" id="udLocalTirar">Remover</button>` : '';
+}
+$('udLocalEsc').onclick = (e) => { if (e.target.closest('#udLocalTirar')) { udLocal = null; mostrarUdLocal(); $('udLocalBusca').focus(); } };
+$('udLocalBusca').oninput = () => {
+  clearTimeout(locTimer);
+  const t = $('udLocalBusca').value.trim();
+  if (t.length < 3) { $('udLocalSug').innerHTML = ''; return; }
+  locTimer = setTimeout(() => buscarLocal(t), 350);
+};
+// Sugestoes do Google enquanto digita. A "sessao" junta a busca e a escolha numa cobranca so.
+async function buscarLocal(t) {
+  if (!chaveMaps()) { $('udLocalSug').innerHTML = '<p class="fraco">Para buscar endereços, grave a chave do Google Maps em Ajustes > Backup.</p>'; return; }
+  if (!navigator.onLine) { $('udLocalSug').innerHTML = '<p class="fraco">Sem internet: a busca volta quando a conexão voltar.</p>'; return; }
+  locSessao = locSessao || crypto.randomUUID();
+  try {
+    const r = await fetch('https://places.googleapis.com/v1/places:autocomplete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': chaveMaps() },
+      body: JSON.stringify({ input: t, languageCode: 'pt-BR', sessionToken: locSessao }) });
+    if (!r.ok) throw new Error(`Google respondeu ${r.status}. ${(await r.text()).slice(0, 160)}`);
+    const j = await r.json();
+    if ($('udLocalBusca').value.trim() !== t) return;
+    const sug = (j.suggestions || []).map((x) => x.placePrediction).filter(Boolean);
+    const txt = (o) => (o && o.text) || '';
+    $('udLocalSug').innerHTML = sug.map((x) => `<button type="button" class="linha" data-udlocal="${esc(x.placeId)}"><span class="pino">${PINO}</span><span class="q">${esc(x.structuredFormat ? txt(x.structuredFormat.mainText) : txt(x.text))}<br><small>${esc(x.structuredFormat ? txt(x.structuredFormat.secondaryText) : '')}</small></span></button>`).join('')
+      || '<p class="fraco">Nada encontrado. Tente o nome e a cidade.</p>';
+  } catch (err) {
+    $('udLocalSug').innerHTML = `<p class="neg">A busca falhou: ${esc(err.message)}</p>`;
+  }
+}
+async function escolherLocal(placeId) {
+  try {
+    const r = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?languageCode=pt-BR${locSessao ? '&sessionToken=' + locSessao : ''}`,
+      { headers: { 'X-Goog-Api-Key': chaveMaps(), 'X-Goog-FieldMask': 'id,displayName,formattedAddress,location' } });
+    if (!r.ok) throw new Error(`Google respondeu ${r.status}. ${(await r.text()).slice(0, 160)}`);
+    const x = await r.json();
+    if (!x.location) throw new Error('O Google não devolveu a localização deste lugar.');
+    udLocal = { nome: ((x.displayName && x.displayName.text) || 'Local').slice(0, 200), endereco: (x.formattedAddress || '').slice(0, 400), lat: x.location.latitude, lng: x.location.longitude, id: /^[\w-]{1,300}$/.test(x.id || '') ? x.id : undefined };
+    locSessao = '';
+    $('udLocalBusca').value = ''; $('udLocalSug').innerHTML = '';
+    mostrarUdLocal();
+  } catch (err) {
+    avisar('Local', err.message);
+  }
+}
+// Tela do mapa: abre por cima e entra no historico, entao o voltar do celular fecha.
+function abrirMapa(id) {
+  const d = usa().despesas.find((x) => x.id === id);
+  if (!d || !d.local) return;
+  const l = d.local, ponto = `${l.lat},${l.lng}`, chave = chaveMaps();
+  $('mapaTit').textContent = l.nome;
+  $('mapaEnd').textContent = l.endereco || ponto;
+  $('mapaDesp').textContent = `${d.desc} · ${dataBR(d.data)} · ${fmtMoeda(d.valor, d.moeda)}`;
+  // Com a chave: mapa incorporado do Google (gratuito); sem ela, o mapa simples pelas coordenadas.
+  // Quadro novo a cada abertura: trocar o endereco de um quadro ja na pagina cria uma etapa no historico,
+  // e o voltar do celular passaria a voltar o mapa em vez de fechar a tela.
+  const quadro = document.createElement('iframe');
+  Object.assign(quadro, { id: 'mapaFrame', title: 'Mapa do local', referrerPolicy: 'strict-origin-when-cross-origin', allowFullscreen: true });
+  quadro.src = chave ? `https://www.google.com/maps/embed/v1/place?key=${encodeURIComponent(chave)}&q=${l.id ? 'place_id:' + encodeURIComponent(l.id) : ponto}&language=pt-BR`
+    : `https://maps.google.com/maps?q=${ponto}&z=16&output=embed`;
+  $('mapaCaixa').replaceChildren(quadro);
+  $('mapaAbrir').onclick = () => window.open(`https://www.google.com/maps/search/?api=1&query=${ponto}${l.id ? '&query_place_id=' + encodeURIComponent(l.id) : ''}`, '_blank');
+  $('mapaRota').onclick = () => window.open(`https://www.google.com/maps/dir/?api=1&destination=${ponto}${l.id ? '&destination_place_id=' + encodeURIComponent(l.id) : ''}`, '_blank');
+  history.pushState({ mapa: true }, '');
+  $('dMapa').showModal();
+}
+$('mapaVoltar').onclick = () => history.back();
+$('dMapa').addEventListener('cancel', (e) => { e.preventDefault(); history.back(); });
+$('dMapa').addEventListener('close', () => { $('mapaCaixa').replaceChildren(); });
 // Clipe em negrito depois do nome da despesa que tem recibo.
 const CLIPE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5 12.6 19.9a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8"/></svg>';
 // Quem pode dividir a despesa: viajantes da viagem nao arquivados, mais os que ja estao na despesa editada.
@@ -4037,6 +4156,9 @@ function abrirDespesa(id) {
   mostrarDoisMeios();
   $('udExcluir').hidden = !d;
   recUd.lista = ((d && d.recibos) || []).map((x) => ({ ...x }));
+  udLocal = d && d.local ? { ...d.local } : null;
+  locSessao = ''; $('udLocalBusca').value = ''; $('udLocalSug').innerHTML = '';
+  mostrarUdLocal();
   recUd.novos = []; recUd.tirados = []; udSalvou = false;
   renderRec(recUd);
   $('dUsaDesp').showModal();
@@ -4100,7 +4222,7 @@ $('fUsaDesp').onsubmit = (e) => {
   if (checkin && checkout && checkout < checkin) return avisar('Datas inválidas', 'O check-out não pode ser antes do check-in.');
   // Nenhum marcado ou Todos: divide entre todos os viajantes da viagem.
   const sel = marcados($('udQuemBox')), quem = $('udQuemBox').hidden ? [] : sel.length ? sel : [...udPessoas];
-  const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem, pago: $('udPago').checked, natureza: v.corporativa ? $('udNat').value : undefined, obs: $('udObs').value.trim() || undefined, checkin, checkout, pagamentos };
+  const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem, pago: $('udPago').checked, natureza: v.corporativa ? $('udNat').value : undefined, obs: $('udObs').value.trim() || undefined, checkin, checkout, pagamentos, local: udLocal || undefined };
   const atual = usa().despesas.find((x) => x.id === despEd);
   dados.recibos = mesclarRecibos(recUd.lista, atual && atual.recibos);
   if (atual) Object.assign(atual, dados); else usa().despesas.push({ id: novoId(), ...dados });

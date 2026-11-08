@@ -894,6 +894,13 @@ function montarPdf(paginas) {
   return out;
 }
 
+// Local da despesa da viagem, escolhido na busca do Google: nome, endereco completo, coordenadas e id do lugar.
+const localValido = (l) => l === undefined || (!!l && typeof l === 'object' && typeof l.nome === 'string' && l.nome.length >= 1 && l.nome.length <= 200
+  && typeof l.endereco === 'string' && l.endereco.length <= 400 && typeof l.lat === 'number' && l.lat >= -90 && l.lat <= 90
+  && typeof l.lng === 'number' && l.lng >= -180 && l.lng <= 180 && (l.id === undefined || (typeof l.id === 'string' && /^[\w-]{1,300}$/.test(l.id))));
+// Chave do Google Maps (busca de enderecos e mapa), gravada pela pessoa em Ajustes.
+const ehChaveMaps = (v) => typeof v === 'string' && /^AIza[\w-]{20,80}$/.test(v);
+
 // Area USA: cadastros proprios, sem ligacao com contas, cartoes e lancamentos do resto do app.
 function usaValido(u) {
   if (u === undefined) return true;
@@ -910,7 +917,7 @@ function usaValido(u) {
     && Array.isArray(u.despesas) && u.despesas.every((d) => d && typeof d.id === 'string' && typeof d.desc === 'string' && d.desc.length <= 60 && tem(u.viagens, d.viagem)
       && tem(u.categorias, d.cat) && tem(u.moedas, d.moeda) && /^\d{4}-\d{2}-\d{2}$/.test(d.data) && Number.isInteger(d.valor) && d.valor > 0 && ids(d.quem, u.viajantes)
       && (d.obs === undefined || (typeof d.obs === 'string' && d.obs.length <= 500)) && (d.pago === undefined || typeof d.pago === 'boolean') && (d.natureza === undefined || d.natureza === 'C' || d.natureza === 'P')
-      && data(d.checkin) && data(d.checkout) && !(d.checkin && d.checkout && d.checkout < d.checkin) && recibosValidos(d.recibos)
+      && data(d.checkin) && data(d.checkout) && !(d.checkin && d.checkout && d.checkout < d.checkin) && recibosValidos(d.recibos) && localValido(d.local)
       // Pago com: um ou dois meios (contas ou cartoes da area), diferentes, somando o valor da despesa.
       && (d.pagamentos === undefined || (Array.isArray(d.pagamentos) && d.pagamentos.length >= 1 && d.pagamentos.length <= 2
         && d.pagamentos.every((p) => p && (tem(u.contas, p.meio) || tem(u.cartoes, p.meio)) && Number.isInteger(p.valor) && p.valor > 0)
@@ -934,6 +941,7 @@ const ehClienteGoogle = (v) => typeof v === 'string' && v.length <= 200 && /^[\w
 // agenda: lembretes no Google Agenda ligados ou nao, e o id da agenda criada pelo app (vale para todos os aparelhos).
 const googleValido = (g) => g === undefined || (!!g && typeof g === 'object' && !Array.isArray(g) && (g.cliente === undefined || ehClienteGoogle(g.cliente))
   && (g.ultimoAutoEm === undefined || (typeof g.ultimoAutoEm === 'string' && g.ultimoAutoEm.length <= 40 && !Number.isNaN(Date.parse(g.ultimoAutoEm))))
+  && (g.mapsKey === undefined || ehChaveMaps(g.mapsKey))
   && (g.agenda === undefined || (!!g.agenda && typeof g.agenda === 'object' && typeof g.agenda.ativo === 'boolean'
     && (g.agenda.id === undefined || (typeof g.agenda.id === 'string' && g.agenda.id.length <= 300 && /^[\w.@-]+$/.test(g.agenda.id)))
     && (g.agenda.tarefas === undefined || (typeof g.agenda.tarefas === 'string' && g.agenda.tarefas.length <= 300 && /^[\w=.:@-]+$/.test(g.agenda.tarefas))))));
@@ -1004,7 +1012,7 @@ function backupValido(d) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    lembretesAgenda, situacaoLembretes, idEvento, googleValido, ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
+    localValido, ehChaveMaps, lembretesAgenda, situacaoLembretes, idEvento, googleValido, ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
     protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };

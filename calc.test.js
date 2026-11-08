@@ -824,7 +824,8 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   const jpg = 'data:image/jpeg;base64,/9j/AAAA', svg = 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=';
   const comUsa = { ...JSON.parse(JSON.stringify(dp)), usa: { moedas: c.MOEDAS_PADRAO, despesas: [{ id: 'd1', viagem: 'v1', desc: 'Parque', cat: 'u4', data: '2027-04-05', moeda: 'BRL', valor: 12345, quem: ['u3'], obs: 'Ingresso de 2 dias', pago: false, checkin: '2027-04-05', checkout: '2027-04-08',
       pagamentos: [{ meio: 'u1', valor: 10000 }, { meio: 'u2', valor: 2345 }], natureza: 'P',
-      recibos: [{ id: 'r1', em: '2027-04-05T15:00:00.000Z', pag: 2, arq: '1AbCdEfGhIjKlMnOp_q-r', nome: '2027-04-05 Parque R$ 123,45 (1).pdf' }, { id: 'r2', em: '2027-04-05T15:05:00.000Z', pag: 1 }] }],
+      recibos: [{ id: 'r1', em: '2027-04-05T15:00:00.000Z', pag: 2, arq: '1AbCdEfGhIjKlMnOp_q-r', nome: '2027-04-05 Parque R$ 123,45 (1).pdf' }, { id: 'r2', em: '2027-04-05T15:05:00.000Z', pag: 1 }],
+      local: { nome: 'Hyatt Centric Faneuil Hall Boston', endereco: '54-68 Devonshire St, Boston, MA 02109, EUA', lat: 42.3589, lng: -71.0576, id: 'ChIJ_abc-123' } }],
     viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 }, corporativa: true }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {} }],
     contas: [{ id: 'u1', nome: 'Wise', icone: svg, iconeNome: 'Wise' }], cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'V', icone: svg, iconeNome: 'Visa',
       finais: [{ n: '1234', tipo: 'V', dono: 'T' }], finaisInativos: [{ n: '5678', tipo: 'F', dono: 'A', motivo: 'Vencido', em: '2026-11-03' }] }],
@@ -838,7 +839,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.deepStrictEqual(volta.usa, comUsa.usa);
   }
   // ID do cliente do Google (Ajustes > Backup) passa pelos dois tipos de backup; formato errado nao restaura
-  const comGoogle = { ...JSON.parse(JSON.stringify(dp)), google: { cliente: '729588885596-abc123.apps.googleusercontent.com', ultimoAutoEm: '2026-11-07T18:30:05.000Z', agenda: { ativo: true, id: 'abc123def@group.calendar.google.com', tarefas: 'MDQ0NjE3ODM4NjU1NjIxNzk0NDk6MDow' } } };
+  const comGoogle = { ...JSON.parse(JSON.stringify(dp)), google: { cliente: '729588885596-abc123.apps.googleusercontent.com', mapsKey: 'AIzaSyA1b2C3d4E5f6G7h8I9j0K_lmnoPQRst-u', ultimoAutoEm: '2026-11-07T18:30:05.000Z', agenda: { ativo: true, id: 'abc123def@group.calendar.google.com', tarefas: 'MDQ0NjE3ODM4NjU1NjIxNzk0NDk6MDow' } } };
   for (const arq of [await c.cifrarBackup(comGoogle, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comGoogle, gApp)]) {
     const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
     const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-07');
@@ -850,6 +851,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.ok(!c.backupValido({ ...comGoogle, google: 'x' }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { ultimoAutoEm: 'ontem' } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { agenda: { ativo: 'sim' } } }));
+  assert.ok(!c.backupValido({ ...comGoogle, google: { mapsKey: 'chave-errada' } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { agenda: { ativo: true, id: '<script>' } } }));
   assert.ok(c.backupValido({ ...comGoogle, google: { agenda: { ativo: true, id: 'x@group.calendar.google.com', tarefas: 'MDQ0NjE3ODM4NjU1NjIxNzk0NDk6MDow' } } }));
   assert.ok(!c.backupValido({ ...comGoogle, google: { agenda: { ativo: true, tarefas: 'a b' } } }));
@@ -910,6 +912,13 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.ok(!ok([{ id: 'r1', em: 'ontem' }]), 'data invalida');
   assert.ok(!ok([{ id: 'r1', em: '2027-04-05' }, { id: 'r1', em: '2027-04-05' }]), 'id repetido');
   assert.ok(!ok([{ id: 'r1', em: '2027-04-05', arq: '../../x' }]), 'id do Drive estranho');
+  // Local da despesa: nome, endereco, coordenadas e id do lugar; fora disso nao restaura
+  const okLocal = (l) => c.backupValido({ ...comUsa, usa: { ...comUsa.usa, despesas: [{ ...comUsa.usa.despesas[0], local: l }] } });
+  assert.ok(okLocal(undefined) && okLocal({ nome: 'Lugar', endereco: '', lat: 0, lng: 0 }));
+  assert.ok(!okLocal({ nome: 'Lugar', endereco: 'Rua', lat: 91, lng: 0 }), 'latitude fora');
+  assert.ok(!okLocal({ nome: '', endereco: 'Rua', lat: 1, lng: 1 }), 'sem nome');
+  assert.ok(!okLocal({ nome: 'L', endereco: 'Rua', lat: '1', lng: 1 }), 'coordenada em texto');
+  assert.ok(!okLocal({ nome: 'L', endereco: 'Rua', lat: 1, lng: 1, id: 'a b<' }), 'id estranho');
   assert.strictEqual(c.nomeRecibo({ data: '2026-04-25', desc: 'Hotel / Disney: "Pop"', valor: 35000 }, 'US$', 0), '2026-04-25 Hotel Disney Pop US$ 350,00.pdf');
   assert.strictEqual(c.nomeRecibo({ data: '2026-04-25', desc: 'Táxi', valor: 123456 }, 'R$', 2), '2026-04-25 Táxi R$ 1.234,56 (2).pdf');
   const quad = [[30, 40], [500, 20], [520, 700], [10, 680]], ret = [[0, 0], [400, 0], [400, 600], [0, 600]];
