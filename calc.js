@@ -1127,7 +1127,7 @@ function usaValido(u) {
     || !itens(u.viajantes, () => true) || !itens(u.categorias, () => true)) return false;
   const tem = (lista, id) => lista.some((x) => x.id === id);
   const doc = (d) => !!d && typeof d === 'object' && (d.nome === undefined || (typeof d.nome === 'string' && d.nome.length >= 1 && d.nome.length <= 80)) && (d.num === undefined || (typeof d.num === 'string' && d.num.length >= 1 && d.num.length <= 30))
-    && data(d.emissao) && data(d.validade) && !(d.emissao && d.validade && d.validade < d.emissao) && recibosValidos(d.fotos);
+    && data(d.emissao) && data(d.validade) && !(d.emissao && d.validade && d.validade < d.emissao) && recibosValidos(d.fotos) && (d.pais === undefined || ehPais(d.pais));
   const ids = (l, lista) => Array.isArray(l) && l.every((id) => tem(lista, id));
   return itens(u.viagens, (x) => data(x.inicio) && data(x.fim) && jpeg(x.fundo, 800000) && ids(x.moedas, u.moedas) && x.moedas.includes(x.base) && ids(x.viajantes, u.viajantes)
       && !!x.cot && typeof x.cot === 'object' && Object.entries(x.cot).every(([m, c]) => tem(u.moedas, m) && Number.isFinite(c) && c > 0)

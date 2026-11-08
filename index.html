@@ -156,6 +156,12 @@
   .docViaj small b { color: var(--txt); font-weight: 600; }
   .docAlerta { color: #c0262d; font-weight: 700; }
   #uDocSel summary { margin-left: 0; border-top: 0; }
+  h3.tituloDoc { display: flex; align-items: center; gap: 8px; }
+  h3.tituloDoc img.bandeira { width: 26px; height: 19px; }
+  h3.tituloDoc > span:empty { display: none; }
+  h3.tituloDoc .linkTexto { margin-left: auto; color: #c0262d; font-size: 13px; }
+  .vistoSec { margin-top: 6px; padding-top: 4px; border-top: 1px solid var(--linha); }
+  #uVistos:empty::before { content: 'Nenhum visto cadastrado.'; display: block; margin: 8px 0; font-size: 14px; color: var(--mut); }
   dialog#dDocs { max-height: calc(100dvh - 32px); overflow-y: auto; }
   .docCartao { margin: 0 0 14px; border-radius: 14px; overflow: hidden; border: 1px solid var(--linha); background: var(--campo); }
   .docCab { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #1e3a5f; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
@@ -833,7 +839,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.71.1 · 08/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.72.0 · 08/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1030,13 +1036,13 @@
       <label>Nome<input id="uNome" maxlength="30" autocomplete="off"></label>
       <label id="uInicialBox"><input id="uInicial" type="checkbox">Visualizar inicialmente (foto no alto da aba Travel)</label>
       <div id="uDocsBox">
-        <h3 class="dia">Passaporte</h3>
+        <h3 class="dia tituloDoc"><span id="uPassBand"></span><span>Passaporte</span></h3>
+        <div class="rotuloCampo"><span>País do passaporte</span><details class="multiSel selPais" id="uPassPaisSel"><summary><span id="uPassPaisTxt" class="paisTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input type="search" class="filtroPais" autocomplete="off" placeholder="Buscar país" aria-label="Buscar país"><div class="opcPais"></div></div></details><input type="hidden" id="uPassPais"></div>
         <label>Nome como no documento<input id="uPassNome" maxlength="80" autocomplete="off" autocapitalize="characters" placeholder="Como está escrito no passaporte"></label>
         <label>Número do passaporte<input id="uPassNum" maxlength="30" autocomplete="off" autocapitalize="characters"></label>
         <div class="dois"><label>Emissão<input id="uPassEmi" type="date"></label><label>Validade<input id="uPassVal" type="date"></label></div>
         <div class="rotuloCampo"><span>Foto do passaporte</span><div id="uPassFotos" class="recLista"></div>
           <div class="botoesMini"><button type="button" class="mini sec" id="uPassCam">Escanear</button><button type="button" class="mini sec" id="uPassGal">Foto do celular</button></div></div>
-        <h3 class="dia">Vistos</h3>
         <div id="uVistos"></div>
         <button type="button" class="sec gerenciar" id="uVistoNovo">+ Adicionar visto</button>
         <p class="fraco" style="font-size:13px">As fotos viram PDF e vão para a pasta "Controle Diário/Documentos/(nome do viajante)" do seu Google Drive, como os recibos.</p>
@@ -1320,16 +1326,6 @@
   <label id="itLocRot">Código do localizador<input id="itLocalizador" maxlength="40" autocomplete="off"></label>
   <label>Obs<textarea id="itObs" maxlength="500" rows="2" placeholder="Opcional"></textarea></label>
   <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="itFechar">Fechar</button><button type="button" class="perigo" id="itExcluir" hidden>Excluir</button></div>
-</form></dialog>
-<dialog id="dVisto"><form id="fVisto" novalidate>
-  <h3 id="vstTit">Visto</h3>
-  <label>Nome como no documento<input id="vstNome" maxlength="80" autocomplete="off" autocapitalize="characters" placeholder="Como está escrito no visto"></label>
-  <div class="rotuloCampo"><span>País</span><details class="multiSel selPais" id="vstPaisSel"><summary><span id="vstPaisTxt" class="paisTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input type="search" class="filtroPais" autocomplete="off" placeholder="Buscar país" aria-label="Buscar país"><div class="opcPais"></div></div></details><input type="hidden" id="vstPais"></div>
-  <label>Número do visto<input id="vstNum" maxlength="30" autocomplete="off" autocapitalize="characters"></label>
-  <div class="dois"><label>Emissão<input id="vstEmi" type="date"></label><label>Expiração<input id="vstVal" type="date"></label></div>
-  <div class="rotuloCampo"><span>Foto do visto</span><div id="vstFotos" class="recLista"></div>
-    <div class="botoesMini"><button type="button" class="mini sec" id="vstCam">Escanear</button><button type="button" class="mini sec" id="vstGal">Foto do celular</button></div></div>
-  <div class="botoes botoes2"><button type="submit">OK</button><button type="button" class="sec" id="vstFechar">Cancelar</button><button type="button" class="perigo" id="vstExcluir" hidden>Excluir</button></div>
 </form></dialog>
 <dialog id="dDocs">
   <h3 id="docsTit">Documentos</h3>
@@ -4186,40 +4182,75 @@ function mostrarFotoUsa() {
 $('uFotoTrocar').onclick = () => $('uFotoArq').click();
 $('uFotoTirar').onclick = () => { fotoUsa = undefined; mostrarFotoUsa(); };
 aoEscolherImagem($('uFotoArq'), 240, true, (f) => { fotoUsa = f; mostrarFotoUsa(); });
-// Documentos do viajante: passaporte (uma caixa de fotos) e vistos (lista editada no popup dVisto). Tudo vale so ao
-// Salvar o viajante; fotos feitas e nao gravadas saem do aparelho, e as removidas vao para a lixeira do Drive ao gravar.
-const recPass = { lista: [], novos: [], tirados: [], el: 'uPassFotos', rotulo: 'Foto', foto: true }, recVisto = { lista: [], novos: [], tirados: [], el: 'vstFotos', rotulo: 'Foto', foto: true };
-let vistosEd = [], vistoEd = null, docNovos = [], docTirados = [], vstSalvou = false;
+// Documentos do viajante, na propria tela: passaporte e cada visto numa secao (bandeira, campos e fotos). Novos dados e
+// fotos valem ao Salvar o viajante; remover foto ou excluir visto ja gravado vale na hora (aoTirar, excluirVisto).
+const recPass = { lista: [], novos: [], tirados: [], el: 'uPassFotos', rotulo: 'Foto', foto: true };
+let vistosCx = [], docNovos = [], docTirados = [];
 const copia = (x) => (x === undefined ? undefined : JSON.parse(JSON.stringify(x)));
 const dataBR4 = (d) => d.split('-').reverse().join('/');
+const comboHtml = (pref) => `<details class="multiSel selPais" id="${pref}Sel"><summary><span id="${pref}Txt" class="paisTxt"></span><span aria-hidden="true">▾</span></summary>`
+  + `<div class="multiOpcoes ciaOpcoes"><input type="search" class="filtroPais" autocomplete="off" placeholder="Buscar país" aria-label="Buscar país"><div class="opcPais"></div></div></details><input type="hidden" id="${pref}">`;
+const paisPass = comboPais('uPassPais', (c) => { $('uPassBand').innerHTML = bandeiraHtml(c); });
 function soltarDocs() {
-  for (const id of [...docNovos, ...recPass.novos]) { recLocais.delete(id); recApagar(id); }
+  for (const id of [...docNovos, ...recPass.novos, ...vistosCx.flatMap((v) => v.cx.novos)]) { recLocais.delete(id); recApagar(id); }
   docNovos = []; docTirados = []; recPass.novos = []; recPass.tirados = [];
 }
-function renderVistos() {
-  $('uVistos').innerHTML = vistosEd.map((v, i) => `<button type="button" class="linha" data-vistoed="${i}">${bandeiraHtml(v.pais)}<span class="q">${esc(nomePais(v.pais))}`
-    + `<small>${esc([v.num && 'Nº ' + v.num, v.validade && 'expira ' + dataBR4(v.validade), v.fotos && `📎 ${v.fotos.length}`].filter(Boolean).join(' · ') || 'Sem dados')}</small></span><span class="seta" aria-hidden="true">›</span></button>`).join('')
-    || '<p class="fraco" style="margin:0 0 8px">Nenhum visto cadastrado.</p>';
+// Uma secao de visto: titulo "bandeira Visto <pais>" (muda com o pais escolhido), campos e fotos.
+function addVistoSec(v) {
+  const k = 'vs' + v.id.replace(/\W/g, '');
+  $('uVistos').insertAdjacentHTML('beforeend', `<div class="vistoSec" id="${k}">
+    <h3 class="dia tituloDoc"><span id="${k}Band"></span><span id="${k}Tit"></span><button type="button" class="linkTexto" data-vistotirar="${esc(v.id)}">Excluir visto</button></h3>
+    <div class="rotuloCampo"><span>País do visto</span>${comboHtml(k + 'Pais')}</div>
+    <label>Nome como no documento<input class="vNome" maxlength="80" autocomplete="off" autocapitalize="characters" placeholder="Como está escrito no visto" value="${esc(v.nome || '')}"></label>
+    <label>Número do visto<input class="vNum" maxlength="30" autocomplete="off" autocapitalize="characters" value="${esc(v.num || '')}"></label>
+    <div class="dois"><label>Emissão<input class="vEmi" type="date" value="${esc(v.emissao || '')}"></label><label>Expiração<input class="vVal" type="date" value="${esc(v.validade || '')}"></label></div>
+    <div class="rotuloCampo"><span>Foto do visto</span><div id="${k}Fotos" class="recLista"></div>
+      <div class="botoesMini"><button type="button" class="mini sec" data-vcam>Escanear</button><button type="button" class="mini sec" data-vgal>Foto do celular</button></div></div>
+  </div>`);
+  const sec = $(k), cx = { lista: copia(v.fotos) || [], novos: [], tirados: [], el: k + 'Fotos', rotulo: 'Foto', foto: true };
+  // Foto ja gravada: sai na hora do visto gravado.
+  cx.aoTirar = (r) => {
+    const p = viajanteEd();
+    if (!p || !tirarFoto((p.vistos || []).find((x) => x.id === v.id), r.id)) return false;
+    descartarRecibos([r]); salvar(); setTimeout(enviarRecibos, 300);
+    return true;
+  };
+  const cb = comboPais(k + 'Pais', (c) => { $(k + 'Band').innerHTML = bandeiraHtml(c); $(k + 'Tit').textContent = c ? `Visto ${nomePais(c)}` : 'Visto'; });
+  cb.por(v.pais);
+  renderRec(cx);
+  $(k + 'Fotos').onclick = (e) => cliqueRecibos(cx)(e);
+  sec.querySelector('[data-vcam]').onclick = () => comecarScan(cx, $('recCamArq'));
+  sec.querySelector('[data-vgal]').onclick = () => comecarScan(cx, $('recGalArq'));
+  vistosCx.push({ id: v.id, cx, cb, sec });
+  return sec;
 }
-const paisVisto = comboPais('vstPais');
-function abrirVisto(i) {
-  const v = i === null ? {} : vistosEd[i];
-  vistoEd = i;
-  $('vstTit').textContent = i === null ? 'Novo visto' : 'Visto';
-  paisVisto.por(v.pais || (viagemPaisPadrao() || undefined));
-  $('vstNome').value = v.nome || (vistoEd === null ? $('uPassNome').value.trim() : '');
-  $('vstNum').value = v.num || '';
-  $('vstEmi').value = v.emissao || '';
-  $('vstVal').value = v.validade || '';
-  recVisto.lista = copia(v.fotos) || []; recVisto.novos = []; recVisto.tirados = [];
-  renderRec(recVisto);
-  $('vstExcluir').hidden = i === null;
-  vstSalvou = false;
-  $('dVisto').showModal();
+function porVistos(lista) {
+  $('uVistos').innerHTML = '';
+  vistosCx = [];
+  for (const v of lista) addVistoSec(v);
 }
-// Visto novo comeca nos Estados Unidos, o destino mais comum que pede visto.
-const viagemPaisPadrao = () => 'US';
-$('uVistoNovo').onclick = () => abrirVisto(null);
+// Visto novo comeca nos Estados Unidos, o destino mais comum que pede visto, com o nome do passaporte.
+$('uVistoNovo').onclick = () => {
+  const sec = addVistoSec({ id: novoId(), pais: 'US', nome: $('uPassNome').value.trim() || undefined });
+  sec.scrollIntoView({ block: 'start', behavior: 'smooth' });
+};
+// Excluir visto: se ja estava gravado, sai na hora (fotos para a lixeira do Drive); se e novo, so some da tela.
+$('uVistos').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-vistotirar]');
+  if (!b) return;
+  const i = vistosCx.findIndex((x) => x.id === b.dataset.vistotirar), it = vistosCx[i], p = viajanteEd();
+  const gravado = p && (p.vistos || []).find((x) => x.id === it.id);
+  if (!await modal(`Excluir ${it.cb.valor() ? 'visto ' + nomePais(it.cb.valor()) : 'visto'}?`, gravado ? 'O visto sai agora e as fotos dele vão para a lixeira do Google Drive (dá para recuperar por 30 dias).' : 'O visto ainda não foi salvo e some da tela.', 'Sim, excluir', 'Cancelar')) return;
+  for (const id of it.cx.novos) { recLocais.delete(id); recApagar(id); }
+  if (gravado) {
+    p.vistos = p.vistos.filter((x) => x.id !== it.id);
+    if (!p.vistos.length) delete p.vistos;
+    descartarRecibos([...(gravado.fotos || []), ...it.cx.tirados]);
+    salvar(); setTimeout(enviarRecibos, 300);
+  }
+  it.sec.remove();
+  vistosCx.splice(i, 1);
+});
 // Ajustes Travel > Viajantes: combo (um viajante ou Todos) que abre os documentos em formato de documento.
 function renderDocSel() {
   const ps = usa().viajantes.filter((p) => !p.arquivadaEm);
@@ -4232,11 +4263,11 @@ function htmlDocsViajante(p) {
   const campo = (rot, val, largo) => `<div${largo ? ' class="largo"' : ''}><small>${rot}</small><b>${val || '—'}</b></div>`;
   const fotos = (d) => (d.fotos || []).map((r, i) => `<button type="button" class="sec docFoto" data-docabrir="${esc(p.id)}|${esc(r.id)}">📎 Foto${d.fotos.length > 1 ? ' ' + (i + 1) : ''}</button>`).join(' ');
   const pp = p.passaporte;
-  const pass = `<div class="docCartao"><div class="docCab">Passaporte</div>${pp ? `<div class="docCorpo">${fotoViajante(p)}<div class="docCampos">`
+  const pass = `<div class="docCartao"><div class="docCab">${pp && pp.pais ? bandeiraHtml(pp.pais) : ''}Passaporte${pp && pp.pais ? ' · ' + esc(nomePais(pp.pais)) : ''}</div>${pp ? `<div class="docCorpo">${fotoViajante(p)}<div class="docCampos">`
     + campo('Nome como no documento', esc(pp.nome || ''), true) + campo('Número', esc(pp.num || '')) + campo('Emissão', pp.emissao && dataBR4(pp.emissao))
     + campo('Validade', pp.validade && dataBR4(pp.validade) + situ(pp.validade), true) + (pp.fotos ? `<div class="largo">${fotos(pp)}</div>` : '') + '</div></div>'
     : '<p class="docVazio">Passaporte não cadastrado.</p>'}</div>`;
-  const vistos = (p.vistos || []).map((v) => `<div class="docCartao"><div class="docCab visto">${bandeiraHtml(v.pais)}Visto · ${esc(nomePais(v.pais))}</div><div class="docCorpo"><div class="docCampos">`
+  const vistos = (p.vistos || []).map((v) => `<div class="docCartao"><div class="docCab visto">${bandeiraHtml(v.pais)}Visto ${esc(nomePais(v.pais))}</div><div class="docCorpo"><div class="docCampos">`
     + campo('Nome como no documento', esc(v.nome || ''), true) + campo('Número', esc(v.num || '')) + campo('País', esc(nomePais(v.pais)))
     + campo('Emissão', v.emissao && dataBR4(v.emissao)) + campo('Expiração', v.validade && dataBR4(v.validade) + situ(v.validade))
     + (v.fotos ? `<div class="largo">${fotos(v)}</div>` : '') + '</div></div></div>').join('');
@@ -4261,39 +4292,6 @@ $('docsLista').addEventListener('click', (e) => {
   const r = p && [p.passaporte, ...(p.vistos || [])].filter(Boolean).flatMap((d) => d.fotos || []).find((x) => x.id === rid);
   if (r) abrirRecibo(r);
 });
-$('uVistos').onclick = (e) => { const b = e.target.closest('[data-vistoed]'); if (b) abrirVisto(Number(b.dataset.vistoed)); };
-$('vstFechar').onclick = () => $('dVisto').close();
-$('dVisto').addEventListener('close', () => {
-  if (!vstSalvou) for (const id of recVisto.novos) { recLocais.delete(id); recApagar(id); }
-  recVisto.novos = []; recVisto.tirados = [];
-});
-$('fVisto').onsubmit = (e) => {
-  e.preventDefault();
-  const pais = paisVisto.valor(), nome = $('vstNome').value.trim() || undefined, num = $('vstNum').value.trim() || undefined, emissao = $('vstEmi').value || undefined, validade = $('vstVal').value || undefined;
-  if (!pais) return avisar('Falta informação', 'Escolha o país do visto.');
-  if (emissao && validade && validade < emissao) return avisar('Datas inválidas', 'A expiração não pode ser antes da emissão.');
-  const atual = vistoEd === null ? null : vistosEd[vistoEd];
-  const v = { id: atual ? atual.id : novoId(), pais, nome, num, emissao, validade, fotos: recVisto.lista.length ? recVisto.lista : undefined };
-  for (const k of Object.keys(v)) if (v[k] === undefined) delete v[k];
-  if (atual) vistosEd[vistoEd] = v; else vistosEd.push(v);
-  docNovos.push(...recVisto.novos); docTirados.push(...recVisto.tirados);
-  recVisto.novos = []; recVisto.tirados = [];
-  vstSalvou = true;
-  $('dVisto').close();
-  renderVistos();
-};
-$('vstExcluir').onclick = async () => {
-  if (!await modal('Excluir visto?', 'Ao salvar o viajante, as fotos dele vão para a lixeira do Google Drive.', 'Sim, excluir', 'Cancelar')) return;
-  const v = vistosEd[vistoEd];
-  for (const r of recVisto.lista) if (recVisto.novos.includes(r.id) || docNovos.includes(r.id)) { recLocais.delete(r.id); recApagar(r.id); docNovos = docNovos.filter((x) => x !== r.id); } else docTirados.push(r);
-  docTirados.push(...recVisto.tirados);
-  for (const r of (v && v.fotos) || []) if (!recVisto.lista.includes(r) && !docTirados.some((x) => x.id === r.id)) docTirados.push(r);
-  recVisto.novos = [];
-  vistosEd.splice(vistoEd, 1);
-  vstSalvou = true;
-  $('dVisto').close();
-  renderVistos();
-};
 // cliqueRecibos e definido mais abaixo: so chamado no toque.
 // Foto ja gravada removida: sai na hora do viajante gravado (e do visto em edicao), e o PDF vai para a lixeira do Drive.
 const viajanteEd = () => usaEd && usaEd.tipo === 'viajantes' && usa().viajantes.find((x) => x.id === usaEd.id);
@@ -4305,19 +4303,9 @@ recPass.aoTirar = (r) => {
   descartarRecibos([r]); salvar(); setTimeout(enviarRecibos, 300);
   return true;
 };
-recVisto.aoTirar = (r) => {
-  const p = viajanteEd(), ed = vistoEd !== null && vistosEd[vistoEd];
-  if (!p || !ed || !tirarFoto((p.vistos || []).find((v) => v.id === ed.id), r.id)) return false;
-  tirarFoto(ed, r.id);
-  descartarRecibos([r]); salvar(); setTimeout(enviarRecibos, 300); renderVistos();
-  return true;
-};
 $('uPassFotos').onclick = (e) => cliqueRecibos(recPass)(e);
-$('vstFotos').onclick = (e) => cliqueRecibos(recVisto)(e);
 $('uPassCam').onclick = () => comecarScan(recPass, $('recCamArq'));
 $('uPassGal').onclick = () => comecarScan(recPass, $('recGalArq'));
-$('vstCam').onclick = () => comecarScan(recVisto, $('recCamArq'));
-$('vstGal').onclick = () => comecarScan(recVisto, $('recGalArq'));
 // Um formulario so para os quatro cadastros: cada tipo mostra os seus campos.
 function abrirUsa(tipo, id) {
   const x = usa()[tipo].find((i) => i.id === id);
@@ -4338,10 +4326,11 @@ function abrirUsa(tipo, id) {
   const pp = (x && x.passaporte) || {};
   $('uPassNome').value = pp.nome || '';
   $('uPassNum').value = pp.num || ''; $('uPassEmi').value = pp.emissao || ''; $('uPassVal').value = pp.validade || '';
+  // Sem pais gravado, comeca no Brasil (fica gravado ao salvar o viajante).
+  paisPass.por(pp.pais || 'BR');
   recPass.lista = copia(pp.fotos) || [];
   renderRec(recPass);
-  vistosEd = copia(x && x.vistos) || [];
-  renderVistos();
+  porVistos(copia(x && x.vistos) || []);
   $('uCatBox').hidden = tipo !== 'categorias';
   $('uMoedaBox').hidden = tipo !== 'moedas';
   $('uCodigo').value = (x && x.codigo) || '';
@@ -4389,10 +4378,17 @@ $('fUsa').onsubmit = async (e) => {
     if (emissao && validade && validade < emissao) return avisar('Datas inválidas', 'A validade do passaporte não pode ser antes da emissão.');
     // O que subiu para o Drive com a tela aberta continua com o endereco do arquivo.
     const fotosPass = mesclarRecibos(recPass.lista, atual && atual.passaporte && atual.passaporte.fotos);
-    const passaporte = nomeDoc || num || emissao || validade || fotosPass ? Object.fromEntries(Object.entries({ nome: nomeDoc, num, emissao, validade, fotos: fotosPass }).filter(([, v]) => v !== undefined)) : undefined;
-    const vistos = vistosEd.length ? vistosEd.map((v) => { const a = ((atual && atual.vistos) || []).find((y) => y.id === v.id); const f = mesclarRecibos(v.fotos || [], a && a.fotos); const o = { ...v, fotos: f }; if (!f) delete o.fotos; return o; }) : undefined;
-    Object.assign(dados, { foto: fotoUsa, inicial: $('uInicial').checked, passaporte, vistos });
-    docsTirar = [...recPass.tirados, ...docTirados];
+    const passaporte = nomeDoc || num || emissao || validade || fotosPass ? Object.fromEntries(Object.entries({ nome: nomeDoc, pais: paisPass.valor(), num, emissao, validade, fotos: fotosPass }).filter(([, v]) => v !== undefined)) : undefined;
+    const lista = [];
+    for (const { id: vid, cx, cb, sec } of vistosCx) {
+      const pais = cb.valor(), val = (c) => sec.querySelector(c).value.trim() || undefined, vEmi = val('.vEmi'), vVal = val('.vVal');
+      if (!pais) return avisar('Falta informação', 'Escolha o país de cada visto.');
+      if (vEmi && vVal && vVal < vEmi) return avisar('Datas inválidas', `No visto ${nomePais(pais)}, a expiração não pode ser antes da emissão.`);
+      const a = ((atual && atual.vistos) || []).find((y) => y.id === vid);
+      lista.push(Object.fromEntries(Object.entries({ id: vid, pais, nome: val('.vNome'), num: val('.vNum'), emissao: vEmi, validade: vVal, fotos: mesclarRecibos(cx.lista, a && a.fotos) }).filter(([, v]) => v !== undefined)));
+    }
+    Object.assign(dados, { foto: fotoUsa, inicial: $('uInicial').checked, passaporte, vistos: lista.length ? lista : undefined });
+    docsTirar = [...recPass.tirados, ...docTirados, ...vistosCx.flatMap((v) => v.cx.tirados)];
   }
   if (tipo === 'categorias') Object.assign(dados, { simbolo: catSimbolo, cor: catCor });
   if (tipo === 'moedas') {
@@ -4405,7 +4401,7 @@ $('fUsa').onsubmit = async (e) => {
   if (atual) Object.assign(atual, dados);
   else usa()[tipo].push({ id: novoId(), ...dados });
   for (const k of ['passaporte', 'vistos']) { const it = atual || usa()[tipo][usa()[tipo].length - 1]; if (it[k] === undefined) delete it[k]; }
-  if (docsTirar) { descartarRecibos(docsTirar); docNovos = []; docTirados = []; recPass.novos = []; recPass.tirados = []; setTimeout(enviarRecibos, 300); }
+  if (docsTirar) { descartarRecibos(docsTirar); docNovos = []; docTirados = []; recPass.novos = []; recPass.tirados = []; for (const v of vistosCx) { v.cx.novos = []; v.cx.tirados = []; } setTimeout(enviarRecibos, 300); }
   fecharEditor();
   salvar();
   if (ic) avisoGravado(ic); else avisar('Gravado com sucesso');
@@ -4676,7 +4672,7 @@ function renderDocsItin(v) {
     if (!pp && !vs) return '';
     const L = [];
     if (pp && pp.nome) L.push(`<small>Nome no documento: <b>${esc(pp.nome)}</b></small>`);
-    if (pp) L.push(`<small>Passaporte: <b>${esc(pp.num || '—')}</b>${pp.validade ? ` · validade ${dataBR4(pp.validade)}` : ''}${alerta(pp.validade)} ${fotos(p, pp)}</small>`);
+    if (pp) L.push(`<small>${pp.pais ? bandeiraHtml(pp.pais) + ' ' : ''}Passaporte: <b>${esc(pp.num || '—')}</b>${pp.validade ? ` · validade ${dataBR4(pp.validade)}` : ''}${alerta(pp.validade)} ${fotos(p, pp)}</small>`);
     if (vs) L.push(`<small>${bandeiraHtml(vs.pais)} Visto ${esc(nomePais(vs.pais))}: <b>${esc(vs.num || '—')}</b>${vs.validade ? ` · expira ${dataBR4(vs.validade)}` : ''}${alerta(vs.validade)} ${fotos(p, vs)}</small>`);
     return `<div class="docViaj">${fotoViajante(p)}<div class="q"><b>${esc(p.nome)}</b>${L.join('')}</div></div>`;
   }).join('');
