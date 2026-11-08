@@ -152,7 +152,11 @@
   #itPax.semAssento .paxLoc { grid-column: 1 / 4; }
   .docViaj { padding: 10px 0; border-bottom: 1px solid var(--linha); }
   .docViaj:last-child { border-bottom: 0; }
-  .docPessoa { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+  button.docPessoa { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0; background: none; color: var(--txt); font-size: 15px; font-weight: 400; text-align: left; box-shadow: none; }
+  button.docPessoa b { flex: 1; min-width: 0; }
+  .docSeta { flex: none; width: 22px; height: 22px; fill: none; stroke: var(--mut); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
+  .docViaj.aberto .docSeta { transform: rotate(180deg); }
+  .docViaj:not(.aberto) .docBloco { display: none; }
   .docBloco { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--campo); font-size: 13px; }
   .docBloco > div { display: grid; grid-template-columns: 78px 1fr; align-items: baseline; gap: 6px; padding: 2px 0; }
   .docBloco > div.docAnexos { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -252,7 +256,7 @@
   /* Sem o campo Para (gasto ou entrada), Pago com ocupa a linha toda e o nome do cartao nao corta. */
   #lMeioLinha:has(> #lDestinoBox[hidden]) > label { grid-column: 1 / -1; }
   button { font: inherit; font-weight: 600; min-height: 44px; padding: 8px 16px; border: 0; border-radius: 999px; background: var(--pri); color: #fff; cursor: pointer; }
-  :root[data-theme=dark] button:not(.sec):not(.perigo):not(.linha):not(.cartaoRes):not(.colGraf):not(.opcIco):not(.opcCor):not(.mesFatBtn):not(.pagarFat):not(.cardLim):not(.resumoIco):not(.voltarTela):not(.olho):not(.olhoSaldo):not(.setaFluxo):not(.infoBtn):not(.linkTexto):not(.campoLink):not(.mesBar button):not(.usaCard) { color: #06201d; }
+  :root[data-theme=dark] button:not(.sec):not(.perigo):not(.linha):not(.cartaoRes):not(.colGraf):not(.opcIco):not(.opcCor):not(.mesFatBtn):not(.pagarFat):not(.cardLim):not(.resumoIco):not(.voltarTela):not(.olho):not(.olhoSaldo):not(.setaFluxo):not(.infoBtn):not(.linkTexto):not(.campoLink):not(.mesBar button):not(.usaCard):not(.docPessoa) { color: #06201d; }
   button.sec { background: var(--campo); color: var(--txt); }
   button.perigo { background: transparent; color: var(--neg); border: 1px solid var(--neg); }
   button.mini { min-height: 44px; padding: 4px 14px; font-size: 13px; flex: none; }
@@ -846,7 +850,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.72.2 · 08/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.72.3 · 08/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -4687,6 +4691,7 @@ function htmlItemItin(e, det) {
 }
 // Documentos dos viajantes da viagem: passaporte e, se a viagem tem pais de destino, o visto desse pais (o de maior
 // validade). Vencido, ou vencendo antes do fim da viagem, fica em vermelho. Sem nada cadastrado, o quadro some.
+const docsAbertos = new Set();
 function renderDocsItin(v) {
   const u = usa(), fimV = v.fim || v.inicio, h = hoje();
   const alerta = (val) => (!val ? '' : val < h ? ' <span class="docAlerta">Vencido</span>' : fimV && val < fimV ? ' <span class="docAlerta">Vence antes do fim da viagem</span>' : '');
@@ -4699,7 +4704,10 @@ function renderDocsItin(v) {
   const linhas = u.viajantes.filter((p) => v.viajantes.includes(p.id)).map((p) => {
     const pp = p.passaporte, vs = v.pais ? (p.vistos || []).filter((x) => x.pais === v.pais).sort((a, b) => (b.validade || '').localeCompare(a.validade || '')) : [];
     if (!pp && !vs.length) return '';
-    return `<div class="docViaj"><div class="docPessoa">${fotoViajante(p)}<b>${esc(p.nome)}</b></div>`
+    // Fechado por padrao; a seta abre e fecha (estado so na memoria, por viajante).
+    const ab = docsAbertos.has(p.id);
+    return `<div class="docViaj${ab ? ' aberto' : ''}"><button type="button" class="docPessoa" data-docviaj="${esc(p.id)}" aria-expanded="${ab}">${fotoViajante(p)}<b>${esc(p.nome)}</b>`
+      + `<svg class="docSeta" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>`
       + (pp ? bloco(p, pp, `${pp.pais ? bandeiraHtml(pp.pais) + ' ' : ''}Passaporte`, 'Validade:') : '')
       + vs.map((x) => bloco(p, x, `${bandeiraHtml(x.pais)} Visto ${esc(nomePais(x.pais))}`, 'Validade:')).join('') + '</div>';
   }).join('');
@@ -4707,6 +4715,14 @@ function renderDocsItin(v) {
   $('itDocs').hidden = !linhas;
 }
 $('itDocs').addEventListener('click', (e) => {
+  const t = e.target.closest('[data-docviaj]');
+  if (t) {
+    const id = t.dataset.docviaj, ab = !docsAbertos.has(id);
+    if (ab) docsAbertos.add(id); else docsAbertos.delete(id);
+    t.parentElement.classList.toggle('aberto', ab);
+    t.setAttribute('aria-expanded', ab);
+    return;
+  }
   const b = e.target.closest('[data-docabrir]');
   if (!b) return;
   const [pid, rid] = b.dataset.docabrir.split('|'), p = usa().viajantes.find((x) => x.id === pid);
