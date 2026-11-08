@@ -833,7 +833,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.71.0 · 08/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.71.1 · 08/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -4295,6 +4295,23 @@ $('vstExcluir').onclick = async () => {
   renderVistos();
 };
 // cliqueRecibos e definido mais abaixo: so chamado no toque.
+// Foto ja gravada removida: sai na hora do viajante gravado (e do visto em edicao), e o PDF vai para a lixeira do Drive.
+const viajanteEd = () => usaEd && usaEd.tipo === 'viajantes' && usa().viajantes.find((x) => x.id === usaEd.id);
+const tirarFoto = (d, id) => { if (!d || !(d.fotos || []).some((f) => f.id === id)) return false; d.fotos = d.fotos.filter((f) => f.id !== id); if (!d.fotos.length) delete d.fotos; return true; };
+recPass.aoTirar = (r) => {
+  const p = viajanteEd();
+  if (!p || !tirarFoto(p.passaporte, r.id)) return false;
+  if (!Object.keys(p.passaporte).length) delete p.passaporte;
+  descartarRecibos([r]); salvar(); setTimeout(enviarRecibos, 300);
+  return true;
+};
+recVisto.aoTirar = (r) => {
+  const p = viajanteEd(), ed = vistoEd !== null && vistosEd[vistoEd];
+  if (!p || !ed || !tirarFoto((p.vistos || []).find((v) => v.id === ed.id), r.id)) return false;
+  tirarFoto(ed, r.id);
+  descartarRecibos([r]); salvar(); setTimeout(enviarRecibos, 300); renderVistos();
+  return true;
+};
 $('uPassFotos').onclick = (e) => cliqueRecibos(recPass)(e);
 $('vstFotos').onclick = (e) => cliqueRecibos(recVisto)(e);
 $('uPassCam').onclick = () => comecarScan(recPass, $('recCamArq'));
@@ -5219,9 +5236,11 @@ const cliqueRecibos = (cx) => async (e) => {
   if (ab) return abrirRecibo(cx.lista.find((x) => x.id === ab.dataset.recabrir));
   if (ti) {
     const r = cx.lista.find((x) => x.id === ti.dataset.rectirar);
-    if (!await modal('Remover recibo?', r.arq ? 'Ao salvar, o PDF vai para a lixeira do Google Drive (dá para recuperar por 30 dias).' : 'O PDF ainda não foi enviado e será apagado deste aparelho.', 'Sim, remover', 'Cancelar')) return;
+    const agora = !!cx.aoTirar && !cx.novos.includes(r.id);
+    if (!await modal(cx.foto ? 'Remover foto?' : 'Remover recibo?', r.arq ? `${agora ? 'A foto sai agora e o PDF vai' : 'Ao salvar, o PDF vai'} para a lixeira do Google Drive (dá para recuperar por 30 dias).` : 'O PDF ainda não foi enviado e será apagado deste aparelho.', 'Sim, remover', 'Cancelar')) return;
     cx.lista = cx.lista.filter((x) => x !== r);
-    if (cx.novos.includes(r.id)) { cx.novos = cx.novos.filter((x) => x !== r.id); descartarRecibos([r]); } else cx.tirados.push(r);
+    // Documentos ja gravados: a remocao vale na hora (aoTirar grava), sem depender do Salvar do viajante.
+    if (cx.novos.includes(r.id)) { cx.novos = cx.novos.filter((x) => x !== r.id); descartarRecibos([r]); } else if (!(cx.aoTirar && cx.aoTirar(r))) cx.tirados.push(r);
     renderRec(cx);
   }
 };
