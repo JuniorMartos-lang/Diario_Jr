@@ -809,6 +809,12 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   assert.deepStrictEqual(await c.decifrarBackup(JSON.parse(textoApp), 'senha-do-app-1'), claroBk);
   await assert.rejects(c.decifrarBackup(bkApp, 'senha-errada-1'));
   await assert.rejects(c.decifrarBackup(bkApp, gApp.hash));
+  // Restaurar sem digitar: abre com o hash guardado so se for o mesmo sal (a mesma senha guardada)
+  assert.deepStrictEqual(await c.decifrarComHash(bkApp, gApp), claroBk);
+  assert.strictEqual(await c.decifrarComHash(bkApp, await c.protegerSenha('senha-do-app-1')), null, 'senha trocada: outro sal');
+  assert.strictEqual(await c.decifrarComHash(bk, gApp), null, 'versao 1 precisa da senha digitada');
+  assert.strictEqual(await c.decifrarComHash(bkApp, null), null);
+  assert.strictEqual(await c.decifrarComHash({ ...bkApp, dados: bk.dados }, gApp), null, 'arquivo alterado');
   // Finais dos cartoes (numero, fisico/virtual, titular/adicional) passam inteiros pelos dois tipos de backup e pela restauracao
   const comFinais = JSON.parse(JSON.stringify(dp));
   comFinais.cartoes[0].finais = [{ n: '1111', tipo: 'F', dono: 'T' }, { n: '2222', tipo: 'V', dono: 'T' }, { n: '3333', tipo: 'F', dono: 'A' }, { n: '4444', tipo: 'V', dono: 'A' }];

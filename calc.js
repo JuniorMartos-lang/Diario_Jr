@@ -725,6 +725,15 @@ async function decifrarBackup(o, senha) {
   const claro = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: deB64(o.iv) }, chave, deB64(o.dados));
   return JSON.parse(new TextDecoder().decode(claro));
 }
+// Arquivo versao 2 salvo com uma senha guardada no aparelho (do app ou do backup): o mesmo sal da o mesmo hash, entao
+// abre com o hash guardado, sem digitar. Sal diferente (senha trocada depois), outra versao ou falha: null.
+async function decifrarComHash(o, g) {
+  if (!g || !ehBackupCifrado(o) || !usaSenhaDoApp(o) || o.sal !== g.sal) return null;
+  try {
+    const claro = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: deB64(o.iv) }, await chaveDoHash(g.hash), deB64(o.dados));
+    return JSON.parse(new TextDecoder().decode(claro));
+  } catch { return null; }
+}
 // 12 letras e numeros, sem os que se confundem (0/O, 1/I/L). Ex.: 7K3P-9QXM-2B4T
 const LETRAS_CODIGO = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const gerarCodigo = () => [...aleatorio(12)].map((x) => LETRAS_CODIGO[x % LETRAS_CODIGO.length]).join('').replace(/(.{4})(?!$)/g, '$1-');
@@ -1124,6 +1133,6 @@ if (typeof module !== 'undefined') {
   module.exports = {
     anosEDias, contadorViagem, formaDaCategoria, TIPOS_ITIN, itemItinValido, tipoDaCategoriaViagem, sincronizarItinDespesas, diasItinerario, localValido, ehChaveMaps, lembretesAgenda, situacaoLembretes, idEvento, googleValido, ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
-    protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
+    protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, decifrarComHash, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }

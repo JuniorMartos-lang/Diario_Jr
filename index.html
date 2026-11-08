@@ -769,7 +769,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.65.3 · 07/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.66.1 · 08/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -800,6 +800,14 @@
           <button type="button" class="sec" id="aRestaurar">Restaurar</button>
         </div>
         <input id="aArquivo" type="file" accept=".txt,.json,text/plain,application/json" hidden>
+      </div>
+      <div class="card">
+        <h2>Senha do backup</h2>
+        <p id="aSenhaBkStatus" class="fraco"></p>
+        <div class="botoesMini">
+          <button type="button" class="mini" id="aSenhaBkDefinir">Definir senha do backup</button>
+          <button type="button" class="mini sec" id="aSenhaBkRemover">Remover senha do backup</button>
+        </div>
       </div>
       <div class="card">
         <h2 class="tituloDrive"><svg class="icoDrive" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 3h7.6l6.2 10.8H14.4z" fill="#ffba00"/><path d="M8.2 3 2 13.8l3.8 6.6L12 9.6z" fill="#0f9d58"/><path d="M5.8 20.4h12.4l3.8-6.6H9.6z" fill="#4285f4"/></svg><span>Sincronização &amp; Backup Google Drive</span></h2>
@@ -1088,17 +1096,23 @@
 <dialog id="dInfoBackup">
   <h3>Regras do backup</h3>
   <h4>Criptografia</h4>
-  <p>Todo backup novo sai criptografado. Sem a senha, ninguém lê o arquivo, nem você. Os dados dentro do aparelho não ficam criptografados.</p>
-  <h4>Aplicativo com senha</h4>
-  <p>Salvar não pergunta nada: o arquivo usa a senha do aplicativo. Use uma senha longa, porque é ela que protege o arquivo.</p>
-  <h4>Aplicativo sem senha</h4>
-  <p>A cada backup, você cria uma senha de pelo menos 8 caracteres. Ela não fica guardada e não tem recuperação.</p>
-  <h4>Ao restaurar</h4>
-  <p>Digite a senha usada quando o backup foi salvo. Com a senha errada, nada é alterado. Restaurar substitui tudo o que está no aplicativo. Backups antigos, sem criptografia, abrem sem senha.</p>
+  <p>Todo backup novo sai criptografado, no aparelho ou no Google Drive. Sem a senha, ninguém lê o arquivo, nem você. Os dados dentro do aparelho não ficam criptografados.</p>
+  <h4>Qual senha protege o backup</h4>
+  <p>1. Com senha do backup definida: ela, sem perguntar nada.<br>2. Sem senha do backup e com senha no aplicativo: a senha do aplicativo, sem perguntar nada.<br>3. Sem nenhuma das duas: a cada backup você cria uma senha (digitada duas vezes, pelo menos 8 caracteres). Ela não fica guardada e não tem recuperação.<br>Vale igual para Salvar backup (manual), Salvar Backup Já (Google Drive) e o backup automático de 24 h no Drive.</p>
+  <h4>Senha do backup</h4>
+  <p>Opcional, em Ajustes &gt; Backup &gt; Senha do backup. Definir: digite duas vezes. Redefinir: vale só para os próximos backups; os já salvos continuam abrindo com a senha que tinham. Remover: os próximos voltam ao item 2 ou 3 acima. Fica guardada só neste aparelho e não vai dentro do backup; em outro aparelho, defina de novo.</p>
+  <h4>Salvar</h4>
+  <p>Manual: Salvar backup cria o arquivo e você escolhe onde guardar (OneDrive, e-mail, pasta do aparelho). Google Drive: Salvar Backup Já envia para a pasta "Controle Diário" do seu Drive; com a sincronização ligada, o app também salva sozinho quando o último backup da pasta tiver mais de 24 h.</p>
+  <h4>Restaurar</h4>
+  <p>Manual: Restaurar e escolha o arquivo. Google Drive: Restaurar do Google e escolha um dos 20 últimos. Nos dois, o app tenta abrir sozinho, nesta ordem: com a senha do backup guardada, com a senha do aplicativo guardada e com a senha digitada ao destravar o app. Só se nenhuma abrir ele pede para você digitar. Com a senha errada, nada é alterado. Restaurar substitui tudo o que está no aplicativo. Backups antigos, sem criptografia, abrem sem senha.</p>
+  <h4>Quando o app pede a senha ao restaurar</h4>
+  <p>Backup salvo com uma senha que já foi trocada (do aplicativo ou do backup), salvo em outro aparelho com outra senha, ou criado com senha digitada na hora. Digite a senha que valia quando ele foi salvo.</p>
   <h4>Trocar a senha do aplicativo</h4>
   <p>Backups antigos continuam abrindo só com a senha antiga. Guarde-a enquanto precisar deles. O código de recuperação serve para entrar no aplicativo, não para abrir backup.</p>
+  <h4>Sincronização com o Google Drive</h4>
+  <p>A cópia em "Controle Diário/Dados" usa sempre a senha do aplicativo, que tem de ser a mesma em todos os aparelhos. A senha do backup não muda a sincronização.</p>
   <h4>Outro aparelho</h4>
-  <p>A senha do aplicativo não vai dentro do backup. Ela só serve para abrir o arquivo; o outro aparelho continua com a senha que já tinha, ou sem senha.</p>
+  <p>As senhas do aplicativo e do backup não vão dentro do backup. Elas só servem para abrir o arquivo; o outro aparelho continua com as senhas que já tinha, ou sem senha.</p>
   <button type="button" class="sec" id="dInfoFechar">Fechar</button>
 </dialog>
 
@@ -2190,6 +2204,7 @@ function renderAjustes() {
   $('aUltimo').textContent = db.ultimoBackupEm
     ? 'Último backup: ' + new Date(db.ultimoBackupEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
     : 'Nenhum backup feito ainda.';
+  mostrarSenhaBk();
 }
 
 function renderSelects() {
@@ -2754,7 +2769,7 @@ try { $('aTema').value = localStorage.getItem(CHAVE_TEMA) || 'auto'; } catch {}
 function pedirSenhaBackup(criar, erro = '', senhaApp = false, textos = null) {
   return new Promise((ok) => {
     $('dBkTitulo').textContent = textos ? textos.titulo : criar ? 'Criptografar o backup' : 'Backup criptografado';
-    $('dBkTexto').textContent = textos ? textos.texto : criar ? 'Crie uma senha de pelo menos 8 caracteres e guarde em lugar seguro. Sem ela, o backup não abre e não há como recuperar.' : senhaApp ? 'Digite a senha que o aplicativo tinha quando este backup foi salvo.' : 'Digite a senha usada ao salvar este backup.';
+    $('dBkTexto').textContent = textos ? textos.texto : criar ? 'Crie uma senha de pelo menos 8 caracteres e guarde em lugar seguro. Sem ela, o backup não abre e não há como recuperar.' : senhaApp ? 'Digite a senha usada quando este backup foi salvo: a senha do backup, se havia uma, senão a que o aplicativo tinha.' : 'Digite a senha usada ao salvar este backup.';
     $('dBkRepeteBox').hidden = !criar;
     $('dBkOk').textContent = textos ? textos.ok : criar ? 'Criptografar e salvar' : 'Abrir';
     $('dBkErro').textContent = erro;
@@ -2879,15 +2894,15 @@ $('hOlho').onclick = () => {
 };
 // Monta o arquivo de backup cifrado; null se a pessoa desistiu da senha. Ja marca a data do backup em db.
 async function montarBackup() {
-  // Com senha no app, nao pergunta nada; o arquivo abre com essa senha.
-  const comSenhaApp = temSenha(), senha = comSenhaApp ? null : await pedirSenhaBackup(true);
+  // Com senha do backup ou do app, nao pergunta nada; o arquivo abre com essa senha.
+  const g = senhaDoBackup(), comSenhaApp = !!g, senha = g ? null : await pedirSenhaBackup(true);
   if (!comSenhaApp && !senha) return null;
   const antes = db.ultimoBackupEm, agora = new Date();
   db.ultimoBackupEm = agora.toISOString();
   const p = (n) => String(n).padStart(2, '0');
   const nome = `backup-controle-diario-${agora.getFullYear()}-${p(agora.getMonth() + 1)}-${p(agora.getDate())}_${p(agora.getHours())}-${p(agora.getMinutes())}-${p(agora.getSeconds())}.txt`;
   try {
-    return { nome, antes, comSenhaApp, arq: new File([JSON.stringify(comSenhaApp ? await cifrarBackupSenhaApp(db, trava.senha) : await cifrarBackup(db, senha))], nome, { type: 'text/plain' }) };
+    return { nome, antes, comSenhaApp, arq: new File([JSON.stringify(g ? await cifrarBackupSenhaApp(db, g) : await cifrarBackup(db, senha))], nome, { type: 'text/plain' }) };
   } catch (err) { db.ultimoBackupEm = antes; throw err; }
 }
 async function salvarBackup() {
@@ -2912,7 +2927,7 @@ async function salvarBackup() {
       setTimeout(() => URL.revokeObjectURL(a.href), 10000);
     }
     salvar();
-    if (comSenhaApp) avisar('Backup criptografado com a senha do aplicativo');
+    if (comSenhaApp) avisar(senhaBk ? 'Backup criptografado com a senha do backup' : 'Backup criptografado com a senha do aplicativo');
   } catch (err) {
     db.ultimoBackupEm = antes;
     if (err.name !== 'AbortError') avisar('Não foi possível salvar o backup', err.message);
@@ -2934,7 +2949,10 @@ async function restaurarTexto(texto, nomeArq) {
   try { bruto = JSON.parse(texto); } catch { bruto = null; }
   if (ehBackupCifrado(bruto)) {
     let erro = '', aberto = null;
-    if (senhaSessao) { try { aberto = await decifrarBackup(bruto, senhaSessao); } catch { aberto = null; } }
+    // Antes de perguntar: a senha do backup e a do app guardadas no aparelho (sem digitar), depois a senha do app
+    // digitada ao destravar nesta abertura. So pergunta se nenhuma abrir.
+    for (const g of [senhaBk, trava.senha]) if (!aberto) aberto = await decifrarComHash(bruto, g);
+    if (!aberto && senhaSessao) { try { aberto = await decifrarBackup(bruto, senhaSessao); } catch { aberto = null; } }
     while (!aberto) {
       const senha = await pedirSenhaBackup(false, erro, usaSenhaDoApp(bruto));
       if (!senha) return;
@@ -3050,7 +3068,7 @@ $('aDriveSalvar').onclick = async () => {
     await enviarDrive(b.nome, b.arq, await pastaDrive());
     salvar();
     $('aDriveMsg').textContent = '';
-    avisar('Backup salvo no Google Drive', `${b.nome}\nPasta "${PASTA_DRIVE}" no seu Drive.${b.comSenhaApp ? '\nCriptografado com a senha do aplicativo.' : ''}`);
+    avisar('Backup salvo no Google Drive', `${b.nome}\nPasta "${PASTA_DRIVE}" no seu Drive.${b.comSenhaApp ? `\nCriptografado com a senha do ${senhaBk ? 'backup' : 'aplicativo'}.` : ''}`);
   } catch (err) {
     db.ultimoBackupEm = b.antes;
     $('aDriveMsg').textContent = '';
@@ -3220,7 +3238,8 @@ async function sincronizar() {
 // automatico ou de conflito) tiver mais de 24 horas, ou se nao houver nenhum, salva outro, com a senha do app.
 const HORAS_BACKUP_AUTO = 24;
 async function backupAutomatico() {
-  if (!temSenha()) return;
+  const g = senhaDoBackup();
+  if (!g) return;
   const pasta = await pastaDrive();
   const q = encodeURIComponent(`'${pasta}' in parents and name contains 'backup-controle-diario' and trashed=false`);
   const { files } = await (await drive(`/drive/v3/files?q=${q}&orderBy=createdTime desc&pageSize=1&fields=files(createdTime)`)).json();
@@ -3230,7 +3249,7 @@ async function backupAutomatico() {
   db.ultimoBackupEm = a.toISOString();
   // Vai nos dados (e no backup), para todos os aparelhos mostrarem o ultimo backup automatico.
   db.google = { ...(db.google || {}), ultimoAutoEm: a.toISOString() };
-  await enviarDrive(nome, new Blob([JSON.stringify(await cifrarBackupSenhaApp(db, trava.senha))], { type: 'text/plain' }), pasta);
+  await enviarDrive(nome, new Blob([JSON.stringify(await cifrarBackupSenhaApp(db, g))], { type: 'text/plain' }), pasta);
   // A data do backup muda os dados: grava e deixa a proxima sincronizacao enviar.
   try { localStorage.setItem(CHAVE, JSON.stringify(db)); } catch {}
   render();
@@ -4832,6 +4851,37 @@ let senhaSessao = null;
 try { trava = JSON.parse(localStorage.getItem(CHAVE_SENHA)) || {}; } catch { trava = {}; }
 let bioDisponivel = false;
 const temSenha = () => !!trava.senha;
+// Senha propria do backup (opcional), guardada so neste aparelho e fora do backup, como a senha do app: so o sal e o
+// hash (protegerSenha). Com ela, todo backup novo usa cifrarBackupSenhaApp com este hash no lugar do da senha do app.
+const CHAVE_SENHA_BK = 'controle-diario-senhabk';
+let senhaBk = null;
+try { const g = JSON.parse(localStorage.getItem(CHAVE_SENHA_BK)); senhaBk = g && g.sal && g.hash ? g : null; } catch { senhaBk = null; }
+// O que cifra o proximo backup: senha do backup, senao a do app; null = perguntar.
+const senhaDoBackup = () => senhaBk || trava.senha || null;
+function mostrarSenhaBk() {
+  const em = senhaBk && senhaBk.em ? ` em ${new Date(senhaBk.em).toLocaleDateString('pt-BR')}` : '';
+  $('aSenhaBkStatus').textContent = senhaBk ? `Definida neste aparelho${em}. Todo backup novo (manual, no Google e automático) usa esta senha.`
+    : temSenha() ? 'Não definida: o backup usa a senha do aplicativo.' : 'Não definida: o app pede uma senha a cada backup.';
+  $('aSenhaBkDefinir').textContent = senhaBk ? 'Redefinir senha do backup' : 'Definir senha do backup';
+  $('aSenhaBkRemover').hidden = !senhaBk;
+}
+$('aSenhaBkDefinir').onclick = async () => {
+  const nova = await pedirSenhaBackup(true, '', false, { titulo: senhaBk ? 'Redefinir senha do backup' : 'Definir senha do backup',
+    texto: 'Digite a senha duas vezes (pelo menos 8 caracteres) e guarde em lugar seguro. Ela vale para os próximos backups; os já salvos continuam abrindo com a senha que tinham.', ok: 'Gravar' });
+  if (!nova) return;
+  const g = { ...(await protegerSenha(nova)), em: new Date().toISOString() };
+  try { localStorage.setItem(CHAVE_SENHA_BK, JSON.stringify(g)); } catch { return avisar('Não foi possível gravar', 'O aparelho recusou a gravação. A senha do backup não foi alterada.'); }
+  senhaBk = g;
+  mostrarSenhaBk();
+  avisar('Senha do backup gravada', 'Os próximos backups usam esta senha.');
+};
+$('aSenhaBkRemover').onclick = async () => {
+  if (!await modal('Remover a senha do backup?', temSenha() ? 'Os próximos backups voltam a usar a senha do aplicativo. Os já salvos continuam abrindo com a senha que tinham.'
+    : 'Os próximos backups voltam a pedir uma senha a cada vez. Os já salvos continuam abrindo com a senha que tinham.', 'Remover', 'Cancelar')) return;
+  try { localStorage.removeItem(CHAVE_SENHA_BK); } catch {}
+  senhaBk = null;
+  mostrarSenhaBk();
+};
 function gravarTrava() {
   try { localStorage.setItem(CHAVE_SENHA, JSON.stringify(trava)); return true; }
   catch { avisar('Não foi possível gravar', 'O aparelho recusou a gravação. A senha não foi alterada.'); return false; }
