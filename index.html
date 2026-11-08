@@ -106,7 +106,8 @@
   .itCabeca > .q { flex: 1; min-width: 0; }
   .itCabeca h2 { margin: 0; font-size: 22px; overflow-wrap: anywhere; }
   .itCabeca p { margin: 4px 0 0; }
-  .itFoto { flex: none; width: 96px; height: 72px; border-radius: 8px; background: #1e3a5f center / cover no-repeat; }
+  .itFoto { position: relative; flex: none; width: 96px; height: 72px; border-radius: 8px; background: #1e3a5f center / cover no-repeat; }
+  .itFoto img.bandeira { position: absolute; top: 5px; left: 5px; width: 20px; height: 14px; box-shadow: 0 1px 3px rgba(0, 0, 0, .5); }
   .itDia { margin: 14px 0 4px; font-size: 16px; }
   .itDia:first-child { margin-top: 0; }
   .itItem { display: grid; grid-template-columns: 52px 32px 1fr auto; column-gap: 8px; align-items: stretch; }
@@ -153,8 +154,10 @@
   .docViaj:last-child { border-bottom: 0; }
   .docPessoa { display: flex; align-items: center; gap: 10px; font-size: 15px; }
   .docBloco { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--campo); font-size: 13px; }
-  .docBloco > div { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 2px 0; }
-  .docBloco span.rot { color: var(--mut); min-width: 74px; }
+  .docBloco > div { display: grid; grid-template-columns: 78px 1fr; align-items: baseline; gap: 6px; padding: 2px 0; }
+  .docBloco > div.docAnexos { display: flex; flex-wrap: wrap; gap: 6px; }
+  .docBloco span.rot { color: var(--mut); }
+  .docBloco span.val { min-width: 0; }
   .docBloco b { font-weight: 600; overflow-wrap: anywhere; }
   .docBloco img.bandeira { width: 22px; height: 16px; }
   .docBloco .docAnexos { margin-top: 4px; }
@@ -843,7 +846,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.72.1 · 08/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.72.2 · 08/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -4689,7 +4692,7 @@ function renderDocsItin(v) {
   const alerta = (val) => (!val ? '' : val < h ? ' <span class="docAlerta">Vencido</span>' : fimV && val < fimV ? ' <span class="docAlerta">Vence antes do fim da viagem</span>' : '');
   const fotos = (p, d) => (d.fotos || []).map((r, i) => `<button type="button" class="sec docFoto" data-docabrir="${esc(p.id)}|${esc(r.id)}">📎 Foto${d.fotos.length > 1 ? ' ' + (i + 1) : ''}</button>`).join('');
   // Um bloco por documento, abaixo da foto e do nome: Documento, Nome doc, Numero, Validade e o anexo.
-  const linha = (rot, val) => `<div><span class="rot">${rot}</span>${val}</div>`;
+  const linha = (rot, val) => `<div><span class="rot">${rot}</span><span class="val">${val}</span></div>`;
   const bloco = (p, d, titulo, rotVal) => `<div class="docBloco">${linha('Documento:', `<b>${titulo}</b>`)}${linha('Nome doc:', `<b>${esc(d.nome || '—')}</b>`)}`
     + `${linha('Número:', `<b>${esc(d.num || '—')}</b>`)}${linha(rotVal, `<b>${d.validade ? dataBR4(d.validade) : '—'}</b>${alerta(d.validade)}`)}`
     + `${d.fotos ? `<div class="docAnexos">${fotos(p, d)}</div>` : ''}</div>`;
@@ -4700,7 +4703,7 @@ function renderDocsItin(v) {
       + (pp ? bloco(p, pp, `${pp.pais ? bandeiraHtml(pp.pais) + ' ' : ''}Passaporte`, 'Validade:') : '')
       + vs.map((x) => bloco(p, x, `${bandeiraHtml(x.pais)} Visto ${esc(nomePais(x.pais))}`, 'Validade:')).join('') + '</div>';
   }).join('');
-  $('itDocs').innerHTML = linhas ? `<h3 class="itDia" style="margin-top:0">Documentos${v.pais ? ` · ${bandeiraHtml(v.pais)} ${esc(nomePais(v.pais))}` : ''}</h3>${linhas}` : '';
+  $('itDocs').innerHTML = linhas ? `<h3 class="itDia" style="margin-top:0">Documentos</h3>${linhas}` : '';
   $('itDocs').hidden = !linhas;
 }
 $('itDocs').addEventListener('click', (e) => {
@@ -4714,7 +4717,8 @@ function renderItin() {
   const v = viagemDoItin();
   if (!v) return;
   $('itNome').textContent = v.nome;
-  $('itDatas').innerHTML = esc(v.inicio ? `${dataCurtaIt(v.inicio)}${v.fim ? ' – ' + dataCurtaIt(v.fim) : ''}` : 'Sem datas') + (v.pais ? bandeiraHtml(v.pais) : '');
+  $('itDatas').innerHTML = esc(v.inicio ? `${dataCurtaIt(v.inicio)}${v.fim ? ' – ' + dataCurtaIt(v.fim) : ''}` : 'Sem datas') + (v.pais && !v.fundo ? bandeiraHtml(v.pais) : '');
+  $('itFoto').innerHTML = v.pais ? bandeiraHtml(v.pais) : '';
   $('itFoto').style.backgroundImage = v.fundo ? `url("${v.fundo}")` : '';
   $('itFoto').hidden = !v.fundo;
   renderDocsItin(v);
