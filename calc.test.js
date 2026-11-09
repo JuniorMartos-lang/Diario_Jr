@@ -832,7 +832,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
       pagamentos: [{ meio: 'u1', valor: 10000 }, { meio: 'u2', valor: 2345 }], natureza: 'P',
       recibos: [{ id: 'r1', em: '2027-04-05T15:00:00.000Z', pag: 2, arq: '1AbCdEfGhIjKlMnOp_q-r', nome: '2027-04-05 Parque R$ 123,45 (1).pdf' }, { id: 'r2', em: '2027-04-05T15:05:00.000Z', pag: 1 }],
       local: { nome: 'Hotel Teste', endereco: 'Rua Teste, 100, Cidade, EUA', lat: 40.1, lng: -70.1, id: 'ChIJ_abc-123' } }],
-    viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 }, corporativa: true, pais: 'US' }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {} }],
+    viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 }, corporativa: true, pais: 'US' }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {}, semItin: true }],
     contas: [{ id: 'u1', nome: 'Wise', icone: svg, iconeNome: 'Wise' }], cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'V', icone: svg, iconeNome: 'Visa',
       finais: [{ n: '1234', tipo: 'V', dono: 'T' }], finaisInativos: [{ n: '5678', tipo: 'F', dono: 'A', motivo: 'Vencido', em: '2026-11-03' }] }],
     viajantes: [{ id: 'u3', nome: 'Ana', foto: jpg, inicial: true, passaporte: { nome: 'ANA TESTE DA SILVA', pais: 'BR', num: 'XX000001', emissao: '2020-01-02', validade: '2030-01-01', fotos: [{ id: 'p1', em: '2026-11-08T10:00:00.000Z', pag: 1, arq: 'arquivoPassaporte01', nome: 'Passaporte Ana.pdf' }] },
@@ -949,6 +949,8 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.ok(!comViaj({ passaporte: { num: 'A1', pais: 'ZZ' } }) && comViaj({ passaporte: { num: 'A1', pais: 'PT' } }), 'pais do passaporte');
     assert.ok(!comViaj({ passaporte: { nome: '' } }) && !comViaj({ passaporte: { nome: 'A'.repeat(81) } }) && comViaj({ passaporte: { nome: 'A'.repeat(80) } }), 'nome como no documento');
     assert.ok(!c.backupValido({ ...comUsa, usa: { ...comUsa.usa, viagens: comUsa.usa.viagens.map((v) => ({ ...v, pais: 'ZZ' })) } }));
+    const comViag = (x) => c.backupValido({ ...comUsa, usa: { ...comUsa.usa, viagens: comUsa.usa.viagens.map((v) => (v.id === 'v2' ? { ...v, semItin: undefined, ...x } : v)) } });
+    assert.ok(comViag({}) && comViag({ semDesp: true }) && comViag({ semItin: true }) && !comViag({ semDesp: true, semItin: true }) && !comViag({ semDesp: false }), 'despesas e itinerario na viagem');
     assert.strictEqual(c.nomePais('US'), 'Estados Unidos');
     assert.ok(c.PAISES.length > 240 && c.ehPais('BR') && !c.ehPais('EU'));
     // Passageiros: viajante cadastrado, sem repetir, com localizador ou assento

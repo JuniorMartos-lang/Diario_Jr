@@ -861,7 +861,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.74.0 · 09/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.75.0 · 09/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -996,6 +996,8 @@
           <label>Fim<input id="uFim" type="date"></label>
         </div>
         <label><input id="uCorp" type="checkbox">Viagem Corporativa</label>
+        <div class="rotuloCampo"><span>Disponibilizar em</span><div class="vooModo"><label><input type="checkbox" id="uViagDesp">Despesas</label><label><input type="checkbox" id="uViagItin">Itinerário</label></div>
+          <small class="fraco" id="uViagModInfo"></small></div>
         <div class="rotuloCampo"><span>País de destino</span><details class="multiSel selPais" id="uViagPaisSel"><summary><span id="uViagPaisTxt" class="paisTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input type="search" class="filtroPais" autocomplete="off" placeholder="Buscar país" aria-label="Buscar país"><div class="opcPais"></div></div></details><input type="hidden" id="uViagPais"></div>
         <h3 class="dia">Viajantes nesta viagem</h3>
         <details class="multiSel selViagem"><summary><span id="uViagViajTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" id="uViagViaj"></div></details>
@@ -3879,7 +3881,7 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
     scrollTo(0, 0);
     return;
   }
-  if (d.usaviagem) { abrirUsaDesp(d.usaviagem); return; }
+  if (d.usaviagem) { const vg = usa().viagens.find((x) => x.id === d.usaviagem); if (vg && vg.semDesp) abrirItin(vg.id); else abrirUsaDesp(d.usaviagem); return; }
   if ('infousa' in d) { avisar('Filtro das viagens', TEXTO_FILTRO_USA); return; }
   if (d.usadesp) { abrirDespesa(d.usadesp); return; }
   if (d.escolhelocal) { ({ it: locIt, itV: locItV }[d.escolhelocal] || locUd).escolher(d.place); return; }
@@ -4086,18 +4088,20 @@ function renderUsa() {
   $('uCatsArq').innerHTML = arq('categorias', (c) => iconeCat(c));
   $('uMoedasArq').innerHTML = arq('moedas', icoMoeda);
   const total = (v) => fmtTotais(u, v);
+  // Viagem so com itinerario: sem custos no card e fora de Custos das viagens; tocar abre o itinerario.
+  const custo = (v, rot) => (v.semDesp ? '' : `<small${rot ? ' class="linhaViag"' : ''}>${rot}${total(v)}</small>`);
   // Bandeira do pais de destino logo depois da etiqueta Corporativa/Pessoal (nas listas).
   const pilTipo = (v) => `<span class="tipoViag ${v.corporativa ? 'corp' : 'pes'}">${v.corporativa ? 'Corporativa' : 'Pessoal'}</span>${v.pais ? bandeiraHtml(v.pais) : ''}`;
   const viajantes = (v) => u.viajantes.filter((p) => v.viajantes.includes(p.id)).map(fotoViajante).join('');
   const porInicio = (a, b) => (a.inicio || '9999').localeCompare(b.inicio || '9999');
   // Itinerario: botao proprio, fora do card ou da linha (que abrem as despesas).
-  const btnItin = (v) => `<button type="button" class="btnItin" data-itin="${esc(v.id)}" aria-label="Itinerário de ${esc(v.nome)}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7.5a3.5 3.5 0 0 0 0-7h-7a3.5 3.5 0 0 1 0-7H16"/></svg><span>Itinerário</span></button>`;
+  const btnItin = (v) => v.semItin ? '' : `<button type="button" class="btnItin" data-itin="${esc(v.id)}" aria-label="Itinerário de ${esc(v.nome)}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7.5a3.5 3.5 0 0 0 0-7h-7a3.5 3.5 0 0 1 0-7H16"/></svg><span>Itinerário</span></button>`;
   // Contador abaixo do custo: quanto falta para a viagem, ou ha quanto tempo terminou (contadorViagem em calc.js).
   const contador = (v) => { const t = contadorViagem(v, hoje(), viagemFinalizada(v, hoje())); return t ? `<small class="contadorViag">${esc(t)}</small>` : ''; };
   const htmlViagens = (lista, vazio, emLista) => (!lista.length ? `<p class="fraco" style="margin:0">${vazio}</p>` : emLista
-    ? `<div>${lista.map((v) => `<div class="linhaItin"><button type="button" class="linha" data-usaviagem="${esc(v.id)}">${icoViagem(v)}<span class="q">${pilTipo(v)}<br><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small>${contador(v)}</span>${SETA}</button>${btnItin(v)}</div>`).join('')}</div>`
+    ? `<div>${lista.map((v) => `<div class="linhaItin"><button type="button" class="linha" data-usaviagem="${esc(v.id)}">${icoViagem(v)}<span class="q">${pilTipo(v)}<br><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small>${custo(v, 'Custos: ')}${contador(v)}</span>${SETA}</button>${btnItin(v)}</div>`).join('')}</div>`
     : `<div class="usaGrade">${lista.map((v) => `<div class="usaCardBox"><button type="button" class="card usaCard" data-usaviagem="${esc(v.id)}"><div class="usaFoto"${v.fundo ? ` style="background-image:url('${v.fundo}')"` : ''}>${v.pais ? bandeiraHtml(v.pais) : ''}<div class="usaViaj">${viajantes(v)}</div></div>
-      <div class="txt">${pilTipo(v).replace(/<img[^>]*>/, '')}<b>${esc(v.nome)}</b><small>${datasViagem(v)}</small><small>${total(v)}</small>${contador(v)}</div></button>${btnItin(v)}</div>`).join('')}</div>`);
+      <div class="txt">${pilTipo(v).replace(/<img[^>]*>/, '')}<b>${esc(v.nome)}</b><small>${datasViagem(v)}</small>${custo(v, '')}${contador(v)}</div></button>${btnItin(v)}</div>`).join('')}</div>`);
   const h = hoje(), todas = [...u.viagens].sort(porInicio);
   // Cada secao tem o seu filtro; a lista do combo traz so as viagens daquela secao.
   const filtrar = (id, base) => {
@@ -4115,7 +4119,7 @@ function renderUsa() {
   corpo('fin').innerHTML = htmlViagens(usaListas.fin, 'Nenhuma viagem finalizada.', usaSec.fin.lista);
   // Exportar aparece nas viagens so na visao Em lista; em Custos, sempre.
   for (const id of ['ab', 'fin']) document.querySelector(`[data-exportar="usa-${id}"]`).hidden = !usaSec[id].lista;
-  const filtradas = usaListas.cus = filtrar('cus', todas);
+  const filtradas = usaListas.cus = filtrar('cus', todas.filter((v) => !v.semDesp));
   corpo('cus').innerHTML = !filtradas.length ? '<p class="fraco" style="margin:0">Nenhuma viagem no filtro.</p>'
     : filtradas.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}"><span class="q">${viagemFinalizada(v, h) ? '<span class="tipoViag fim">Encerrada</span>' : '<span class="tipoViag aberta">Em aberto</span>'} ${pilTipo(v)}<br><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small>${htmlCorpPes(u, v)}</span></button>`).join('')
       + `<div class="linha"><b class="q">Total</b><b class="valor">${totaisViagens(u, filtradas).map((t) => fmtMoeda(t.valor, t.moeda)).join(' + ')}</b></div>`;
@@ -4158,6 +4162,12 @@ function abrirViagem(id) {
   $('uViagem').value = v.nome || '';
   $('uInicio').value = v.inicio || '';
   $('uCorp').checked = !!v.corporativa;
+  // Despesas e Itinerario: so da para desmarcar o que ainda nao tem nada lancado nesta viagem.
+  const nDesp = v.id ? usa().despesas.filter((d) => d.viagem === v.id).length : 0, nItin = v.id ? (usa().itinerario || []).filter((i) => i.viagem === v.id).length : 0;
+  $('uViagDesp').checked = !v.semDesp; $('uViagItin').checked = !v.semItin;
+  $('uViagDesp').disabled = !v.semDesp && nDesp > 0; $('uViagItin').disabled = !v.semItin && nItin > 0;
+  $('uViagModInfo').textContent = [nDesp && !v.semDesp ? `Despesas não pode ser desmarcado: há ${nDesp} ${nDesp > 1 ? 'despesas lançadas' : 'despesa lançada'}.` : '',
+    nItin && !v.semItin ? `Itinerário não pode ser desmarcado: há ${nItin} ${nItin > 1 ? 'itens' : 'item'}.` : ''].filter(Boolean).join(' ') || 'Marque onde esta viagem aparece; uma das duas tem de ficar marcada.';
   paisViagem.por(v.pais);
   $('uFim').value = v.fim || '';
   fundoEdit = v.fundo;
@@ -4221,11 +4231,15 @@ $('fUsaViagem').onsubmit = (e) => {
   if (inicio && fim && fim < inicio) return avisar('Datas inválidas', 'O fim da viagem não pode ser antes do início.');
   const viajantes = marcadosEm($('uViagViaj')), moedas = marcadosEm($('uViagMoedas')), base = $('uViagBase').value;
   if (!moedas.length) return avisar('Falta informação', 'Marque ao menos uma moeda para a viagem.');
+  const comDesp = $('uViagDesp').checked, comItin = $('uViagItin').checked;
+  if (!comDesp && !comItin) return avisar('Falta informação', 'Marque Despesas, Itinerário ou os dois.');
+  if (!comDesp && id && usa().despesas.some((d) => d.viagem === id)) return avisar('Despesas em uso', 'Esta viagem tem despesas lançadas; Despesas tem de ficar marcado.');
+  if (!comItin && id && (usa().itinerario || []).some((i) => i.viagem === id)) return avisar('Itinerário em uso', 'Esta viagem tem itens no itinerário; Itinerário tem de ficar marcado.');
   const desp = usa().despesas.filter((d) => d.viagem === id);
   if (desp.some((d) => !moedas.includes(d.moeda))) return avisar('Moeda em uso', 'Há despesas desta viagem numa moeda desmarcada. Mude essas despesas antes.');
   if (desp.some((d) => d.quem.some((p) => !viajantes.includes(p)))) return avisar('Viajante em uso', 'Há despesas desta viagem com um viajante desmarcado. Mude essas despesas antes.');
   // Cotacoes saíram por enquanto; cot fica vazio nos dados para a conversao voltar sem mudar o formato.
-  const dados = { nome, inicio, fim, fundo: fundoEdit, viajantes, moedas, base, cot: {}, corporativa: $('uCorp').checked || undefined, pais: paisViagem.valor() }, atual = usa().viagens.find((x) => x.id === id);
+  const dados = { nome, inicio, fim, fundo: fundoEdit, viajantes, moedas, base, cot: {}, corporativa: $('uCorp').checked || undefined, pais: paisViagem.valor(), semDesp: comDesp ? undefined : true, semItin: comItin ? undefined : true }, atual = usa().viagens.find((x) => x.id === id);
   if (atual) Object.assign(atual, dados); else usa().viagens.push({ id: novoId(), ...dados });
   fecharEditor();
   salvar();

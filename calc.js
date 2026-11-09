@@ -1133,7 +1133,9 @@ function usaValido(u) {
   const ids = (l, lista) => Array.isArray(l) && l.every((id) => tem(lista, id));
   return itens(u.viagens, (x) => data(x.inicio) && data(x.fim) && jpeg(x.fundo, 800000) && ids(x.moedas, u.moedas) && x.moedas.includes(x.base) && ids(x.viajantes, u.viajantes)
       && !!x.cot && typeof x.cot === 'object' && Object.entries(x.cot).every(([m, c]) => tem(u.moedas, m) && Number.isFinite(c) && c > 0)
-      && (x.corporativa === undefined || typeof x.corporativa === 'boolean') && (x.pais === undefined || ehPais(x.pais)))
+      && (x.corporativa === undefined || typeof x.corporativa === 'boolean') && (x.pais === undefined || ehPais(x.pais))
+      // Viagem so com despesas (semItin) ou so com itinerario (semDesp); nunca sem os dois.
+      && (x.semDesp === undefined || x.semDesp === true) && (x.semItin === undefined || x.semItin === true) && !(x.semDesp && x.semItin))
     && Array.isArray(u.despesas) && u.despesas.every((d) => d && typeof d.id === 'string' && typeof d.desc === 'string' && d.desc.length <= 60 && tem(u.viagens, d.viagem)
       && tem(u.categorias, d.cat) && tem(u.moedas, d.moeda) && /^\d{4}-\d{2}-\d{2}$/.test(d.data) && Number.isInteger(d.valor) && d.valor > 0 && ids(d.quem, u.viajantes)
       && (d.obs === undefined || (typeof d.obs === 'string' && d.obs.length <= 500)) && (d.pago === undefined || typeof d.pago === 'boolean') && (d.natureza === undefined || d.natureza === 'C' || d.natureza === 'P')
