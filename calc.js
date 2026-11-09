@@ -958,12 +958,14 @@ const SITUACAO_VOO = { Expected: 'Previsto', CheckIn: 'Check-in aberto', Boardin
 function dadosDoVoo(lista) {
   const ap = (a) => String((a && (a.iata || a.icao || a.shortName || a.name)) || '').slice(0, 80);
   const nomeAp = (a) => String((a && (a.municipalityName || a.shortName || a.name)) || '');
+  // Nome do aeroporto (ex.: "New York John F Kennedy"), para o campo Aeroporto do item.
+  const nomeAero = (a) => String((a && (a.name || a.shortName)) || '').slice(0, 80);
   const tempo = (m) => horaLocalVoo(m.scheduledTime && m.scheduledTime.local) || horaLocalVoo(m.revisedTime && m.revisedTime.local) || {};
   const vistos = new Set();
   return (Array.isArray(lista) ? lista : []).filter((f) => f && f.departure && f.arrival).map((f) => {
     const p = tempo(f.departure), c = tempo(f.arrival);
     return { cia: String((f.airline && f.airline.name) || '').slice(0, 60), voo: String(f.number || '').slice(0, 12), origem: ap(f.departure.airport), destino: ap(f.arrival.airport),
-      origemNome: nomeAp(f.departure.airport), destinoNome: nomeAp(f.arrival.airport), data: p.data, hora: p.hora, fuso: p.fuso, fim: c.data, horaFim: c.hora, fusoFim: c.fuso,
+      origemNome: nomeAp(f.departure.airport), destinoNome: nomeAp(f.arrival.airport), aeroOrigem: nomeAero(f.departure.airport), aeroDestino: nomeAero(f.arrival.airport), data: p.data, hora: p.hora, fuso: p.fuso, fim: c.data, horaFim: c.hora, fusoFim: c.fuso,
       situacao: SITUACAO_VOO[f.status] || '' };
   }).filter((v) => {
     const k = [v.origem, v.destino, v.data, v.hora].join('|');
@@ -1020,7 +1022,7 @@ function itemItinValido(x, u) {
   return !!x && typeof x.id === 'string' && x.id.length >= 1 && x.id.length <= 80 && u.viagens.some((v) => v.id === x.viagem) && TIPOS_ITIN.includes(x.tipo)
     && typeof x.titulo === 'string' && x.titulo.length >= 1 && x.titulo.length <= 120 && /^\d{4}-\d{2}-\d{2}$/.test(x.data) && dataOk(x.fim) && !(x.fim && x.fim < x.data)
     && horaOk(x.hora) && horaOk(x.horaFim) && txt(x.fuso, 12) && txt(x.fusoFim, 12) && txt(x.localizador, 40) && txt(x.obs, 500)
-    && txt(x.cia, 60) && txt(x.voo, 12) && txt(x.assento, 12) && txt(x.origem, 80) && txt(x.destino, 80) && txt(x.localFim, 200)
+    && txt(x.cia, 60) && txt(x.voo, 12) && txt(x.assento, 12) && txt(x.origem, 80) && txt(x.destino, 80) && txt(x.aeroOrigem, 80) && txt(x.aeroDestino, 80) && txt(x.localFim, 200)
     && localValido(x.local) && txt(x.despesa, 60) && (x.lado === undefined || x.lado === 'ida' || x.lado === 'volta')
     && (x.cat === undefined || u.categorias.some((c) => c.id === x.cat)) && paxValido(x.pax, u)
     // Ida e volta: dois itens aereos ligados (par = id do outro); encerra = o traco da linha do tempo termina nele.

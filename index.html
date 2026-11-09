@@ -861,7 +861,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.75.0 · 09/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.76.0 · 09/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1339,6 +1339,7 @@
   <div class="dois" data-it="aereo"><div class="rotuloCampo"><span>Companhia</span><details class="multiSel" id="itCiaSel"><summary><span id="itCiaTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input id="itCiaFiltro" type="search" autocomplete="off" placeholder="Buscar companhia" aria-label="Buscar companhia"><div id="itCiaOpcoes"></div></div></details><input type="hidden" id="itCia"></div><label>Nº do voo<input id="itVoo" maxlength="12" autocomplete="off" inputmode="text" placeholder="Ex.: 1234"></label></div>
   <div data-it="aereo" class="vooBusca"><div class="botaoInfo"><button type="button" class="mini" id="itBuscarVoo">Buscar dados do voo</button><button type="button" class="infoBtn" id="itVooInfo" aria-label="Como funciona a busca do voo"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button></div><small class="fraco">Dados: AeroDataBox.</small><div id="itVooOpcoes" class="localSug" aria-live="polite"></div></div>
   <div class="dois" data-it="aereo transporte"><label>Origem<input id="itOrigem" maxlength="80" autocomplete="off" placeholder="GRU"></label><label>Destino<input id="itDestino" maxlength="80" autocomplete="off" placeholder="BOS"></label></div>
+  <div class="dois" data-it="aereo"><label>Aeroporto de origem<input id="itAeroO" maxlength="80" autocomplete="off" placeholder="Nome do aeroporto"></label><label>Aeroporto de destino<input id="itAeroD" maxlength="80" autocomplete="off" placeholder="Nome do aeroporto"></label></div>
   <label><span id="itTituloRot">Título</span><input id="itTitulo" maxlength="120" autocomplete="off"></label>
   <div class="rotuloCampo" data-it="hotel evento carro restaurante aereo"><span class="rotLocal"><span id="itLocalRot">Local (endereço)</span><label data-it="carro"><input type="checkbox" id="itOutro">Devolver em outro local</label></span>
     <div id="itLocalEsc" class="localEsc" hidden></div>
@@ -1356,6 +1357,7 @@
     <div class="dois"><div class="rotuloCampo"><span>Companhia</span><details class="multiSel" id="itVCiaSel"><summary><span id="itVCiaTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input id="itVCiaFiltro" type="search" autocomplete="off" placeholder="Buscar companhia" aria-label="Buscar companhia"><div id="itVCiaOpcoes"></div></div></details><input type="hidden" id="itVCia"></div><label>Nº do voo<input id="itVVoo" maxlength="12" autocomplete="off" placeholder="Ex.: 1234"></label></div>
     <div class="vooBusca"><div class="botaoInfo"><button type="button" class="mini" id="itVBuscarVoo">Buscar dados do voo</button></div><div id="itVVooOpcoes" class="localSug" aria-live="polite"></div></div>
     <div class="dois"><label>Origem<input id="itVOrigem" maxlength="80" autocomplete="off" placeholder="BOS"></label><label>Destino<input id="itVDestino" maxlength="80" autocomplete="off" placeholder="GRU"></label></div>
+    <div class="dois"><label>Aeroporto de origem<input id="itVAeroO" maxlength="80" autocomplete="off" placeholder="Nome do aeroporto"></label><label>Aeroporto de destino<input id="itVAeroD" maxlength="80" autocomplete="off" placeholder="Nome do aeroporto"></label></div>
     <div class="rotuloCampo"><span>Aeroporto de partida (endereço)</span>
       <div id="itVLocalEsc" class="localEsc" hidden></div>
       <input id="itVLocalBusca" autocomplete="off" placeholder="Digite o nome do aeroporto ou o endereço" aria-label="Buscar aeroporto da volta">
@@ -3091,10 +3093,10 @@ function exportar(tipo) {
     const paxCsv = (x, k) => x.pax.filter((p) => p[k]).map((p) => `${(u.viajantes.find((q) => q.id === p.quem) || { nome: '?' }).nome}: ${p[k]}`).join('; ');
     const itens = (u.itinerario || []).filter((x) => x.viagem === v.id).sort((a, b) => a.data.localeCompare(b.data) || (a.hora || '').localeCompare(b.hora || ''));
     const cab = ['Data', 'Hora', 'Fuso', 'Categoria', 'Título', 'Companhia', 'Nº do voo', 'Origem', 'Destino', 'Assento', 'Data fim (chegada, check-out, devolução, término)', 'Hora fim', 'Fuso fim',
-      'Local', 'Endereço', 'Local de devolução', 'Código do localizador', 'Obs', 'Origem do item'];
+      'Local', 'Endereço', 'Local de devolução', 'Código do localizador', 'Obs', 'Origem do item', 'Aeroporto de origem', 'Aeroporto de destino'];
     const linhas = itens.map((x) => [dataCsv(x.data), x.hora || '', x.fuso || '', nomeCatIt(x), x.titulo, x.cia || '', x.voo || '', x.origem || '', x.destino || '', x.pax ? paxCsv(x, 'assento') : x.assento || '',
       x.fim ? dataCsv(x.fim) : '', x.horaFim || '', x.fusoFim || '', x.local ? x.local.nome : '', x.local ? x.local.endereco : '', x.localFim || '', x.pax ? paxCsv(x, 'loc') : x.localizador || '', x.obs || '',
-      x.despesa ? `Despesa${x.lado ? ' (' + x.lado + ')' : ''}` : 'Digitado no itinerário']);
+      x.despesa ? `Despesa${x.lado ? ' (' + x.lado + ')' : ''}` : 'Digitado no itinerário', x.aeroOrigem || '', x.aeroDestino || '']);
     return exportarCSV(`itinerario-${v.nome}`, cab, linhas);
   }
   if (tipo === 'usadesp') {
@@ -4712,6 +4714,7 @@ function htmlItemItin(e, det) {
   if (x.tipo === 'aereo' || x.tipo === 'transporte') {
     if (x.origem || x.destino) { titulo = `${x.origem || '?'} - ${x.destino || '?'}`; if (x.titulo && x.titulo !== titulo) D.push(`Descrição: ${esc(x.titulo)}`); }
     if (x.voo || x.cia) P.push(esc([x.voo, x.cia && (x.voo ? `(${x.cia})` : x.cia)].filter(Boolean).join(' ')));
+    if (x.aeroOrigem || x.aeroDestino) P.push(`Aeroportos: ${esc(x.aeroOrigem || '?')} → ${esc(x.aeroDestino || '?')}`);
     if (x.horaFim || x.fim) P.push(`Chegada: ${esc(hf(x.horaFim, x.fusoFim || x.fuso))}${x.fim && x.fim !== x.data ? ` (${dataCurtaIt(x.fim)})` : ''}`);
     if (x.assento) D.push(`Assento: ${esc(x.assento)}`);
     D.push(`Partida: ${esc(quando(x.data, x.hora, x.fuso))}`);
@@ -4934,7 +4937,7 @@ function aplicarVoo(v, p = 'it') {
   const por = (id, val) => { if (val && !$(p + id).disabled) $(p + id).value = val; };
   const cia = ciaPorVoo(v.voo);
   porCia(cia ? cia[1] : v.cia, p);
-  for (const [id, val] of [['Voo', v.voo], ['Origem', v.origem], ['Destino', v.destino], ['Data', v.data], ['Hora', v.hora], ['Fuso', v.fuso],
+  for (const [id, val] of [['Voo', v.voo], ['Origem', v.origem], ['Destino', v.destino], ['AeroO', v.aeroOrigem], ['AeroD', v.aeroDestino], ['Data', v.data], ['Hora', v.hora], ['Fuso', v.fuso],
     ['Fim', v.fim], ['HoraFim', v.horaFim], ['FusoFim', v.fusoFim]]) por(id, val);
   $(p + 'VooOpcoes').innerHTML = `<p class="fraco" style="margin:6px 0 0">Preenchido: ${esc(v.origem)} → ${esc(v.destino)} em ${dataBR(v.data)}. Confira e toque em Salvar.</p>`;
 }
@@ -4972,7 +4975,7 @@ function abrirItem(id) {
   $('itCat').value = catIni;
   const val = (c) => (x && x[c]) || '';
   porCia(x && x.cia);
-  for (const [el, c] of [['itTitulo', 'titulo'], ['itVoo', 'voo'], ['itOrigem', 'origem'], ['itDestino', 'destino'], ['itHora', 'hora'], ['itFuso', 'fuso'], ['itFim', 'fim'], ['itHoraFim', 'horaFim'], ['itFusoFim', 'fusoFim'], ['itLocalFim', 'localFim'], ['itAssento', 'assento'], ['itLocalizador', 'localizador'], ['itObs', 'obs']]) $(el).value = val(c);
+  for (const [el, c] of [['itTitulo', 'titulo'], ['itVoo', 'voo'], ['itOrigem', 'origem'], ['itDestino', 'destino'], ['itAeroO', 'aeroOrigem'], ['itAeroD', 'aeroDestino'], ['itHora', 'hora'], ['itFuso', 'fuso'], ['itFim', 'fim'], ['itHoraFim', 'horaFim'], ['itFusoFim', 'fusoFim'], ['itLocalFim', 'localFim'], ['itAssento', 'assento'], ['itLocalizador', 'localizador'], ['itObs', 'obs']]) $(el).value = val(c);
   // Item novo comeca no primeiro dia da viagem (ou hoje, se a viagem ja comecou e nao terminou).
   const h = hoje();
   $('itData').value = x ? x.data : v.inicio && !(h >= v.inicio && (!v.fim || h <= v.fim)) ? v.inicio : h;
@@ -4988,7 +4991,7 @@ function abrirItem(id) {
   $('itSoIda').disabled = !!(x && x.despesa);
   $('itEncerra').checked = !!(x && x.encerra && !voltaEd);
   porCia(vv.cia, 'itV');
-  for (const [el, c] of [['itVVoo', 'voo'], ['itVOrigem', 'origem'], ['itVDestino', 'destino'], ['itVData', 'data'], ['itVHora', 'hora'], ['itVFuso', 'fuso'], ['itVFim', 'fim'], ['itVHoraFim', 'horaFim'], ['itVFusoFim', 'fusoFim']]) $(el).value = vv[c] || '';
+  for (const [el, c] of [['itVVoo', 'voo'], ['itVOrigem', 'origem'], ['itVDestino', 'destino'], ['itVAeroO', 'aeroOrigem'], ['itVAeroD', 'aeroDestino'], ['itVData', 'data'], ['itVHora', 'hora'], ['itVFuso', 'fuso'], ['itVFim', 'fim'], ['itVHoraFim', 'horaFim'], ['itVFusoFim', 'fusoFim']]) $(el).value = vv[c] || '';
   $('itVVooOpcoes').innerHTML = '';
   locItV.por(vv.local);
   montarPax(voltaEd, 'itVPax');
@@ -5057,7 +5060,8 @@ $('fItin').onsubmit = (e) => {
   const item = { id: atual ? atual.id : novoId(), viagem: v.id, tipo: t, cat: $('itCat').value, titulo: titulo.slice(0, 120), data, hora: txt('itHora'), fuso: txt('itFuso'),
     fim, horaFim: usaFim ? txt('itHoraFim') : undefined, fusoFim: usaFim ? txt('itFusoFim') : undefined,
     local: comLocal ? locIt.valor || undefined : undefined, localFim: t === 'carro' && $('itOutro').checked ? txt('itLocalFim') : undefined,
-    cia: t === 'aereo' ? txt('itCia') : undefined, voo: t === 'aereo' ? txt('itVoo') : undefined, assento: temAssento(t) ? txt('itAssento') : undefined,
+    cia: t === 'aereo' ? txt('itCia') : undefined, voo: t === 'aereo' ? txt('itVoo') : undefined,
+    aeroOrigem: t === 'aereo' ? txt('itAeroO') : undefined, aeroDestino: t === 'aereo' ? txt('itAeroD') : undefined, assento: temAssento(t) ? txt('itAssento') : undefined,
     origem, destino, localizador: txt('itLocalizador'), obs: txt('itObs'), pax: undefined, despesa: (atual || itDespSel || {}).despesa, lado: (atual || itDespSel || {}).lado };
   if (!$('itPaxBox').hidden) {
     const pax = lerPax().map((q) => { if (!temAssento(t)) delete q.assento; return q; }).filter((q) => q.loc || q.assento);
@@ -5072,7 +5076,7 @@ $('fItin').onsubmit = (e) => {
     if (vData < data) return avisar('Datas inválidas', 'A volta não pode ser antes da ida.');
     if (vFim && vFim < vData) return avisar('Datas inválidas', 'A chegada da volta não pode ser antes da partida.');
     volta = { id: voltaEd ? voltaEd.id : novoId(), viagem: v.id, tipo: 'aereo', cat: item.cat, data: vData, hora: txt('itVHora'), fuso: txt('itVFuso'), fim: vFim,
-      horaFim: txt('itVHoraFim'), fusoFim: txt('itVFusoFim'), local: locItV.valor || undefined, cia: txt('itVCia'), voo: txt('itVVoo'), origem: vo, destino: vd,
+      horaFim: txt('itVHoraFim'), fusoFim: txt('itVFusoFim'), local: locItV.valor || undefined, cia: txt('itVCia'), voo: txt('itVVoo'), origem: vo, destino: vd, aeroOrigem: txt('itVAeroO'), aeroDestino: txt('itVAeroD'),
       titulo: (vo || vd ? `${vo || '?'} - ${vd || '?'}` : [txt('itVVoo'), txt('itVCia')].filter(Boolean).join(' ') || 'Voo de volta').slice(0, 120), lado: 'volta', par: item.id, encerra: true };
     if (!$('itPaxBox').hidden) {
       const pv = $('itVRepetir').checked ? item.pax : lerPax('itVPax');
