@@ -81,6 +81,8 @@
   .campoGravar input { flex: 1; min-width: 0; margin: 0; font-size: 13px; }
   .campoGravar button { flex: none; min-height: 44px; padding: 6px 14px; }
   .botoesMini { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+  .botoesMini.botoes3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .botoesMini.botoes3 button { min-width: 0; padding: 6px 4px; font-size: 13px; white-space: nowrap; }
   .botoesMini button.mini { flex: 1 1 auto; min-height: 36px; padding: 6px 12px; font-size: 13px; }
   @media (prefers-reduced-motion: reduce) { input.chave, input.chave::before { transition: none; } }
   /* Recibos: lista no popup da despesa e dialogo do recorte. */
@@ -127,6 +129,9 @@
   button.itPino svg { width: 20px; height: 20px; fill: currentColor; }
   /* Data na linha inteira; hora e fuso lado a lado embaixo (em 375 px, os tres numa linha cortavam a data e a hora). */
   .tres { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; }
+  .horaSel { display: flex; align-items: center; gap: 4px; }
+  .horaSel select { flex: 1; min-width: 0; margin: 0; padding: 0 6px; text-align: center; text-align-last: center; }
+  .horaSel b { color: var(--mut); }
   .tres > label:first-child { grid-column: 1 / -1; }
   .tres > * { min-width: 0; }
   #itMais { position: fixed; z-index: 11; right: 16px; bottom: calc(72px + env(safe-area-inset-bottom)); width: 56px; height: 56px; padding: 0; font-size: 30px; line-height: 1; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
@@ -760,7 +765,7 @@
       <label id="lPagoCaixa"><input id="lPago" type="checkbox" checked><span id="lPagoTxt">Já foi pago</span></label>
       <div class="rotuloCampo" id="lRecBox" hidden><span>Recibos</span>
         <div id="lRecLista"></div>
-        <div class="botoesMini"><button type="button" class="mini sec" id="lRecCam">Escanear recibo</button><button type="button" class="mini sec" id="lRecGal">Foto do celular</button></div>
+        <div class="botoesMini botoes3"><button type="button" class="mini sec" id="lRecCam">Escanear</button><button type="button" class="mini sec" id="lRecGal">Foto</button><button type="button" class="mini sec" id="lRecDoc">Documento</button></div>
       </div>
       <div class="botoes">
         <button type="submit">Salvar</button>
@@ -850,7 +855,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.72.3 · 08/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.73.1 · 08/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -900,6 +905,7 @@
           <button type="button" class="mini" id="aSyncAgora">Sincronizar Já</button>
           <button type="button" class="mini" id="aDriveSalvar">Salvar Backup Já</button>
           <button type="button" class="mini sec" id="aDriveRestaurar">Restaurar do Google</button>
+          <button type="button" class="mini sec" id="aDriveRestSync">Restaurar da sincronização</button>
           <button type="button" class="mini sec" id="aConflitos">Revisar backups de conflito</button>
         </div>
         <p id="aDriveMsg" class="fraco" aria-live="polite"></p>
@@ -1265,7 +1271,7 @@
   <h4>Salvar</h4>
   <p>Manual: Salvar backup cria o arquivo e você escolhe onde guardar (OneDrive, e-mail, pasta do aparelho). Google Drive: Salvar Backup Já envia para a pasta "Controle Diário" do seu Drive; com a sincronização ligada, o app também salva sozinho quando o último backup da pasta tiver mais de 24 h.</p>
   <h4>Restaurar</h4>
-  <p>Manual: Restaurar e escolha o arquivo. Google Drive: Restaurar do Google e escolha um dos 20 últimos. Nos dois, o app tenta abrir sozinho, nesta ordem: com a senha do backup guardada, com a senha do aplicativo guardada e com a senha digitada ao destravar o app. Só se nenhuma abrir ele pede para você digitar. Com a senha errada, nada é alterado. Restaurar substitui tudo o que está no aplicativo. Backups antigos, sem criptografia, abrem sem senha.</p>
+  <p>Manual: Restaurar e escolha o arquivo. Google Drive: Restaurar do Google e escolha um dos 20 últimos, ou Restaurar da sincronização, que traz o arquivo que a sincronização mantém em "Controle Diário/Dados" (os dados mais recentes enviados por qualquer aparelho). Em todos, o app tenta abrir sozinho, nesta ordem: com a senha do backup guardada, com a senha do aplicativo guardada, com a chave da sincronização deste aparelho (só o arquivo sincronizado) e com a senha digitada ao destravar o app. Só se nenhuma abrir ele pede para você digitar. Com a senha errada, nada é alterado. Restaurar substitui tudo o que está no aplicativo. Backups antigos, sem criptografia, abrem sem senha.</p>
   <h4>Quando o app pede a senha ao restaurar</h4>
   <p>Backup salvo com uma senha que já foi trocada (do aplicativo ou do backup), salvo em outro aparelho com outra senha, ou criado com senha digitada na hora. Digite a senha que valia quando ele foi salvo.</p>
   <h4>Trocar a senha do aplicativo</h4>
@@ -1309,11 +1315,11 @@
   <label>Obs<textarea id="udObs" maxlength="500" rows="2" placeholder="Opcional"></textarea></label>
   <div class="rotuloCampo" id="udRecBox"><span>Recibos</span>
     <div id="udRecLista"></div>
-    <div class="botoesMini"><button type="button" class="mini sec" id="udRecCam">Escanear recibo</button><button type="button" class="mini sec" id="udRecGal">Foto do celular</button></div>
+    <div class="botoesMini botoes3"><button type="button" class="mini sec" id="udRecCam">Escanear</button><button type="button" class="mini sec" id="udRecGal">Foto</button><button type="button" class="mini sec" id="udRecDoc">Documento</button></div>
   </div>
   <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="udFechar">Fechar</button><button type="button" class="perigo" id="udExcluir" hidden>Excluir</button></div>
 </form></dialog>
-<input type="file" accept="image/*" capture="environment" id="recCamArq" hidden><input type="file" accept="image/*" multiple id="recGalArq" hidden>
+<input type="file" accept="image/*" capture="environment" id="recCamArq" hidden><input type="file" accept="image/*" multiple id="recGalArq" hidden><input type="file" accept="application/pdf,.pdf,image/*" multiple id="recDocArq" hidden>
 <datalist id="listaFusos"><option value="GMT-3"><option value="EST"><option value="EDT"><option value="CST"><option value="CDT"><option value="MST"><option value="PST"><option value="PDT"><option value="GMT"><option value="BST"><option value="CET"><option value="CEST"></datalist>
 <dialog id="dItin"><form id="fItin" novalidate>
   <h3 id="itfTit">Novo item</h3>
@@ -1329,14 +1335,14 @@
     <input id="itLocalBusca" autocomplete="off" placeholder="Digite o nome do lugar ou o endereço" aria-label="Buscar local">
     <div id="itLocalSug" class="localSug" aria-live="polite"></div>
   </div>
-  <div class="tres"><label><span id="itDataRot">Data</span><input id="itData" type="date"></label><label>Hora<input id="itHora" type="time"></label><label>Fuso<input id="itFuso" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
+  <div class="tres"><label><span id="itDataRot">Data</span><input id="itData" type="date"></label><label>Hora<span class="horaSel" data-hora="itHora"><select class="hh" aria-label="Hora"></select><b>:</b><select class="mm" aria-label="Minutos"></select></span><input id="itHora" type="hidden"></label><label>Fuso<input id="itFuso" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
   <label id="itLocalFimBox" hidden>Local de devolução<input id="itLocalFim" maxlength="200" autocomplete="off" placeholder="Nome do lugar ou endereço"></label>
-  <div class="tres" data-it="aereo hotel evento carro transporte"><label><span id="itFimRot">Fim</span><input id="itFim" type="date"></label><label>Hora<input id="itHoraFim" type="time"></label><label>Fuso<input id="itFusoFim" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
+  <div class="tres" data-it="aereo hotel evento carro transporte"><label><span id="itFimRot">Fim</span><input id="itFim" type="date"></label><label>Hora<span class="horaSel" data-hora="itHoraFim"><select class="hh" aria-label="Hora"></select><b>:</b><select class="mm" aria-label="Minutos"></select></span><input id="itHoraFim" type="hidden"></label><label>Fuso<input id="itFusoFim" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
   <div class="rotuloCampo" id="itPaxBox"><span id="itPaxRot">Passageiros: localizador e assento</span><div id="itPax"></div></div>
   <label data-it="aereo transporte evento" id="itAssRot">Assento<input id="itAssento" maxlength="12" autocomplete="off" placeholder="Ex.: 12A"></label>
   <label id="itLocRot">Código do localizador<input id="itLocalizador" maxlength="40" autocomplete="off"></label>
   <label>Obs<textarea id="itObs" maxlength="500" rows="2" placeholder="Opcional"></textarea></label>
-  <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="itFechar">Fechar</button><button type="button" class="perigo" id="itExcluir" hidden>Excluir</button></div>
+  <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="itFechar">Fechar</button><button type="button" class="sec" id="itDuplicar" hidden>Duplicar</button><button type="button" class="perigo" id="itExcluir" hidden>Excluir</button></div>
 </form></dialog>
 <dialog id="dDocs">
   <h3 id="docsTit">Documentos</h3>
@@ -3164,6 +3170,8 @@ async function restaurarTexto(texto, nomeArq) {
     // Antes de perguntar: a senha do backup e a do app guardadas no aparelho (sem digitar), depois a senha do app
     // digitada ao destravar nesta abertura. So pergunta se nenhuma abrir.
     for (const g of [senhaBk, trava.senha]) if (!aberto) aberto = await decifrarComHash(bruto, g);
+    // Arquivo da sincronizacao (versao 1, sal fixo): abre com a chave da sincronizacao guardada neste aparelho.
+    if (!aberto && sync.chave && bruto.versao === 1 && bruto.iteracoes === 600000) aberto = await decifrarComChave(bruto, sync.chave).catch(() => null);
     if (!aberto && senhaSessao) { try { aberto = await decifrarBackup(bruto, senhaSessao); } catch { aberto = null; } }
     while (!aberto) {
       const senha = await pedirSenhaBackup(false, erro, usaSenhaDoApp(bruto));
@@ -3315,6 +3323,21 @@ $('aDriveRestaurar').onclick = async () => {
   }
 };
 $('dDriveFechar').onclick = () => $('dDrive').close();
+// Restaurar do arquivo da sincronizacao ("Controle Diário/Dados"), com as mesmas regras de senha do restaurar.
+$('aDriveRestSync').onclick = async () => {
+  try { await tokenGoogle(); } catch (err) { return avisar('Google Drive', err.message); }
+  $('aDriveMsg').textContent = 'Buscando o arquivo sincronizado...';
+  try {
+    const arq = await arquivoDados();
+    if (!arq) { $('aDriveMsg').textContent = ''; return avisar('Nenhum arquivo sincronizado', `A pasta "${PASTA_DRIVE}/Dados" ainda não tem o arquivo da sincronização.`); }
+    const texto = await (await drive(`/drive/v3/files/${encodeURIComponent(arq.id)}?alt=media`)).text();
+    $('aDriveMsg').textContent = '';
+    restaurarTexto(texto, `Arquivo sincronizado de ${new Date(arq.modifiedTime).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`);
+  } catch (err) {
+    $('aDriveMsg').textContent = '';
+    avisar('Não foi possível ler o arquivo sincronizado', err.message);
+  }
+};
 // Backups de conflito: os que nao tem nada a mais que os dados atuais vao direto para a lixeira do Drive;
 // os outros aparecem com o que tem a mais, para a pessoa restaurar ou mandar para a lixeira.
 let conflitos = [];
@@ -4764,7 +4787,7 @@ function formaItem() {
   $('itLocalRot').textContent = rot.local || 'Local (endereço)';
   $('itLocalFimBox').hidden = t !== 'carro' || !$('itOutro').checked;
   $('itDaDesp').hidden = !daDesp;
-  const comPax = !!$('itPax').children.length, comAss = ASSENTO_ITIN.includes(t);
+  const comPax = !!$('itPax').children.length, comAss = temAssento(t);
   $('itPaxBox').hidden = !comPax;
   $('itPax').classList.toggle('semAssento', !comAss);
   $('itPaxRot').textContent = comAss ? 'Passageiros: localizador e assento' : 'Passageiros: localizador';
@@ -4788,7 +4811,8 @@ function listarCias() {
 }
 $('itCiaFiltro').addEventListener('input', listarCias);
 $('itCiaSel').addEventListener('toggle', () => { if ($('itCiaSel').open) { $('itCiaFiltro').value = ''; listarCias(); $('itCiaFiltro').focus(); } });
-const ASSENTO_ITIN = ['aereo', 'transporte', 'evento'];
+// Assento: aereo e, entre os itens comuns, so shows e eventos (pelo nome da categoria).
+const temAssento = (t) => t === 'aereo' || (t === 'evento' && /show|evento|teatro|concert|espetac|musical|opera|jogo|cinema/.test(((catItem() || {}).nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()));
 // Passageiros do item: uma linha por viajante da viagem (os arquivados so se ja estao no item), com localizador e assento.
 function montarPax(x) {
   const u = usa(), v = viagemDoItin(), pax = (x && x.pax) || [];
@@ -4868,6 +4892,20 @@ function aplicarVoo(v) {
   $('itVooOpcoes').innerHTML = `<p class="fraco" style="margin:6px 0 0">Preenchido: ${esc(v.origem)} → ${esc(v.destino)} em ${dataBR(v.data)}. Confira e toque em Salvar.</p>`;
 }
 $('itBuscarVoo').onclick = buscarVoo;
+// Hora do itinerario em duas listas (horas e minutos) no lugar do relogio do Android, cujos botoes cortavam.
+// O campo escondido continua com "hh:mm" (ou vazio): quem le e grava .value nao muda.
+document.querySelectorAll('.horaSel').forEach((caixa) => {
+  const hh = caixa.querySelector('.hh'), mm = caixa.querySelector('.mm'), campo = $(caixa.dataset.hora);
+  const opc = (n) => '<option value="">--</option>' + Array.from({ length: n }, (_, i) => String(i).padStart(2, '0')).map((x) => `<option>${x}</option>`).join('');
+  hh.innerHTML = opc(24); mm.innerHTML = opc(60);
+  // Escolheu a hora sem minutos: comeca em 00; tirou a hora: limpa tudo.
+  hh.addEventListener('change', () => { if (hh.value && !mm.value) mm.value = '00'; if (!hh.value) mm.value = ''; });
+  mm.addEventListener('change', () => { if (mm.value && !hh.value) hh.value = '00'; if (!mm.value) hh.value = ''; });
+  Object.defineProperty(campo, 'value', {
+    get: () => (hh.value && mm.value ? `${hh.value}:${mm.value}` : ''),
+    set: (v) => { const m = /^(\d{2}):(\d{2})$/.exec(v || ''); hh.value = m ? m[1] : ''; mm.value = m ? m[2] : ''; },
+  });
+});
 $('itVooInfo').onclick = () => avisar('Buscar dados do voo', 'Escolha a companhia e digite o número do voo (só os números bastam). A busca não usa a data: ela mostra o voo mais próximo de hoje, com origem, destino, horários e duração. Você escolhe a data do voo e o app preenche origem, destino, partida, chegada e fusos, calculando o fuso de cada aeroporto naquela data (inclusive horário de verão). Localizador e assento não são preenchidos. Cada busca gasta 1 consulta do plano gratuito do AeroDataBox (cerca de 200 por mês). Dados: AeroDataBox.');
 function abrirItem(id) {
   const v = viagemDoItin(), x = usa().itinerario.find((i) => i.id === id);
@@ -4892,7 +4930,7 @@ function abrirItem(id) {
   $('itOutro').checked = !!(x && x.localFim);
   $('itVooOpcoes').innerHTML = '';
   montarPax(x);
-  $('itExcluir').hidden = !x;
+  $('itExcluir').hidden = $('itDuplicar').hidden = !x;
   // Item novo: oferece as despesas da viagem que podem virar item e ainda nao viraram.
   itDespSel = null;
   itDespOps = x ? [] : despesasParaItin(u, v.id);
@@ -4905,6 +4943,18 @@ function abrirItem(id) {
   $('dItin').showModal();
 }
 $('itMais').onclick = () => abrirItem(null);
+// Duplicar: o formulario continua com tudo o que esta nele, mas vira item novo (sem ligacao com despesa) ao salvar.
+$('itDuplicar').onclick = () => {
+  itemEd = null; itDespSel = null;
+  $('itfTit').textContent = 'Novo item (cópia)';
+  // Titulo feito sozinho de origem e destino: some, para ser refeito com os novos ao salvar.
+  if ($('itTitulo').value === `${$('itOrigem').value || '?'} - ${$('itDestino').value || '?'}`) $('itTitulo').value = '';
+  $('itExcluir').hidden = $('itDuplicar').hidden = true;
+  $('itDespBox').hidden = true;
+  formaItem();
+  $('dItin').querySelector('form').scrollTop = 0; $('dItin').scrollTop = 0;
+  avisar('Cópia pronta', 'Altere o que precisar e toque em Salvar para gravar como item novo.');
+};
 $('itOutro').addEventListener('change', () => { formaItem(); if ($('itOutro').checked) $('itLocalFim').focus(); });
 $('itDoDesp').onclick = () => {
   const u = usa(), lado = { ida: ' · ida', volta: ' · volta' };
@@ -4940,10 +4990,10 @@ $('fItin').onsubmit = (e) => {
   const item = { id: atual ? atual.id : novoId(), viagem: v.id, tipo: t, cat: $('itCat').value, titulo: titulo.slice(0, 120), data, hora: txt('itHora'), fuso: txt('itFuso'),
     fim, horaFim: usaFim ? txt('itHoraFim') : undefined, fusoFim: usaFim ? txt('itFusoFim') : undefined,
     local: comLocal ? locIt.valor || undefined : undefined, localFim: t === 'carro' && $('itOutro').checked ? txt('itLocalFim') : undefined,
-    cia: t === 'aereo' ? txt('itCia') : undefined, voo: t === 'aereo' ? txt('itVoo') : undefined, assento: ASSENTO_ITIN.includes(t) ? txt('itAssento') : undefined,
+    cia: t === 'aereo' ? txt('itCia') : undefined, voo: t === 'aereo' ? txt('itVoo') : undefined, assento: temAssento(t) ? txt('itAssento') : undefined,
     origem, destino, localizador: txt('itLocalizador'), obs: txt('itObs'), pax: undefined, despesa: (atual || itDespSel || {}).despesa, lado: (atual || itDespSel || {}).lado };
   if (!$('itPaxBox').hidden) {
-    const pax = lerPax().map((q) => { if (!ASSENTO_ITIN.includes(t)) delete q.assento; return q; }).filter((q) => q.loc || q.assento);
+    const pax = lerPax().map((q) => { if (!temAssento(t)) delete q.assento; return q; }).filter((q) => q.loc || q.assento);
     item.pax = pax.length ? pax : undefined;
     item.localizador = item.assento = undefined;
   }
@@ -5372,6 +5422,27 @@ $('udRecCam').onclick = () => comecarScan(recUd, $('recCamArq'));
 $('udRecGal').onclick = () => comecarScan(recUd, $('recGalArq'));
 $('lRecCam').onclick = () => comecarScan(recL, $('recCamArq'));
 $('lRecGal').onclick = () => comecarScan(recL, $('recGalArq'));
+$('udRecDoc').onclick = () => comecarScan(recUd, $('recDocArq'));
+$('lRecDoc').onclick = () => comecarScan(recL, $('recDocArq'));
+// Documento: PDF escolhido numa pasta entra como esta (ate 5 MB, limite do envio ao Drive); imagem passa pelo recorte, como a Foto.
+$('recDocArq').onchange = async () => {
+  const fs = [...$('recDocArq').files];
+  if (!fs.length) return;
+  const ehPdf = (f) => f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
+  for (const f of fs.filter(ehPdf)) {
+    if (f.size > 5 * 1024 * 1024) { await avisar('PDF grande demais', `${f.name} tem ${(f.size / 1048576).toFixed(1).replace('.', ',')} MB. O limite é 5 MB.`); continue; }
+    if (recAlvo.lista.length >= 20) { await avisar('Recibos', 'Este lançamento já tem 20 recibos.'); break; }
+    try {
+      const id = novoId();
+      await recGuardar(id, new Blob([await f.arrayBuffer()], { type: 'application/pdf' }));
+      recLocais.add(id); recAlvo.novos.push(id);
+      recAlvo.lista.push({ id, em: new Date().toISOString() });
+    } catch (err) { await avisar('Não foi possível guardar o PDF', err.message); }
+  }
+  renderRec(recAlvo);
+  const imgs = fs.filter((f) => !ehPdf(f));
+  if (imgs.length) { scanFila.push(...imgs); if (!$('dRecibo').open || !$('recModoPaginas').hidden) proximaFoto(); }
+};
 $('recMaisCam').onclick = () => abrirFotos($('recCamArq'));
 $('recMaisGal').onclick = () => abrirFotos($('recGalArq'));
 ['recCamArq', 'recGalArq'].forEach((id) => { $(id).onchange = () => { const fs = [...$(id).files]; if (!fs.length) return; scanFila.push(...fs); if (!$('dRecibo').open || !$('recModoPaginas').hidden) proximaFoto(); }; });
