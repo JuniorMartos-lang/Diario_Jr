@@ -1023,7 +1023,7 @@ function itemItinValido(x, u) {
     && typeof x.titulo === 'string' && x.titulo.length >= 1 && x.titulo.length <= 120 && /^\d{4}-\d{2}-\d{2}$/.test(x.data) && dataOk(x.fim) && !(x.fim && x.fim < x.data)
     && horaOk(x.hora) && horaOk(x.horaFim) && txt(x.fuso, 12) && txt(x.fusoFim, 12) && txt(x.localizador, 40) && txt(x.obs, 500)
     && txt(x.cia, 60) && txt(x.voo, 12) && txt(x.assento, 12) && txt(x.origem, 80) && txt(x.destino, 80) && txt(x.aeroOrigem, 80) && txt(x.aeroDestino, 80) && txt(x.localFim, 200)
-    && localValido(x.local) && txt(x.despesa, 60) && (x.lado === undefined || x.lado === 'ida' || x.lado === 'volta')
+    && localValido(x.local) && localValido(x.localDev) && txt(x.despesa, 60) && (x.lado === undefined || x.lado === 'ida' || x.lado === 'volta')
     && (x.cat === undefined || u.categorias.some((c) => c.id === x.cat)) && paxValido(x.pax, u)
     // Ida e volta: dois itens aereos ligados (par = id do outro); encerra = o traco da linha do tempo termina nele.
     && (x.par === undefined || (typeof x.par === 'string' && x.par.length >= 1 && x.par.length <= 80 && x.par !== x.id)) && (x.encerra === undefined || x.encerra === true);
@@ -1104,7 +1104,9 @@ function diasItinerario(u, vid) {
   for (const x of u.itinerario || []) {
     if (x.viagem !== vid) continue;
     ent.push({ data: x.data, hora: x.hora || '', papel: 'inicio', item: x });
-    if (x.fim && x.fim !== x.data && !['aereo', 'transporte'].includes(x.tipo)) ent.push({ data: x.fim, hora: x.horaFim || '', papel: 'fim', item: x });
+    // Carro tambem mostra a devolucao no mesmo dia (com fim igual ao inicio ou so com a hora da devolucao).
+    const ate = x.fim || (x.tipo === 'carro' && x.horaFim ? x.data : '');
+    if (ate && (ate !== x.data || x.tipo === 'carro') && !['aereo', 'transporte'].includes(x.tipo)) ent.push({ data: ate, hora: x.horaFim || '', papel: 'fim', item: x });
   }
   ent.sort((a, b) => a.data.localeCompare(b.data) || a.hora.localeCompare(b.hora) || a.item.titulo.localeCompare(b.item.titulo));
   const dias = [];

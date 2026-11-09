@@ -840,7 +840,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     categorias: [{ id: 'u4', nome: 'Parques', simbolo: 'carro', cor: '#2f8486', arquivadaEm: '2026-11-03' }],
     itinerario: [{ id: 'i1', viagem: 'v1', tipo: 'aereo', titulo: 'AAA - BBB', data: '2027-04-04', hora: '22:40', fuso: 'GMT-3', fim: '2027-04-05', horaFim: '06:35', fusoFim: 'EST',
       cia: 'Companhia Teste', voo: 'XX 1234', assento: '12A', origem: 'AAA', destino: 'BBB', aeroOrigem: 'Aeroporto Teste A', aeroDestino: 'Aeroporto Teste B', localizador: 'ABC123', obs: 'Janela', pax: [{ quem: 'u3', loc: 'ABC123', assento: '12A' }], encerra: true },
-    { id: 'i2', viagem: 'v1', tipo: 'hotel', titulo: 'Hotel', data: '2027-04-05', hora: '15:00', fim: '2027-04-10', horaFim: '11:00', localizador: 'H123', despesa: 'd1',
+    { id: 'i2', viagem: 'v1', tipo: 'hotel', titulo: 'Hotel', data: '2027-04-05', hora: '15:00', fim: '2027-04-10', horaFim: '11:00', localizador: 'H123', despesa: 'd1', localDev: { nome: 'Outro', endereco: 'Rua 3', lat: 28.4, lng: -81.3 },
       local: { nome: 'Hotel', endereco: 'Rua 1', lat: 28.5, lng: -81.4 } }] } };
   comUsa.usa.moedas = c.MOEDAS_PADRAO.map((m) => (m.id === 'EUR' ? { ...m, arquivadaEm: '2026-11-03' } : m));
   comUsa.usa.contas[0].arquivadaEm = '2026-11-03';
@@ -1012,6 +1012,12 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.ok(c.sincronizarItinDespesas(uI, 'v'));
     assert.deepStrictEqual(uI.itinerario.map((x) => x.tipo).sort(), ['carro', 'hotel', 'nota']);
     // linha do tempo: hotel e carro aparecem de novo no dia da saida
+    // carro com retirada e devolucao no mesmo dia: duas linhas, na hora de cada uma
+    const uC = { itinerario: [{ id: 'k', viagem: 'v', tipo: 'carro', titulo: 'Locadora', data: '2026-11-15', hora: '09:00', fim: '2026-11-15', horaFim: '18:00' },
+      { id: 'k2', viagem: 'v', tipo: 'carro', titulo: 'Outra', data: '2026-11-16', hora: '08:00', horaFim: '20:00' }] };
+    assert.deepStrictEqual(c.diasItinerario(uC, 'v').map((d) => [d.data, d.itens.map((e) => e.papel + '@' + e.hora)]),
+      [['2026-11-15', ['inicio@09:00', 'fim@18:00']], ['2026-11-16', ['inicio@08:00', 'fim@20:00']]]);
+    assert.ok(okIt({ ...it0, localDev: { nome: 'Aeroporto', endereco: 'Rua 2', lat: 1, lng: 2 } }) && !okIt({ ...it0, localDev: { nome: 'x' } }), 'local de devolucao');
     const dias = c.diasItinerario(uI, 'v');
     assert.deepStrictEqual(dias.map((d) => [d.data, d.itens.map((e) => e.item.tipo + ':' + e.papel)]),
       [['2026-11-14', ['carro:inicio', 'hotel:inicio']], ['2026-11-16', ['nota:inicio']], ['2026-11-20', ['carro:fim', 'hotel:fim']]], 'sem hora primeiro, depois por hora');

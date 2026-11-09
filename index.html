@@ -861,7 +861,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.76.0 · 09/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.76.1 · 09/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1347,7 +1347,11 @@
     <div id="itLocalSug" class="localSug" aria-live="polite"></div>
   </div>
   <div class="tres"><label><span id="itDataRot">Data</span><input id="itData" type="date"></label><label>Hora<span class="horaSel" data-hora="itHora"><select class="hh" aria-label="Hora"></select><b>:</b><select class="mm" aria-label="Minutos"></select></span><input id="itHora" type="hidden"></label><label>Fuso<input id="itFuso" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
-  <label id="itLocalFimBox" hidden>Local de devolução<input id="itLocalFim" maxlength="200" autocomplete="off" placeholder="Nome do lugar ou endereço"></label>
+  <div class="rotuloCampo" id="itLocalFimBox" hidden><span>Local de devolução</span>
+    <div id="itDLocalEsc" class="localEsc" hidden></div>
+    <input id="itDLocalBusca" autocomplete="off" placeholder="Digite o nome do lugar ou o endereço" aria-label="Buscar local de devolução">
+    <div id="itDLocalSug" class="localSug" aria-live="polite"></div>
+  </div>
   <div class="tres" data-it="aereo hotel evento carro transporte"><label><span id="itFimRot">Fim</span><input id="itFim" type="date"></label><label>Hora<span class="horaSel" data-hora="itHoraFim"><select class="hh" aria-label="Hora"></select><b>:</b><select class="mm" aria-label="Minutos"></select></span><input id="itHoraFim" type="hidden"></label><label>Fuso<input id="itFusoFim" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
   <div class="rotuloCampo" id="itPaxBox"><span id="itPaxRot">Passageiros: localizador e assento</span><div id="itPax"></div></div>
   <label data-it="aereo transporte evento" id="itAssRot">Assento<input id="itAssento" maxlength="12" autocomplete="off" placeholder="Ex.: 12A"></label>
@@ -3095,7 +3099,7 @@ function exportar(tipo) {
     const cab = ['Data', 'Hora', 'Fuso', 'Categoria', 'Título', 'Companhia', 'Nº do voo', 'Origem', 'Destino', 'Assento', 'Data fim (chegada, check-out, devolução, término)', 'Hora fim', 'Fuso fim',
       'Local', 'Endereço', 'Local de devolução', 'Código do localizador', 'Obs', 'Origem do item', 'Aeroporto de origem', 'Aeroporto de destino'];
     const linhas = itens.map((x) => [dataCsv(x.data), x.hora || '', x.fuso || '', nomeCatIt(x), x.titulo, x.cia || '', x.voo || '', x.origem || '', x.destino || '', x.pax ? paxCsv(x, 'assento') : x.assento || '',
-      x.fim ? dataCsv(x.fim) : '', x.horaFim || '', x.fusoFim || '', x.local ? x.local.nome : '', x.local ? x.local.endereco : '', x.localFim || '', x.pax ? paxCsv(x, 'loc') : x.localizador || '', x.obs || '',
+      x.fim ? dataCsv(x.fim) : '', x.horaFim || '', x.fusoFim || '', x.local ? x.local.nome : '', x.local ? x.local.endereco : '', x.localDev ? [x.localDev.nome, x.localDev.endereco].filter(Boolean).join(' - ') : x.localFim || '', x.pax ? paxCsv(x, 'loc') : x.localizador || '', x.obs || '',
       x.despesa ? `Despesa${x.lado ? ' (' + x.lado + ')' : ''}` : 'Digitado no itinerário', x.aeroOrigem || '', x.aeroDestino || '']);
     return exportarCSV(`itinerario-${v.nome}`, cab, linhas);
   }
@@ -3886,13 +3890,13 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
   if (d.usaviagem) { const vg = usa().viagens.find((x) => x.id === d.usaviagem); if (vg && vg.semDesp) abrirItin(vg.id); else abrirUsaDesp(d.usaviagem); return; }
   if ('infousa' in d) { avisar('Filtro das viagens', TEXTO_FILTRO_USA); return; }
   if (d.usadesp) { abrirDespesa(d.usadesp); return; }
-  if (d.escolhelocal) { ({ it: locIt, itV: locItV }[d.escolhelocal] || locUd).escolher(d.place); return; }
+  if (d.escolhelocal) { ({ it: locIt, itV: locItV, itD: locItD }[d.escolhelocal] || locUd).escolher(d.place); return; }
   if (d.itin) { abrirItin(d.itin); return; }
   if (d.itcat) { escolherItCat(d.itcat); return; }
   if (d.itdesp) { aplicarDespItin(itDespOps[Number(d.itdesp)]); return; }
   if (d.itcia) { porCia(d.itcia, d.pre || 'it'); return; }
   if (d.ititem) { abrirItem(d.ititem); return; }
-  if (d.itmapa) { const x = usa().itinerario.find((i) => i.id === d.itmapa); if (x && x.local) abrirMapaLocal(x.local, x.titulo); return; }
+  if (d.itmapa) { const x = usa().itinerario.find((i) => i.id === d.itmapa), l = x && (d.itfim && x.localDev ? x.localDev : x.local); if (l) abrirMapaLocal(l, x.titulo); return; }
   if (d.udcat) { escolherUdCat(d.udcat); $('udCatSel').open = false; return; }
   if (d.udmeio) { escolherUdMeio(d.udmeio, d.id); return; }
   if ('editviagem' in d) { abrirViagem(d.editviagem); return; }
@@ -4679,6 +4683,8 @@ const ROT_ITIN = {
 let itinAberta = null, itinRolagem = 0, itemEd = null, itDespOps = [], itDespSel = null;
 const locIt = campoLocal('it', () => $('itTitulo').value.trim());
 const locItV = campoLocal('itV', () => 'Voo de volta');
+// Carro devolvido em outro local: busca e mapa do Google proprios (localDev).
+const locItD = campoLocal('itD', () => 'Local de devolução');
 // Escolher o lugar preenche o titulo vazio (hotel, evento, restaurante, locadora).
 locIt.aoEscolher = (l) => { if (!$('itTitulo').value.trim()) $('itTitulo').value = l.nome.slice(0, 120); };
 const viagemDoItin = () => usa().viagens.find((v) => v.id === itinAberta);
@@ -4725,7 +4731,8 @@ function htmlItemItin(e, det) {
   } else if (x.tipo === 'carro') {
     P.push(fim ? `Devolução${hora ? ': ' + esc(hf(hora, fuso)) : ''}` : `Retirada${hora ? ': ' + esc(hf(hora, fuso)) : ''}`);
     if (!fim && x.fim) D.push(`Devolução: ${esc(quando(x.fim, x.horaFim, x.fusoFim || x.fuso))}`);
-    if (x.localFim) (fim ? P : D).push(`Local de devolução: ${esc(x.localFim)}`);
+    const dev = x.localDev ? x.localDev.endereco || x.localDev.nome : x.localFim;
+    if (dev) (fim ? P : D).push(`Local de devolução: ${esc(dev)}`);
   } else {
     if (fim) P.push(`Término${hora ? ': ' + esc(hf(hora, fuso)) : ''}`);
     else if (x.horaFim && (!x.fim || x.fim === x.data)) P.push(`Até ${esc(hf(x.horaFim, x.fusoFim || x.fuso))}`);
@@ -4748,10 +4755,12 @@ function htmlItemItin(e, det) {
   const linhas = det ? [...P, ...D] : P;
   const tag = x.despesa ? `<span class="itTag">${x.lado === 'volta' ? 'Volta · despesa' : x.lado === 'ida' ? 'Ida · despesa' : 'Da despesa'}</span>`
     : x.par ? `<span class="itTag">${x.lado === 'volta' ? 'Volta' : 'Ida'}</span>` : x.encerra ? '<span class="itTag">Fim da viagem</span>' : '';
+  // O alfinete da devolucao do carro abre o local de devolucao, quando e outro.
+  const lugar = fim && x.tipo === 'carro' && x.localDev ? x.localDev : x.local;
   return `<div class="itItem${x.encerra && !fim ? ' fimTrilho' : ''}"><div class="itHora">${hora ? `<b>${esc(hora)}</b><small>${esc(fuso || '')}</small>` : ''}</div>`
     + `<div class="itTrilho">${c ? iconeCat(c) : `<span class="itIco"><svg viewBox="0 0 24 24" aria-hidden="true">${ICO_ITIN[x.tipo]}</svg></span>`}</div>`
     + `<button type="button" class="itTexto" data-ititem="${esc(x.id)}"><b>${esc(titulo)}${tag}</b>${linhas.map((l) => `<small>${l}</small>`).join('')}</button>`
-    + `${x.local ? `<button type="button" class="itPino" data-itmapa="${esc(x.id)}" aria-label="Ver ${esc(x.local.nome)} no mapa">${PINO}</button>` : '<span></span>'}</div>`;
+    + `${lugar ? `<button type="button" class="itPino" data-itmapa="${esc(x.id)}"${lugar === x.localDev ? ' data-itfim="1"' : ''} aria-label="Ver ${esc(lugar.nome)} no mapa">${PINO}</button>` : '<span></span>'}</div>`;
 }
 // Documentos dos viajantes da viagem: passaporte e, se a viagem tem pais de destino, o visto desse pais (o de maior
 // validade). Vencido, ou vencendo antes do fim da viagem, fica em vermelho. Sem nada cadastrado, o quadro some.
@@ -4975,14 +4984,17 @@ function abrirItem(id) {
   $('itCat').value = catIni;
   const val = (c) => (x && x[c]) || '';
   porCia(x && x.cia);
-  for (const [el, c] of [['itTitulo', 'titulo'], ['itVoo', 'voo'], ['itOrigem', 'origem'], ['itDestino', 'destino'], ['itAeroO', 'aeroOrigem'], ['itAeroD', 'aeroDestino'], ['itHora', 'hora'], ['itFuso', 'fuso'], ['itFim', 'fim'], ['itHoraFim', 'horaFim'], ['itFusoFim', 'fusoFim'], ['itLocalFim', 'localFim'], ['itAssento', 'assento'], ['itLocalizador', 'localizador'], ['itObs', 'obs']]) $(el).value = val(c);
+  for (const [el, c] of [['itTitulo', 'titulo'], ['itVoo', 'voo'], ['itOrigem', 'origem'], ['itDestino', 'destino'], ['itAeroO', 'aeroOrigem'], ['itAeroD', 'aeroDestino'], ['itHora', 'hora'], ['itFuso', 'fuso'], ['itFim', 'fim'], ['itHoraFim', 'horaFim'], ['itFusoFim', 'fusoFim'], ['itAssento', 'assento'], ['itLocalizador', 'localizador'], ['itObs', 'obs']]) $(el).value = val(c);
   // Item novo comeca no primeiro dia da viagem (ou hoje, se a viagem ja comecou e nao terminou).
   const h = hoje();
   $('itData').value = x ? x.data : v.inicio && !(h >= v.inicio && (!v.fim || h <= v.fim)) ? v.inicio : h;
   // Fuso: o do ultimo item com fuso desta viagem, para nao digitar sempre.
   if (!x) { const ult = usa().itinerario.filter((i) => i.viagem === v.id && i.fuso).pop(); $('itFuso').value = ult ? ult.fuso : ''; }
   locIt.por(x && x.local);
-  $('itOutro').checked = !!(x && x.localFim);
+  $('itOutro').checked = !!(x && (x.localFim || x.localDev));
+  // Devolucao: o lugar escolhido no Google; texto antigo (sem lugar) volta para a caixa de busca.
+  locItD.por(x && x.localDev);
+  if (x && !x.localDev && x.localFim) $('itDLocalBusca').value = x.localFim;
   $('itVooOpcoes').innerHTML = '';
   montarPax(x);
   // Voo de volta: item novo comeca como ida e volta; item ja gravado sem par, como somente ida.
@@ -5023,7 +5035,7 @@ $('itDuplicar').onclick = () => {
   $('dItin').querySelector('form').scrollTop = 0; $('dItin').scrollTop = 0;
   avisar('Cópia pronta', 'Altere o que precisar e toque em Salvar para gravar como item novo.');
 };
-$('itOutro').addEventListener('change', () => { formaItem(); if ($('itOutro').checked) $('itLocalFim').focus(); });
+$('itOutro').addEventListener('change', () => { formaItem(); if ($('itOutro').checked) $('itDLocalBusca').focus(); });
 $('itDoDesp').onclick = () => {
   const u = usa(), lado = { ida: ' · ida', volta: ' · volta' };
   $('itDespOpcoes').innerHTML = $('itDespOpcoes').innerHTML ? '' : itDespOps.map((o, i) => {
@@ -5059,7 +5071,8 @@ $('fItin').onsubmit = (e) => {
   const comLocal = ['hotel', 'evento', 'carro', 'restaurante', 'aereo'].includes(t);  // transporte usa origem e destino
   const item = { id: atual ? atual.id : novoId(), viagem: v.id, tipo: t, cat: $('itCat').value, titulo: titulo.slice(0, 120), data, hora: txt('itHora'), fuso: txt('itFuso'),
     fim, horaFim: usaFim ? txt('itHoraFim') : undefined, fusoFim: usaFim ? txt('itFusoFim') : undefined,
-    local: comLocal ? locIt.valor || undefined : undefined, localFim: t === 'carro' && $('itOutro').checked ? txt('itLocalFim') : undefined,
+    local: comLocal ? locIt.valor || undefined : undefined, localDev: t === 'carro' && $('itOutro').checked ? locItD.valor || undefined : undefined,
+    localFim: t === 'carro' && $('itOutro').checked && !locItD.valor ? txt('itDLocalBusca') : undefined,
     cia: t === 'aereo' ? txt('itCia') : undefined, voo: t === 'aereo' ? txt('itVoo') : undefined,
     aeroOrigem: t === 'aereo' ? txt('itAeroO') : undefined, aeroDestino: t === 'aereo' ? txt('itAeroD') : undefined, assento: temAssento(t) ? txt('itAssento') : undefined,
     origem, destino, localizador: txt('itLocalizador'), obs: txt('itObs'), pax: undefined, despesa: (atual || itDespSel || {}).despesa, lado: (atual || itDespSel || {}).lado };
