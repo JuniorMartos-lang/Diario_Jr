@@ -136,6 +136,14 @@
   h4.vooSecao { margin: 10px 0 6px; padding: 6px 10px; border-radius: 8px; background: #1d4ed8; color: #fff; font-size: 14px; }
   #itVPax input:disabled { opacity: .6; }
   .itItem.fimTrilho .itTrilho::before { display: none; }
+  dialog#dPdfVer { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; padding: 0; border-radius: 0; background: #555; display: none; }
+  dialog#dPdfVer[open] { display: flex; flex-direction: column; }
+  .pdfVerTopo { padding: 8px 12px; background: var(--card); }
+  .pdfVerTopo small { display: block; margin-bottom: 6px; overflow-wrap: anywhere; }
+  .pdfVerBotoes { display: flex; gap: 6px; }
+  .pdfVerBotoes button { flex: 1; min-height: 36px; padding: 4px 8px; }
+  #pdfPaginas { flex: 1; overflow-y: auto; padding: 10px; }
+  #pdfPaginas img { display: block; width: 100%; margin: 0 auto 10px; background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, .4); }
   #areaPdf { position: fixed; left: -10000px; top: 0; width: 420px; padding: 12px; background: #fff; }
   #areaPdf .olhoSaldo { display: none; }
   .vooModo.mesmoLoc { margin: 4px 0 0; }
@@ -601,6 +609,7 @@
   .seta { flex: none; font-size: 22px; line-height: 1; color: var(--mut); }
   .gerenciar { width: 100%; margin-top: 10px; }
   .expLinha { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+  .expLinha[hidden] { display: none; }
   .expLinha > .gerenciar { flex: 0 1 calc(50% - 4px); width: auto; margin-top: 0; min-height: 40px; padding: 6px 8px; font-size: 14px; }
   .expLinha > [hidden] { display: none; }
   .icoArq { width: 22px; height: 22px; margin-right: 6px; vertical-align: -6px; flex: none; }
@@ -869,7 +878,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.77.2 · 09/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.77.4 · 09/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1387,6 +1396,11 @@
   <h3 id="docsTit">Documentos</h3>
   <div id="docsLista"></div>
   <div class="botoes"><button type="button" class="sec" id="docsFechar">Fechar</button></div>
+</dialog>
+<dialog id="dPdfVer">
+  <div class="pdfVerTopo"><small class="fraco" id="pdfVerNome"></small>
+    <div class="pdfVerBotoes"><button type="button" class="mini" id="pdfVerSalvar">Salvar</button><button type="button" class="mini sec" id="pdfVerCompartilhar">Compartilhar</button><button type="button" class="mini sec" id="pdfVerFechar">Fechar</button></div></div>
+  <div id="pdfPaginas"></div>
 </dialog>
 <dialog id="dPdf">
   <h3>PDF pronto</h3>
@@ -3144,9 +3158,9 @@ async function exportarPdf(botao) {
       y = fim;
     }
     const nome = `Controle Diário - ${NOME_PDF[tipo] || 'Relatório'} - ${hoje().split('-').reverse().join('-')}.pdf`;
-    if (pdfPronto) URL.revokeObjectURL(pdfPronto.url);
+    liberarPdf();
     const arq = new File([montarPdf(paginas)], nome, { type: 'application/pdf' });
-    pdfPronto = { arq, url: URL.createObjectURL(arq) };
+    pdfPronto = { arq, url: URL.createObjectURL(arq), pags: paginas.map((pg) => new Blob([pg.jpeg], { type: 'image/jpeg' })), verUrls: [] };
     $('pdfNome').textContent = `${nome} · ${paginas.length} ${paginas.length > 1 ? 'páginas' : 'página'}`;
     $('pdfCompartilhar').hidden = !(navigator.canShare && navigator.canShare({ files: [arq] }));
     $('dPdf').showModal();
@@ -3159,10 +3173,32 @@ async function exportarPdf(botao) {
     botao.disabled = false; botao.innerHTML = txt;
   }
 }
-$('pdfAbrir').onclick = () => { const j = window.open(pdfPronto.url, '_blank'); if (!j) location.href = pdfPronto.url; };
+// O PDF so existe na memoria do app: Abrir mostra as paginas aqui mesmo (abrir em outra aba faria o Android baixar o
+// arquivo para Downloads). So Salvar ou Compartilhar tiram uma copia do app. Fechar libera tudo da memoria.
+function liberarPdf() {
+  if (!pdfPronto) return;
+  URL.revokeObjectURL(pdfPronto.url);
+  pdfPronto.verUrls.forEach((u) => URL.revokeObjectURL(u));
+  $('pdfPaginas').replaceChildren();
+  pdfPronto = null;
+}
+$('pdfAbrir').onclick = () => {
+  pdfPronto.verUrls.forEach((u) => URL.revokeObjectURL(u));
+  pdfPronto.verUrls = pdfPronto.pags.map((b) => URL.createObjectURL(b));
+  $('pdfVerNome').textContent = pdfPronto.arq.name;
+  $('pdfPaginas').innerHTML = pdfPronto.verUrls.map((u, i) => `<img src="${u}" alt="Página ${i + 1}">`).join('');
+  $('pdfVerCompartilhar').hidden = $('pdfCompartilhar').hidden;
+  $('dPdfVer').showModal();
+  $('pdfPaginas').scrollTop = 0;
+};
+$('dPdfVer').addEventListener('close', () => { if (!pdfPronto) return; pdfPronto.verUrls.forEach((u) => URL.revokeObjectURL(u)); pdfPronto.verUrls = []; $('pdfPaginas').replaceChildren(); });
+$('pdfVerFechar').onclick = () => $('dPdfVer').close();
+$('pdfVerSalvar').onclick = () => $('pdfSalvar').click();
+$('pdfVerCompartilhar').onclick = () => $('pdfCompartilhar').click();
+$('dPdf').addEventListener('close', () => { if (!$('dPdfVer').open) liberarPdf(); });
 $('pdfSalvar').onclick = () => { const a = document.createElement('a'); a.href = pdfPronto.url; a.download = pdfPronto.arq.name; document.body.appendChild(a); a.click(); a.remove(); };
 $('pdfCompartilhar').onclick = () => navigator.share({ files: [pdfPronto.arq], title: pdfPronto.arq.name }).catch(() => {});
-$('pdfFechar').onclick = () => $('dPdf').close();
+$('pdfFechar').onclick = () => { $('dPdfVer').close(); $('dPdf').close(); liberarPdf(); };
 // Um "Exportar para PDF" logo abaixo de cada "Exportar para Excel".
 // Excel e PDF lado a lado, cada um com o seu icone (desenhados aqui, nas cores de cada tipo de arquivo).
 const ICO_EXCEL = '<svg class="icoArq" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" fill="#1d6f42"/><path d="M8 7l8 10M16 7l-8 10" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>';
@@ -4248,7 +4284,8 @@ function renderUsa() {
   corpo('ab').innerHTML = htmlViagens(usaListas.ab, 'Nenhuma viagem em aberto.', usaSec.ab.lista);
   corpo('fin').innerHTML = htmlViagens(usaListas.fin, 'Nenhuma viagem finalizada.', usaSec.fin.lista);
   // Exportar aparece nas viagens so na visao Em lista; em Custos, sempre.
-  for (const id of ['ab', 'fin']) document.querySelector(`[data-exportar="usa-${id}"]`).hidden = !usaSec[id].lista;  // o PDF aparece nas duas visoes
+  // Excel e PDF so na visao Em lista (nos cards, os dois somem).
+  for (const id of ['ab', 'fin']) { const b = document.querySelector(`[data-exportar="usa-${id}"]`), l = b.closest('.expLinha'); b.hidden = !l && !usaSec[id].lista; if (l) l.hidden = !usaSec[id].lista; }
   const filtradas = usaListas.cus = filtrar('cus', todas.filter((v) => !v.semDesp));
   corpo('cus').innerHTML = !filtradas.length ? '<p class="fraco" style="margin:0">Nenhuma viagem no filtro.</p>'
     : filtradas.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}"><span class="q">${viagemFinalizada(v, h) ? '<span class="tipoViag fim">Encerrada</span>' : '<span class="tipoViag aberta">Em aberto</span>'} ${pilTipo(v)}<br><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small>${htmlCorpPes(u, v)}</span></button>`).join('')
