@@ -136,6 +136,8 @@
   h4.vooSecao { margin: 10px 0 6px; padding: 6px 10px; border-radius: 8px; background: #1d4ed8; color: #fff; font-size: 14px; }
   #itVPax input:disabled { opacity: .6; }
   .itItem.fimTrilho .itTrilho::before { display: none; }
+  .vooModo.mesmoLoc { margin: 4px 0 0; }
+  .paxLinha input.paxLoc[readonly] { opacity: .6; }
   .horaSel select { flex: 1; min-width: 0; margin: 0; padding: 0 6px; text-align: center; text-align-last: center; }
   .horaSel b { color: var(--mut); }
   .tres > label:first-child { grid-column: 1 / -1; }
@@ -861,7 +863,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.76.1 · 09/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.76.3 · 09/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1353,11 +1355,12 @@
     <div id="itDLocalSug" class="localSug" aria-live="polite"></div>
   </div>
   <div class="tres" data-it="aereo hotel evento carro transporte"><label><span id="itFimRot">Fim</span><input id="itFim" type="date"></label><label>Hora<span class="horaSel" data-hora="itHoraFim"><select class="hh" aria-label="Hora"></select><b>:</b><select class="mm" aria-label="Minutos"></select></span><input id="itHoraFim" type="hidden"></label><label>Fuso<input id="itFusoFim" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
-  <div class="rotuloCampo" id="itPaxBox"><span id="itPaxRot">Passageiros: localizador e assento</span><div id="itPax"></div></div>
+  <div class="rotuloCampo" id="itPaxBox"><span id="itPaxRot">Passageiros: localizador e assento</span><div class="vooModo mesmoLoc"><label><input type="checkbox" id="itMesmoLoc">Mesmo localizador para todos</label></div><div id="itPax"></div></div>
   <label data-it="aereo transporte evento" id="itAssRot">Assento<input id="itAssento" maxlength="12" autocomplete="off" placeholder="Ex.: 12A"></label>
   <label id="itLocRot">Código do localizador<input id="itLocalizador" maxlength="40" autocomplete="off"></label>
   <div id="itVoltaBox" hidden>
     <h4 class="vooSecao">Voo de volta</h4>
+    <div class="vooModo"><label><input type="checkbox" id="itVEncerra">Encerramento da viagem</label></div>
     <div class="dois"><div class="rotuloCampo"><span>Companhia</span><details class="multiSel" id="itVCiaSel"><summary><span id="itVCiaTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input id="itVCiaFiltro" type="search" autocomplete="off" placeholder="Buscar companhia" aria-label="Buscar companhia"><div id="itVCiaOpcoes"></div></div></details><input type="hidden" id="itVCia"></div><label>Nº do voo<input id="itVVoo" maxlength="12" autocomplete="off" placeholder="Ex.: 1234"></label></div>
     <div class="vooBusca"><div class="botaoInfo"><button type="button" class="mini" id="itVBuscarVoo">Buscar dados do voo</button></div><div id="itVVooOpcoes" class="localSug" aria-live="polite"></div></div>
     <div class="dois"><label>Origem<input id="itVOrigem" maxlength="80" autocomplete="off" placeholder="BOS"></label><label>Destino<input id="itVDestino" maxlength="80" autocomplete="off" placeholder="GRU"></label></div>
@@ -1369,7 +1372,7 @@
     </div>
     <div class="tres"><label>Partida<input id="itVData" type="date"></label><label>Hora<span class="horaSel" data-hora="itVHora"><select class="hh" aria-label="Hora"></select><b>:</b><select class="mm" aria-label="Minutos"></select></span><input id="itVHora" type="hidden"></label><label>Fuso<input id="itVFuso" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
     <div class="tres"><label>Chegada<input id="itVFim" type="date"></label><label>Hora<span class="horaSel" data-hora="itVHoraFim"><select class="hh" aria-label="Hora"></select><b>:</b><select class="mm" aria-label="Minutos"></select></span><input id="itVHoraFim" type="hidden"></label><label>Fuso<input id="itVFusoFim" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
-    <div class="rotuloCampo" id="itVPaxBox"><span class="rotLocal"><span>Passageiros: localizador e assento</span><label><input type="checkbox" id="itVRepetir">Repetir da ida</label></span><div id="itVPax"></div></div>
+    <div class="rotuloCampo" id="itVPaxBox"><span class="rotLocal"><span>Passageiros: localizador e assento</span><label><input type="checkbox" id="itVRepetir">Repetir da ida</label></span><div class="vooModo mesmoLoc"><label><input type="checkbox" id="itVMesmoLoc">Mesmo localizador para todos</label></div><div id="itVPax"></div></div>
   </div>
   <label>Obs<textarea id="itObs" maxlength="500" rows="2" placeholder="Opcional"></textarea></label>
   <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="itFechar">Fechar</button><button type="button" class="sec" id="itDuplicar" hidden>Duplicar</button><button type="button" class="perigo" id="itExcluir" hidden>Excluir</button></div>
@@ -4841,7 +4844,6 @@ function formaItem() {
   $('itEncerraBox').hidden = !soIda;
   $('itIdaTit').hidden = t !== 'aereo' || soIda;
   $('itVPaxBox').hidden = !$('itVPax').children.length;
-  $('itVPax').querySelectorAll('input').forEach((i) => { i.disabled = $('itVRepetir').checked; });
   $('itDaDesp').hidden = !daDesp;
   const comPax = !!$('itPax').children.length, comAss = temAssento(t);
   $('itPaxBox').hidden = !comPax;
@@ -5008,6 +5010,10 @@ function abrirItem(id) {
   locItV.por(vv.local);
   montarPax(voltaEd, 'itVPax');
   $('itVRepetir').checked = !voltaEd || JSON.stringify(voltaEd.pax || []) === JSON.stringify((x && x.pax) || []);
+  // Volta ja gravada: o que esta nela e da pessoa (a ida nao sobrescreve). Item novo: termina a viagem, por padrao.
+  if (voltaEd) $('itVPax').querySelectorAll('input').forEach((i) => { if (i.value) i.dataset.editado = '1'; });
+  $('itVEncerra').checked = voltaEd ? !!voltaEd.encerra : true;
+  porMesmoLoc('it'); porMesmoLoc('itV');
   $('itExcluir').hidden = $('itDuplicar').hidden = !x;
   // Item novo: oferece as despesas da viagem que podem virar item e ainda nao viraram.
   itDespSel = null;
@@ -5022,7 +5028,33 @@ function abrirItem(id) {
 }
 $('itMais').onclick = () => abrirItem(null);
 $('itSoIda').addEventListener('change', formaItem);
-$('itVRepetir').addEventListener('change', formaItem);
+// Repetir da ida: copia localizador e assento da ida para a volta e continua copiando o que se digita na ida,
+// menos nos campos que a pessoa mudou na volta (assento diferente, por exemplo). Tudo continua editavel.
+function repetirIda(forcar) {
+  if (!$('itVRepetir').checked) return;
+  for (const l of document.querySelectorAll('#itPax [data-pax]')) {
+    const v = $('itVPax').querySelector(`[data-pax="${CSS.escape(l.dataset.pax)}"]`);
+    if (!v) continue;
+    for (const c of ['.paxLoc', '.paxAss']) { const de = l.querySelector(c), para = v.querySelector(c); if (forcar || !para.dataset.editado) { para.value = de.value; if (forcar) delete para.dataset.editado; } }
+  }
+}
+$('itVRepetir').addEventListener('change', () => repetirIda(true));
+// Mesmo localizador para todos: os outros passageiros ficam com o localizador do primeiro (so leitura) enquanto marcado.
+function mesmoLoc(pre) {
+  const chk = $(pre + 'MesmoLoc'), locs = [...$(pre + 'Pax').querySelectorAll('.paxLoc')];
+  chk.closest('.mesmoLoc').hidden = locs.length < 2;
+  locs.slice(1).forEach((i) => { i.readOnly = chk.checked && locs.length > 1; if (i.readOnly) i.value = locs[0].value; });
+}
+// Ao abrir: marcada quando ha mais de um passageiro e todos tem o mesmo localizador (ou nenhum, no item novo).
+function porMesmoLoc(pre) {
+  const v = [...$(pre + 'Pax').querySelectorAll('.paxLoc')].map((i) => i.value);
+  $(pre + 'MesmoLoc').checked = v.length > 1 && v.every((x) => x === v[0]);
+  mesmoLoc(pre);
+}
+for (const pre of ['it', 'itV']) $(pre + 'MesmoLoc').addEventListener('change', () => mesmoLoc(pre));
+$('itPax').addEventListener('input', () => { mesmoLoc('it'); repetirIda(false); mesmoLoc('itV'); });
+$('itVPax').addEventListener('input', () => mesmoLoc('itV'));
+$('itVPax').addEventListener('input', (e) => { if (e.target.matches('input')) e.target.dataset.editado = '1'; });
 // Duplicar: o formulario continua com tudo o que esta nele, mas vira item novo (sem ligacao com despesa) ao salvar.
 $('itDuplicar').onclick = () => {
   itemEd = null; itDespSel = null; voltaEd = null;
@@ -5090,9 +5122,9 @@ $('fItin').onsubmit = (e) => {
     if (vFim && vFim < vData) return avisar('Datas inválidas', 'A chegada da volta não pode ser antes da partida.');
     volta = { id: voltaEd ? voltaEd.id : novoId(), viagem: v.id, tipo: 'aereo', cat: item.cat, data: vData, hora: txt('itVHora'), fuso: txt('itVFuso'), fim: vFim,
       horaFim: txt('itVHoraFim'), fusoFim: txt('itVFusoFim'), local: locItV.valor || undefined, cia: txt('itVCia'), voo: txt('itVVoo'), origem: vo, destino: vd, aeroOrigem: txt('itVAeroO'), aeroDestino: txt('itVAeroD'),
-      titulo: (vo || vd ? `${vo || '?'} - ${vd || '?'}` : [txt('itVVoo'), txt('itVCia')].filter(Boolean).join(' ') || 'Voo de volta').slice(0, 120), lado: 'volta', par: item.id, encerra: true };
+      titulo: (vo || vd ? `${vo || '?'} - ${vd || '?'}` : [txt('itVVoo'), txt('itVCia')].filter(Boolean).join(' ') || 'Voo de volta').slice(0, 120), lado: 'volta', par: item.id, encerra: $('itVEncerra').checked || undefined };
     if (!$('itPaxBox').hidden) {
-      const pv = $('itVRepetir').checked ? item.pax : lerPax('itVPax');
+      const pv = lerPax('itVPax');
       volta.pax = pv && pv.length ? pv : undefined;
     } else volta.localizador = item.localizador;
     for (const k of Object.keys(volta)) if (volta[k] === undefined) delete volta[k];
