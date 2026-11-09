@@ -130,6 +130,12 @@
   /* Data na linha inteira; hora e fuso lado a lado embaixo (em 375 px, os tres numa linha cortavam a data e a hora). */
   .tres { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; }
   .horaSel { display: flex; align-items: center; gap: 4px; }
+  .vooModo { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0 0 6px; }
+  .vooModo label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; }
+  .vooModo input[type=checkbox] { width: 18px; height: 18px; min-height: 0; margin: 0; }
+  h4.vooSecao { margin: 10px 0 6px; padding: 6px 10px; border-radius: 8px; background: #1d4ed8; color: #fff; font-size: 14px; }
+  #itVPax input:disabled { opacity: .6; }
+  .itItem.fimTrilho .itTrilho::before { display: none; }
   .horaSel select { flex: 1; min-width: 0; margin: 0; padding: 0 6px; text-align: center; text-align-last: center; }
   .horaSel b { color: var(--mut); }
   .tres > label:first-child { grid-column: 1 / -1; }
@@ -855,7 +861,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.73.1 · 08/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.74.0 · 09/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1325,12 +1331,14 @@
   <h3 id="itfTit">Novo item</h3>
   <div id="itDespBox" class="vooBusca" hidden><button type="button" class="mini" id="itDoDesp"></button><small class="fraco">Hotel, aéreo, carro, transporte, parques, shows e passeios lançados nas despesas desta viagem. Escolha um para preencher o item.</small><div id="itDespOpcoes" class="localSug"></div></div>
   <div class="rotuloCampo"><span>Categoria</span><details class="multiSel" id="itCatSel"><summary><span id="itCatTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" id="itCatOpcoes"></div></details><input type="hidden" id="itCat"></div>
+  <div data-it="aereo" class="vooModo"><label><input type="checkbox" id="itSoIda">Somente ida (um voo)</label><label id="itEncerraBox"><input type="checkbox" id="itEncerra">Encerramento da viagem</label></div>
+  <h4 class="vooSecao" id="itIdaTit" data-it="aereo">Voo de ida</h4>
   <p id="itDaDesp" class="fraco" hidden>Este item veio de uma despesa com check-in: as datas e o local seguem a despesa. Para mudar, altere a despesa.</p>
   <div class="dois" data-it="aereo"><div class="rotuloCampo"><span>Companhia</span><details class="multiSel" id="itCiaSel"><summary><span id="itCiaTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input id="itCiaFiltro" type="search" autocomplete="off" placeholder="Buscar companhia" aria-label="Buscar companhia"><div id="itCiaOpcoes"></div></div></details><input type="hidden" id="itCia"></div><label>Nº do voo<input id="itVoo" maxlength="12" autocomplete="off" inputmode="text" placeholder="Ex.: 1234"></label></div>
   <div data-it="aereo" class="vooBusca"><div class="botaoInfo"><button type="button" class="mini" id="itBuscarVoo">Buscar dados do voo</button><button type="button" class="infoBtn" id="itVooInfo" aria-label="Como funciona a busca do voo"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg></button></div><small class="fraco">Dados: AeroDataBox.</small><div id="itVooOpcoes" class="localSug" aria-live="polite"></div></div>
   <div class="dois" data-it="aereo transporte"><label>Origem<input id="itOrigem" maxlength="80" autocomplete="off" placeholder="GRU"></label><label>Destino<input id="itDestino" maxlength="80" autocomplete="off" placeholder="BOS"></label></div>
   <label><span id="itTituloRot">Título</span><input id="itTitulo" maxlength="120" autocomplete="off"></label>
-  <div class="rotuloCampo" data-it="hotel evento carro restaurante"><span class="rotLocal"><span id="itLocalRot">Local (endereço)</span><label data-it="carro"><input type="checkbox" id="itOutro">Devolver em outro local</label></span>
+  <div class="rotuloCampo" data-it="hotel evento carro restaurante aereo"><span class="rotLocal"><span id="itLocalRot">Local (endereço)</span><label data-it="carro"><input type="checkbox" id="itOutro">Devolver em outro local</label></span>
     <div id="itLocalEsc" class="localEsc" hidden></div>
     <input id="itLocalBusca" autocomplete="off" placeholder="Digite o nome do lugar ou o endereço" aria-label="Buscar local">
     <div id="itLocalSug" class="localSug" aria-live="polite"></div>
@@ -1341,6 +1349,20 @@
   <div class="rotuloCampo" id="itPaxBox"><span id="itPaxRot">Passageiros: localizador e assento</span><div id="itPax"></div></div>
   <label data-it="aereo transporte evento" id="itAssRot">Assento<input id="itAssento" maxlength="12" autocomplete="off" placeholder="Ex.: 12A"></label>
   <label id="itLocRot">Código do localizador<input id="itLocalizador" maxlength="40" autocomplete="off"></label>
+  <div id="itVoltaBox" hidden>
+    <h4 class="vooSecao">Voo de volta</h4>
+    <div class="dois"><div class="rotuloCampo"><span>Companhia</span><details class="multiSel" id="itVCiaSel"><summary><span id="itVCiaTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input id="itVCiaFiltro" type="search" autocomplete="off" placeholder="Buscar companhia" aria-label="Buscar companhia"><div id="itVCiaOpcoes"></div></div></details><input type="hidden" id="itVCia"></div><label>Nº do voo<input id="itVVoo" maxlength="12" autocomplete="off" placeholder="Ex.: 1234"></label></div>
+    <div class="vooBusca"><div class="botaoInfo"><button type="button" class="mini" id="itVBuscarVoo">Buscar dados do voo</button></div><div id="itVVooOpcoes" class="localSug" aria-live="polite"></div></div>
+    <div class="dois"><label>Origem<input id="itVOrigem" maxlength="80" autocomplete="off" placeholder="BOS"></label><label>Destino<input id="itVDestino" maxlength="80" autocomplete="off" placeholder="GRU"></label></div>
+    <div class="rotuloCampo"><span>Aeroporto de partida (endereço)</span>
+      <div id="itVLocalEsc" class="localEsc" hidden></div>
+      <input id="itVLocalBusca" autocomplete="off" placeholder="Digite o nome do aeroporto ou o endereço" aria-label="Buscar aeroporto da volta">
+      <div id="itVLocalSug" class="localSug" aria-live="polite"></div>
+    </div>
+    <div class="tres"><label>Partida<input id="itVData" type="date"></label><label>Hora<span class="horaSel" data-hora="itVHora"><select class="hh" aria-label="Hora"></select><b>:</b><select class="mm" aria-label="Minutos"></select></span><input id="itVHora" type="hidden"></label><label>Fuso<input id="itVFuso" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
+    <div class="tres"><label>Chegada<input id="itVFim" type="date"></label><label>Hora<span class="horaSel" data-hora="itVHoraFim"><select class="hh" aria-label="Hora"></select><b>:</b><select class="mm" aria-label="Minutos"></select></span><input id="itVHoraFim" type="hidden"></label><label>Fuso<input id="itVFusoFim" list="listaFusos" maxlength="12" autocomplete="off"></label></div>
+    <div class="rotuloCampo" id="itVPaxBox"><span class="rotLocal"><span>Passageiros: localizador e assento</span><label><input type="checkbox" id="itVRepetir">Repetir da ida</label></span><div id="itVPax"></div></div>
+  </div>
   <label>Obs<textarea id="itObs" maxlength="500" rows="2" placeholder="Opcional"></textarea></label>
   <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="itFechar">Fechar</button><button type="button" class="sec" id="itDuplicar" hidden>Duplicar</button><button type="button" class="perigo" id="itExcluir" hidden>Excluir</button></div>
 </form></dialog>
@@ -3860,11 +3882,11 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
   if (d.usaviagem) { abrirUsaDesp(d.usaviagem); return; }
   if ('infousa' in d) { avisar('Filtro das viagens', TEXTO_FILTRO_USA); return; }
   if (d.usadesp) { abrirDespesa(d.usadesp); return; }
-  if (d.escolhelocal) { (d.escolhelocal === 'it' ? locIt : locUd).escolher(d.place); return; }
+  if (d.escolhelocal) { ({ it: locIt, itV: locItV }[d.escolhelocal] || locUd).escolher(d.place); return; }
   if (d.itin) { abrirItin(d.itin); return; }
   if (d.itcat) { escolherItCat(d.itcat); return; }
   if (d.itdesp) { aplicarDespItin(itDespOps[Number(d.itdesp)]); return; }
-  if (d.itcia) { porCia(d.itcia); return; }
+  if (d.itcia) { porCia(d.itcia, d.pre || 'it'); return; }
   if (d.ititem) { abrirItem(d.ititem); return; }
   if (d.itmapa) { const x = usa().itinerario.find((i) => i.id === d.itmapa); if (x && x.local) abrirMapaLocal(x.local, x.titulo); return; }
   if (d.udcat) { escolherUdCat(d.udcat); $('udCatSel').open = false; return; }
@@ -4634,12 +4656,13 @@ const ICO_ITIN = {
   nota: '<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',
 };
 const ROT_ITIN = {
-  aereo: { titulo: 'Descrição (opcional)', ini: 'Partida', fim: 'Chegada' }, hotel: { titulo: 'Hotel', ini: 'Check-in', fim: 'Check-out', local: 'Endereço do hotel' },
+  aereo: { titulo: 'Descrição (opcional)', ini: 'Partida', fim: 'Chegada', local: 'Aeroporto de partida (endereço)' }, hotel: { titulo: 'Hotel', ini: 'Check-in', fim: 'Check-out', local: 'Endereço do hotel' },
   evento: { titulo: 'Título', ini: 'Início', fim: 'Término' }, carro: { titulo: 'Locadora', ini: 'Retirada', fim: 'Devolução', local: 'Local de retirada' },
   transporte: { titulo: 'Descrição (ex.: Trem Amtrak)', ini: 'Partida', fim: 'Chegada' }, restaurante: { titulo: 'Restaurante', ini: 'Data' }, nota: { titulo: 'Nota', ini: 'Data' },
 };
 let itinAberta = null, itinRolagem = 0, itemEd = null, itDespOps = [], itDespSel = null;
 const locIt = campoLocal('it', () => $('itTitulo').value.trim());
+const locItV = campoLocal('itV', () => 'Voo de volta');
 // Escolher o lugar preenche o titulo vazio (hotel, evento, restaurante, locadora).
 locIt.aoEscolher = (l) => { if (!$('itTitulo').value.trim()) $('itTitulo').value = l.nome.slice(0, 120); };
 const viagemDoItin = () => usa().viagens.find((v) => v.id === itinAberta);
@@ -4706,8 +4729,9 @@ function htmlItemItin(e, det) {
   if (x.obs) D.push(`<span class="itObs">Obs: ${esc(x.obs)}</span>`);
   if (x.despesa) D.push(x.lado ? `Lançado nas despesas (${x.lado === 'ida' ? 'ida' : 'volta'})` : 'Lançado nas despesas');
   const linhas = det ? [...P, ...D] : P;
-  const tag = x.despesa ? `<span class="itTag">${x.lado === 'volta' ? 'Volta · despesa' : x.lado === 'ida' ? 'Ida · despesa' : 'Da despesa'}</span>` : '';
-  return `<div class="itItem"><div class="itHora">${hora ? `<b>${esc(hora)}</b><small>${esc(fuso || '')}</small>` : ''}</div>`
+  const tag = x.despesa ? `<span class="itTag">${x.lado === 'volta' ? 'Volta · despesa' : x.lado === 'ida' ? 'Ida · despesa' : 'Da despesa'}</span>`
+    : x.par ? `<span class="itTag">${x.lado === 'volta' ? 'Volta' : 'Ida'}</span>` : x.encerra ? '<span class="itTag">Fim da viagem</span>' : '';
+  return `<div class="itItem${x.encerra && !fim ? ' fimTrilho' : ''}"><div class="itHora">${hora ? `<b>${esc(hora)}</b><small>${esc(fuso || '')}</small>` : ''}</div>`
     + `<div class="itTrilho">${c ? iconeCat(c) : `<span class="itIco"><svg viewBox="0 0 24 24" aria-hidden="true">${ICO_ITIN[x.tipo]}</svg></span>`}</div>`
     + `<button type="button" class="itTexto" data-ititem="${esc(x.id)}"><b>${esc(titulo)}${tag}</b>${linhas.map((l) => `<small>${l}</small>`).join('')}</button>`
     + `${x.local ? `<button type="button" class="itPino" data-itmapa="${esc(x.id)}" aria-label="Ver ${esc(x.local.nome)} no mapa">${PINO}</button>` : '<span></span>'}</div>`;
@@ -4786,6 +4810,12 @@ function formaItem() {
   if (rot.fim) $('itFimRot').textContent = rot.fim;
   $('itLocalRot').textContent = rot.local || 'Local (endereço)';
   $('itLocalFimBox').hidden = t !== 'carro' || !$('itOutro').checked;
+  const soIda = $('itSoIda').checked;
+  $('itVoltaBox').hidden = t !== 'aereo' || soIda;
+  $('itEncerraBox').hidden = !soIda;
+  $('itIdaTit').hidden = t !== 'aereo' || soIda;
+  $('itVPaxBox').hidden = !$('itVPax').children.length;
+  $('itVPax').querySelectorAll('input').forEach((i) => { i.disabled = $('itVRepetir').checked; });
   $('itDaDesp').hidden = !daDesp;
   const comPax = !!$('itPax').children.length, comAss = temAssento(t);
   $('itPaxBox').hidden = !comPax;
@@ -4798,42 +4828,45 @@ function formaItem() {
   $('itLocalBusca').disabled = daDesp && !!locIt.valor;
 }
 // Companhia: escolhida na lista (CIAS_AEREAS em icones.js), com filtro; a que veio do voo e nao esta na lista tambem vale.
-function porCia(nome) {
-  $('itCia').value = nome || '';
-  $('itCiaTxt').innerHTML = nome ? `${logoCiaHtml(nome)}<span>${esc(nome)}</span>` : '<span>Escolha</span>';
-  $('itCiaSel').open = false;
+function porCia(nome, p = 'it') {
+  $(p + 'Cia').value = nome || '';
+  $(p + 'CiaTxt').innerHTML = nome ? `${logoCiaHtml(nome)}<span>${esc(nome)}</span>` : '<span>Escolha</span>';
+  $(p + 'CiaSel').open = false;
 }
-function listarCias() {
-  const q = $('itCiaFiltro').value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+function listarCias(p = 'it') {
+  const q = $(p + 'CiaFiltro').value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   const achou = CIAS_AEREAS.filter((c) => !q || (c[0] + ' ' + c[1]).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(q));
-  $('itCiaOpcoes').innerHTML = achou.map((c) => `<button type="button" class="linha" data-itcia="${esc(c[1])}">${logoCiaHtml(c[1])}<span class="q">${esc(c[1])}<small>${c[0]}</small></span></button>`).join('')
+  $(p + 'CiaOpcoes').innerHTML = achou.map((c) => `<button type="button" class="linha" data-itcia="${esc(c[1])}" data-pre="${p}">${logoCiaHtml(c[1])}<span class="q">${esc(c[1])}<small>${c[0]}</small></span></button>`).join('')
     || '<p class="fraco" style="margin:8px 0">Nenhuma companhia com esse nome.</p>';
 }
-$('itCiaFiltro').addEventListener('input', listarCias);
-$('itCiaSel').addEventListener('toggle', () => { if ($('itCiaSel').open) { $('itCiaFiltro').value = ''; listarCias(); $('itCiaFiltro').focus(); } });
+for (const p of ['it', 'itV']) {
+  $(p + 'CiaFiltro').addEventListener('input', () => listarCias(p));
+  $(p + 'CiaSel').addEventListener('toggle', () => { if ($(p + 'CiaSel').open) { $(p + 'CiaFiltro').value = ''; listarCias(p); $(p + 'CiaFiltro').focus(); } });
+}
 // Assento: aereo e, entre os itens comuns, so shows e eventos (pelo nome da categoria).
 const temAssento = (t) => t === 'aereo' || (t === 'evento' && /show|evento|teatro|concert|espetac|musical|opera|jogo|cinema/.test(((catItem() || {}).nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()));
 // Passageiros do item: uma linha por viajante da viagem (os arquivados so se ja estao no item), com localizador e assento.
-function montarPax(x) {
+function montarPax(x, el = 'itPax') {
   const u = usa(), v = viagemDoItin(), pax = (x && x.pax) || [];
   const pessoas = u.viajantes.filter((p) => (v.viajantes.includes(p.id) && !p.arquivadaEm) || pax.some((q) => q.quem === p.id));
   // Item antigo (localizador e assento unicos): localizador para todos, assento no primeiro.
   const antigo = x && !x.pax ? { loc: x.localizador || '', assento: x.assento || '' } : null;
-  $('itPax').innerHTML = pessoas.map((p, i) => {
+  $(el).innerHTML = pessoas.map((p, i) => {
     const q = pax.find((y) => y.quem === p.id) || (antigo ? { loc: antigo.loc, assento: i ? '' : antigo.assento } : {});
     return `<div class="paxLinha" data-pax="${esc(p.id)}">${fotoViajante(p)}<span class="q">${esc(p.nome)}</span><input class="paxLoc" maxlength="40" autocomplete="off" placeholder="Localizador" aria-label="Localizador de ${esc(p.nome)}" value="${esc(q.loc || '')}"><input class="paxAss" maxlength="12" autocomplete="off" placeholder="Assento" aria-label="Assento de ${esc(p.nome)}" value="${esc(q.assento || '')}"></div>`;
   }).join('');
   return pessoas.length;
 }
-const lerPax = () => [...document.querySelectorAll('#itPax [data-pax]')].map((l) => ({ quem: l.dataset.pax, loc: l.querySelector('.paxLoc').value.trim() || undefined, assento: l.querySelector('.paxAss').value.trim() || undefined }))
+const lerPax = (el = 'itPax') => [...document.querySelectorAll(`#${el} [data-pax]`)].map((l) => ({ quem: l.dataset.pax, loc: l.querySelector('.paxLoc').value.trim() || undefined, assento: l.querySelector('.paxAss').value.trim() || undefined }))
   .filter((p) => p.loc || p.assento).map((p) => Object.fromEntries(Object.entries(p).filter(([, val]) => val !== undefined)));
 // AeroDataBox pelo RapidAPI (aceita chamada direto do navegador). Plano gratuito: cerca de 200 buscas por mes.
 const chaveAero = () => db.google && db.google.aeroKey;
-let vooModelos = [];
-async function buscarVoo() {
-  const cia = ciaPorNome($('itCia').value);
-  let voo = $('itVoo').value.replace(/\s+/g, '').toUpperCase();
-  $('itVooOpcoes').innerHTML = '';
+let vooModelos = [], vooAlvo = 'it';
+async function buscarVoo(p = 'it') {
+  vooAlvo = p;
+  const cia = ciaPorNome($(p + 'Cia').value);
+  let voo = $(p + 'Voo').value.replace(/\s+/g, '').toUpperCase();
+  $(p + 'VooOpcoes').innerHTML = '';
   if (!chaveAero()) return avisar('Falta a chave do AeroDataBox', 'Grave a chave em Ajustes > Backup, no campo "Chave do AeroDataBox (dados do voo)".');
   // So o numero: junta o codigo da companhia escolhida.
   if (/^\d{1,5}$/.test(voo)) {
@@ -4841,7 +4874,7 @@ async function buscarVoo() {
     voo = cia[0] + voo;
   }
   if (!/^[A-Z0-9]{3,10}$/.test(voo)) return avisar('Falta o número do voo', 'Digite o número do voo. Ex.: 1234.');
-  const b = $('itBuscarVoo'), txt = b.textContent;
+  const b = $(p + 'BuscarVoo'), txt = b.textContent;
   b.disabled = true;
   b.textContent = 'Buscando...';
   try {
@@ -4870,8 +4903,8 @@ function abrirVoo() {
     + `<b>${esc(m.origem)} → ${esc(m.destino)}</b><small>${esc([m.origemNome, m.destinoNome].filter(Boolean).join(' → '))}</small>`
     + `<small>Partida ${esc(m.hora)} ${esc(m.fuso)} · Chegada ${esc(m.horaFim || '?')} ${esc(m.fusoFim || '')}${m.fim ? mais(m.data, m.fim) : ''}</small>`
     + `${m.duracao ? `<small>${duracaoTxt(m.duracao)}</small>` : ''}</span></label>`).join('');
-  $('vooData').value = $('itData').value || '';
-  $('vooData').disabled = $('itData').disabled;
+  $('vooData').value = $(vooAlvo + 'Data').value || '';
+  $('vooData').disabled = $(vooAlvo + 'Data').disabled;
   $('vooRef').textContent = `Horários do voo de ${dataBR(m0.data)}, o mais próximo de hoje. Na data escolhida, o app calcula a partida e a chegada pelo fuso de cada aeroporto, inclusive horário de verão. Confira no seu bilhete.`;
   $('dVoo').showModal();
 }
@@ -4880,18 +4913,19 @@ $('vooPreencher').onclick = () => {
   const sel = document.querySelector('#vooTrechos input:checked'), m = vooModelos[sel ? Number(sel.value) : 0], d = vooNaData(m, $('vooData').value);
   if (!d) return avisar('Falta a data', 'Escolha a data do voo.');
   $('dVoo').close();
-  aplicarVoo({ ...m, ...d });
+  aplicarVoo({ ...m, ...d }, vooAlvo);
 };
 // Preenche o que veio do voo; campo travado (item vindo de despesa: datas) fica como esta. Localizador e assento nao.
-function aplicarVoo(v) {
-  const por = (id, val) => { if (val && !$(id).disabled) $(id).value = val; };
+function aplicarVoo(v, p = 'it') {
+  const por = (id, val) => { if (val && !$(p + id).disabled) $(p + id).value = val; };
   const cia = ciaPorVoo(v.voo);
-  porCia(cia ? cia[1] : v.cia);
-  for (const [id, val] of [['itVoo', v.voo], ['itOrigem', v.origem], ['itDestino', v.destino], ['itData', v.data], ['itHora', v.hora], ['itFuso', v.fuso],
-    ['itFim', v.fim], ['itHoraFim', v.horaFim], ['itFusoFim', v.fusoFim]]) por(id, val);
-  $('itVooOpcoes').innerHTML = `<p class="fraco" style="margin:6px 0 0">Preenchido: ${esc(v.origem)} → ${esc(v.destino)} em ${dataBR(v.data)}. Confira e toque em Salvar.</p>`;
+  porCia(cia ? cia[1] : v.cia, p);
+  for (const [id, val] of [['Voo', v.voo], ['Origem', v.origem], ['Destino', v.destino], ['Data', v.data], ['Hora', v.hora], ['Fuso', v.fuso],
+    ['Fim', v.fim], ['HoraFim', v.horaFim], ['FusoFim', v.fusoFim]]) por(id, val);
+  $(p + 'VooOpcoes').innerHTML = `<p class="fraco" style="margin:6px 0 0">Preenchido: ${esc(v.origem)} → ${esc(v.destino)} em ${dataBR(v.data)}. Confira e toque em Salvar.</p>`;
 }
-$('itBuscarVoo').onclick = buscarVoo;
+$('itBuscarVoo').onclick = () => buscarVoo('it');
+$('itVBuscarVoo').onclick = () => buscarVoo('itV');
 // Hora do itinerario em duas listas (horas e minutos) no lugar do relogio do Android, cujos botoes cortavam.
 // O campo escondido continua com "hh:mm" (ou vazio): quem le e grava .value nao muda.
 document.querySelectorAll('.horaSel').forEach((caixa) => {
@@ -4907,9 +4941,13 @@ document.querySelectorAll('.horaSel').forEach((caixa) => {
   });
 });
 $('itVooInfo').onclick = () => avisar('Buscar dados do voo', 'Escolha a companhia e digite o número do voo (só os números bastam). A busca não usa a data: ela mostra o voo mais próximo de hoje, com origem, destino, horários e duração. Você escolhe a data do voo e o app preenche origem, destino, partida, chegada e fusos, calculando o fuso de cada aeroporto naquela data (inclusive horário de verão). Localizador e assento não são preenchidos. Cada busca gasta 1 consulta do plano gratuito do AeroDataBox (cerca de 200 por mês). Dados: AeroDataBox.');
+let voltaEd = null;
 function abrirItem(id) {
-  const v = viagemDoItin(), x = usa().itinerario.find((i) => i.id === id);
+  const v = viagemDoItin(), x0 = usa().itinerario.find((i) => i.id === id);
+  // A volta de um par abre o formulario da ida, com as duas partes.
+  const x = x0 && x0.par && x0.lado === 'volta' ? usa().itinerario.find((i) => i.id === x0.par) || x0 : x0;
   itemEd = x ? x.id : null;
+  voltaEd = x && x.par && x.lado === 'ida' ? usa().itinerario.find((i) => i.id === x.par) || null : null;
   $('itfTit').textContent = x ? 'Editar item' : 'Novo item';
   // Categorias de Ajustes Travel, sem as arquivadas (a do item editado continua).
   const u = usa(), cats = u.categorias.filter((c) => !c.arquivadaEm || (x && c.id === x.cat));
@@ -4930,6 +4968,17 @@ function abrirItem(id) {
   $('itOutro').checked = !!(x && x.localFim);
   $('itVooOpcoes').innerHTML = '';
   montarPax(x);
+  // Voo de volta: item novo comeca como ida e volta; item ja gravado sem par, como somente ida.
+  const vv = voltaEd || {};
+  $('itSoIda').checked = !!x && !voltaEd;
+  $('itSoIda').disabled = !!(x && x.despesa);
+  $('itEncerra').checked = !!(x && x.encerra && !voltaEd);
+  porCia(vv.cia, 'itV');
+  for (const [el, c] of [['itVVoo', 'voo'], ['itVOrigem', 'origem'], ['itVDestino', 'destino'], ['itVData', 'data'], ['itVHora', 'hora'], ['itVFuso', 'fuso'], ['itVFim', 'fim'], ['itVHoraFim', 'horaFim'], ['itVFusoFim', 'fusoFim']]) $(el).value = vv[c] || '';
+  $('itVVooOpcoes').innerHTML = '';
+  locItV.por(vv.local);
+  montarPax(voltaEd, 'itVPax');
+  $('itVRepetir').checked = !voltaEd || JSON.stringify(voltaEd.pax || []) === JSON.stringify((x && x.pax) || []);
   $('itExcluir').hidden = $('itDuplicar').hidden = !x;
   // Item novo: oferece as despesas da viagem que podem virar item e ainda nao viraram.
   itDespSel = null;
@@ -4943,9 +4992,11 @@ function abrirItem(id) {
   $('dItin').showModal();
 }
 $('itMais').onclick = () => abrirItem(null);
+$('itSoIda').addEventListener('change', formaItem);
+$('itVRepetir').addEventListener('change', formaItem);
 // Duplicar: o formulario continua com tudo o que esta nele, mas vira item novo (sem ligacao com despesa) ao salvar.
 $('itDuplicar').onclick = () => {
-  itemEd = null; itDespSel = null;
+  itemEd = null; itDespSel = null; voltaEd = null;
   $('itfTit').textContent = 'Novo item (cópia)';
   // Titulo feito sozinho de origem e destino: some, para ser refeito com os novos ao salvar.
   if ($('itTitulo').value === `${$('itOrigem').value || '?'} - ${$('itDestino').value || '?'}`) $('itTitulo').value = '';
@@ -4966,6 +5017,8 @@ $('itDoDesp').onclick = () => {
 // Despesa escolhida: preenche categoria, titulo, datas e local; o item fica ligado a ela ao salvar.
 function aplicarDespItin(o) {
   itDespSel = o;
+  // Despesa de aereo ja traz ida e volta como opcoes separadas: aqui e um voo so.
+  $('itSoIda').checked = true; $('itSoIda').disabled = true;
   escolherItCat(o.cat);
   $('itTitulo').value = o.titulo;
   $('itData').value = o.data;
@@ -4986,7 +5039,7 @@ $('fItin').onsubmit = (e) => {
   const origem = ['aereo', 'transporte'].includes(t) ? txt('itOrigem') : undefined, destino = ['aereo', 'transporte'].includes(t) ? txt('itDestino') : undefined;
   const titulo = txt('itTitulo') || (origem || destino ? `${origem || '?'} - ${destino || '?'}` : t === 'aereo' ? [txt('itVoo'), txt('itCia')].filter(Boolean).join(' ') || 'Voo' : locIt.valor ? locIt.valor.nome : catItem().nome);
   if (!titulo) return avisar('Falta informação', `Informe ${ROT_ITIN[t].titulo.toLowerCase()}.`);
-  const comLocal = ['hotel', 'evento', 'carro', 'restaurante'].includes(t);  // transporte e aereo usam origem e destino
+  const comLocal = ['hotel', 'evento', 'carro', 'restaurante', 'aereo'].includes(t);  // transporte usa origem e destino
   const item = { id: atual ? atual.id : novoId(), viagem: v.id, tipo: t, cat: $('itCat').value, titulo: titulo.slice(0, 120), data, hora: txt('itHora'), fuso: txt('itFuso'),
     fim, horaFim: usaFim ? txt('itHoraFim') : undefined, fusoFim: usaFim ? txt('itFusoFim') : undefined,
     local: comLocal ? locIt.valor || undefined : undefined, localFim: t === 'carro' && $('itOutro').checked ? txt('itLocalFim') : undefined,
@@ -4997,15 +5050,41 @@ $('fItin').onsubmit = (e) => {
     item.pax = pax.length ? pax : undefined;
     item.localizador = item.assento = undefined;
   }
+  // Aereo: ida e volta viram dois itens ligados (par); a volta encerra o traco. Somente ida: encerra se marcado.
+  let volta = null;
+  if (t === 'aereo' && !$('itSoIda').checked) {
+    const vData = $('itVData').value, vFim = $('itVFim').value || undefined, vo = txt('itVOrigem'), vd = txt('itVDestino');
+    if (!vData) return avisar('Falta informação', 'Informe a data da partida do voo de volta, ou marque "Somente ida".');
+    if (vData < data) return avisar('Datas inválidas', 'A volta não pode ser antes da ida.');
+    if (vFim && vFim < vData) return avisar('Datas inválidas', 'A chegada da volta não pode ser antes da partida.');
+    volta = { id: voltaEd ? voltaEd.id : novoId(), viagem: v.id, tipo: 'aereo', cat: item.cat, data: vData, hora: txt('itVHora'), fuso: txt('itVFuso'), fim: vFim,
+      horaFim: txt('itVHoraFim'), fusoFim: txt('itVFusoFim'), local: locItV.valor || undefined, cia: txt('itVCia'), voo: txt('itVVoo'), origem: vo, destino: vd,
+      titulo: (vo || vd ? `${vo || '?'} - ${vd || '?'}` : [txt('itVVoo'), txt('itVCia')].filter(Boolean).join(' ') || 'Voo de volta').slice(0, 120), lado: 'volta', par: item.id, encerra: true };
+    if (!$('itPaxBox').hidden) {
+      const pv = $('itVRepetir').checked ? item.pax : lerPax('itVPax');
+      volta.pax = pv && pv.length ? pv : undefined;
+    } else volta.localizador = item.localizador;
+    for (const k of Object.keys(volta)) if (volta[k] === undefined) delete volta[k];
+    Object.assign(item, { lado: 'ida', par: volta.id });
+    delete item.encerra;
+  } else {
+    if (t === 'aereo' && $('itEncerra').checked) item.encerra = true;
+    if (voltaEd) { delete item.par; if (!item.despesa) delete item.lado; }
+  }
   for (const k of Object.keys(item)) if (item[k] === undefined) delete item[k];
-  if (!itemItinValido(item, usa())) return avisar('Não foi possível salvar', 'Confira a hora (hh:mm) e o tamanho dos textos.');
-  if (atual) usa().itinerario[usa().itinerario.indexOf(atual)] = item; else usa().itinerario.push(item);
+  if (!itemItinValido(item, usa()) || (volta && !itemItinValido(volta, usa()))) return avisar('Não foi possível salvar', 'Confira a hora (hh:mm) e o tamanho dos textos.');
+  const it = usa().itinerario;
+  if (atual) it[it.indexOf(atual)] = item; else it.push(item);
+  // A volta antiga sai se virou somente ida; a nova (ou a mesma, atualizada) entra no lugar.
+  const vAntes = voltaEd && it.find((i) => i.id === voltaEd.id);
+  if (vAntes && !volta) it.splice(it.indexOf(vAntes), 1);
+  else if (volta) { if (vAntes) it[it.indexOf(vAntes)] = volta; else it.push(volta); }
   $('dItin').close();
   salvar();
 };
 $('itExcluir').onclick = async () => {
-  if (!await modal('Excluir item?', $('itTitulo').value || '', 'Sim, excluir', 'Cancelar')) return;
-  usa().itinerario = usa().itinerario.filter((i) => i.id !== itemEd);
+  if (!await modal(voltaEd ? 'Excluir ida e volta?' : 'Excluir item?', voltaEd ? 'Os dois voos saem do itinerário.' : $('itTitulo').value || '', 'Sim, excluir', 'Cancelar')) return;
+  usa().itinerario = usa().itinerario.filter((i) => i.id !== itemEd && !(voltaEd && i.id === voltaEd.id));
   $('dItin').close();
   salvar();
 };

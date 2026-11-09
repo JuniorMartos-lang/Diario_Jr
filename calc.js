@@ -1022,7 +1022,9 @@ function itemItinValido(x, u) {
     && horaOk(x.hora) && horaOk(x.horaFim) && txt(x.fuso, 12) && txt(x.fusoFim, 12) && txt(x.localizador, 40) && txt(x.obs, 500)
     && txt(x.cia, 60) && txt(x.voo, 12) && txt(x.assento, 12) && txt(x.origem, 80) && txt(x.destino, 80) && txt(x.localFim, 200)
     && localValido(x.local) && txt(x.despesa, 60) && (x.lado === undefined || x.lado === 'ida' || x.lado === 'volta')
-    && (x.cat === undefined || u.categorias.some((c) => c.id === x.cat)) && paxValido(x.pax, u);
+    && (x.cat === undefined || u.categorias.some((c) => c.id === x.cat)) && paxValido(x.pax, u)
+    // Ida e volta: dois itens aereos ligados (par = id do outro); encerra = o traco da linha do tempo termina nele.
+    && (x.par === undefined || (typeof x.par === 'string' && x.par.length >= 1 && x.par.length <= 80 && x.par !== x.id)) && (x.encerra === undefined || x.encerra === true);
 }
 // Categoria de despesa que vira item do itinerario: hotel, aereo ou carro (pelo nome, sem acento, ou pelo icone).
 function tipoDaCategoriaViagem(c) {

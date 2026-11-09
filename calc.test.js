@@ -839,7 +839,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
       vistos: [{ id: 'vi1', pais: 'US', nome: 'SILVA, ANA TESTE', num: 'V123', emissao: '2021-05-05', validade: '2031-05-04', fotos: [{ id: 'p2', em: '2026-11-08T10:00:00.000Z', pag: 1 }] }, { id: 'vi2', pais: 'CA' }] }],
     categorias: [{ id: 'u4', nome: 'Parques', simbolo: 'carro', cor: '#2f8486', arquivadaEm: '2026-11-03' }],
     itinerario: [{ id: 'i1', viagem: 'v1', tipo: 'aereo', titulo: 'AAA - BBB', data: '2027-04-04', hora: '22:40', fuso: 'GMT-3', fim: '2027-04-05', horaFim: '06:35', fusoFim: 'EST',
-      cia: 'Companhia Teste', voo: 'XX 1234', assento: '12A', origem: 'AAA', destino: 'BBB', localizador: 'ABC123', obs: 'Janela', pax: [{ quem: 'u3', loc: 'ABC123', assento: '12A' }] },
+      cia: 'Companhia Teste', voo: 'XX 1234', assento: '12A', origem: 'AAA', destino: 'BBB', localizador: 'ABC123', obs: 'Janela', pax: [{ quem: 'u3', loc: 'ABC123', assento: '12A' }], encerra: true },
     { id: 'i2', viagem: 'v1', tipo: 'hotel', titulo: 'Hotel', data: '2027-04-05', hora: '15:00', fim: '2027-04-10', horaFim: '11:00', localizador: 'H123', despesa: 'd1',
       local: { nome: 'Hotel', endereco: 'Rua 1', lat: 28.5, lng: -81.4 } }] } };
   comUsa.usa.moedas = c.MOEDAS_PADRAO.map((m) => (m.id === 'EUR' ? { ...m, arquivadaEm: '2026-11-03' } : m));
@@ -953,6 +953,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.ok(c.PAISES.length > 240 && c.ehPais('BR') && !c.ehPais('EU'));
     // Passageiros: viajante cadastrado, sem repetir, com localizador ou assento
     assert.ok(okIt({ ...it0, pax: [{ quem: 'u3', assento: '3C' }] }) && okIt({ ...it0, pax: undefined }));
+    assert.ok(okIt({ ...it0, par: 'i9', lado: 'volta', encerra: true }) && !okIt({ ...it0, par: it0.id }) && !okIt({ ...it0, encerra: false }) && !okIt({ ...it0, par: '' }), 'ida e volta e encerramento');
     assert.ok(!okIt({ ...it0, pax: [{ quem: 'xx', loc: 'A' }] }) && !okIt({ ...it0, pax: [{ quem: 'u3', loc: 'A' }, { quem: 'u3', loc: 'B' }] }) && !okIt({ ...it0, pax: [{ quem: 'u3' }] }) && !okIt({ ...it0, pax: [] }));
     // Voo sem data: o mais proximo vira modelo e e levado para a data escolhida (horario de verao nas duas pontas)
     const vooRef = [{ number: 'XX 1234', airline: { name: 'Companhia Teste' }, status: 'Arrived',
