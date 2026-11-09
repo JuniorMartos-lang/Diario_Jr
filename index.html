@@ -136,6 +136,8 @@
   h4.vooSecao { margin: 10px 0 6px; padding: 6px 10px; border-radius: 8px; background: #1d4ed8; color: #fff; font-size: 14px; }
   #itVPax input:disabled { opacity: .6; }
   .itItem.fimTrilho .itTrilho::before { display: none; }
+  #areaPdf { position: fixed; left: -10000px; top: 0; width: 420px; padding: 12px; background: #fff; }
+  #areaPdf .olhoSaldo { display: none; }
   .vooModo.mesmoLoc { margin: 4px 0 0; }
   .paxLinha input.paxLoc[readonly] { opacity: .6; }
   .horaSel select { flex: 1; min-width: 0; margin: 0; padding: 0 6px; text-align: center; text-align-last: center; }
@@ -598,6 +600,10 @@
   #dEscolheLista .marcada { font-weight: 700; }
   .seta { flex: none; font-size: 22px; line-height: 1; color: var(--mut); }
   .gerenciar { width: 100%; margin-top: 10px; }
+  .expLinha { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+  .expLinha > .gerenciar { flex: 0 1 calc(50% - 4px); width: auto; margin-top: 0; min-height: 40px; padding: 6px 8px; font-size: 14px; }
+  .expLinha > [hidden] { display: none; }
+  .icoArq { width: 22px; height: 22px; margin-right: 6px; vertical-align: -6px; flex: none; }
   .cartaoRes { display: block; width: 100%; padding: 10px 0; border-top: 1px solid var(--linha); border-radius: 0; background: none; color: inherit; font-weight: 400; text-align: left; }
   #rCartoes .cartaoRes:first-child { border-top: 0; }
   .cartaoRes .pares { border-top: 0; margin-top: 2px; padding-top: 0; }
@@ -863,7 +869,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.76.3 · 09/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.77.2 · 09/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1381,6 +1387,11 @@
   <h3 id="docsTit">Documentos</h3>
   <div id="docsLista"></div>
   <div class="botoes"><button type="button" class="sec" id="docsFechar">Fechar</button></div>
+</dialog>
+<dialog id="dPdf">
+  <h3>PDF pronto</h3>
+  <p class="fraco" id="pdfNome" style="font-size:13px"></p>
+  <div class="botoes"><button type="button" id="pdfAbrir">Abrir</button><button type="button" class="sec" id="pdfSalvar">Salvar no aparelho</button><button type="button" class="sec" id="pdfCompartilhar">Compartilhar</button><button type="button" class="sec" id="pdfFechar">Fechar</button></div>
 </dialog>
 <dialog id="dVoo">
   <h3 id="vooTit"></h3>
@@ -3058,6 +3069,115 @@ async function exportarCSV(nome, cabecalho, linhas) {
 const situacaoLanc = (l) => (ehCartao(db, l.meio) ? 'Cartão' : l.pago ? (l.tipo === 'E' ? 'Recebido' : 'Pago') : 'Pendente');
 const linhaLancCsv = (l) => [dataCsv(l.data), l.desc, l.de ? `${l.parcela}/${l.de}` : '', nomeCat(l.cat), ondeDoMeio(l.meio), numCsv(l.valor), situacaoLanc(l)];
 const CAB_LANC = ['Data', 'Descrição', 'Parcela', 'Categoria', 'Conta ou cartão', 'Valor', 'Situação'];
+// Exportar para PDF: copia o quadro (secoes da aba Travel) ou a tela do botao, fora da vista, sem botoes de tela e com os
+// documentos abertos; "fotografa" a copia com o html2canvas (carregado da internet so na primeira vez, versao fixa), corta
+// em paginas sem partir linhas e monta o PDF (montarPdf, o mesmo dos recibos). Abre o popup com Abrir, Salvar e Compartilhar.
+// Sai no tema claro e com os valores visiveis, mesmo com o olhinho fechado (a tela continua oculta).
+const NOME_PDF = { fluxo: 'Fluxo', parcelas: 'Parcelamentos', categoria: 'Gastos da categoria', resumos: 'Resumo', cartoes: 'Cartões', 'usa-ab': 'Viagens em aberto',
+  'usa-fin': 'Viagens finalizadas', 'usa-cus': 'Custos das viagens', itinerario: 'Itinerário', usadesp: 'Despesas da viagem' };
+let h2c = null, pdfPronto = null;
+const carregarH2C = () => h2c || (h2c = new Promise((ok, falha) => {
+  const sc = document.createElement('script');
+  sc.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+  sc.onload = () => ok(window.html2canvas);
+  sc.onerror = () => { h2c = null; sc.remove(); falha(new Error('Sem internet: o gerador de PDF não carregou. Tente de novo com conexão.')); };
+  document.head.appendChild(sc);
+}));
+// O html2canvas deforma SVG e "object-fit" (bandeiras, logos): cada imagem vira um PNG ja no tamanho e no corte da tela.
+async function imagensComuns(raiz) {
+  for (const img of raiz.querySelectorAll('img')) {
+    const cs = getComputedStyle(img), r = img.getBoundingClientRect();
+    const pl = parseFloat(cs.paddingLeft) + parseFloat(cs.borderLeftWidth), pt = parseFloat(cs.paddingTop) + parseFloat(cs.borderTopWidth);
+    const W = r.width - pl - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth), H = r.height - pt - parseFloat(cs.paddingBottom) - parseFloat(cs.borderBottomWidth);
+    if (W < 1 || H < 1) continue;
+    try {
+      const fonte = await new Promise((ok, falha) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => ok(i); i.onerror = falha; i.src = img.src; });
+      const iw = fonte.naturalWidth || W, ih = fonte.naturalHeight || H, k = 3, cv = document.createElement('canvas');
+      cv.width = Math.round(W * k); cv.height = Math.round(H * k);
+      const fit = cs.objectFit, esc = fit === 'cover' ? Math.max(W / iw, H / ih) : fit === 'contain' || fit === 'scale-down' ? Math.min(W / iw, H / ih) : null;
+      const g = cv.getContext('2d');
+      if (esc) { const dw = iw * esc, dh = ih * esc; g.drawImage(fonte, ((W - dw) / 2) * k, ((H - dh) / 2) * k, dw * k, dh * k); } else g.drawImage(fonte, 0, 0, cv.width, cv.height);
+      img.src = cv.toDataURL('image/png');
+      img.style.objectFit = 'fill';
+    } catch { /* imagem que nao carrega fica como esta */ }
+  }
+}
+async function exportarPdf(botao) {
+  const tipo = botao.dataset.pdf, alvo = () => document.querySelector(`[data-pdf="${tipo}"]`).closest('[data-usasec]') || document.querySelector(`[data-pdf="${tipo}"]`).closest('section');
+  const txt = botao.innerHTML;
+  botao.disabled = true; botao.textContent = 'Gerando...';
+  const ocultos = valoresOcultos, tema = document.documentElement.dataset.theme;
+  let area = null;
+  try {
+    const html2canvas = await carregarH2C();
+    if (ocultos) { valoresOcultos = false; render(); }
+    document.documentElement.dataset.theme = 'light';
+    area = document.createElement('div');
+    area.id = 'areaPdf';
+    document.body.appendChild(area);
+    const copia = alvo().cloneNode(true);
+    copia.hidden = false;
+    copia.querySelectorAll('#itMais, #udMais, .voltarTela, [data-exportar], [data-pdf], .docSeta, .itPino, .btnMapa, label.caixaTit').forEach((el) => el.remove());
+    copia.querySelectorAll('.docViaj').forEach((el) => el.classList.add('aberto'));
+    copia.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+    area.replaceChildren(copia);
+    if (ocultos) { valoresOcultos = true; render(); }
+    await Promise.all([...copia.querySelectorAll('img')].map((im) => (im.complete ? 0 : new Promise((ok) => { im.onload = im.onerror = ok; setTimeout(ok, 4000); }))));
+    await imagensComuns(copia);
+    const esc2 = 2, cv = await html2canvas(area, { scale: esc2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+    // Pontos de corte: o topo de cada bloco (quadro, dia, linha, item); a pagina termina no ultimo que couber.
+    const topo = area.getBoundingClientRect().top;
+    // (um item logo depois do titulo do dia nao e ponto de corte: o titulo nao fica sozinho no fim da pagina)
+    const cortes = [...new Set([...copia.querySelectorAll('.card, .itDia, .itItem, .linha, .docViaj, .docBloco, .usaCardBox, tr, h2, h3')].filter((el) => !(el.previousElementSibling && el.previousElementSibling.matches('.itDia, h2, h3')))
+      .map((el) => Math.round((el.getBoundingClientRect().top - topo) * esc2)))].filter((y) => y > 0).sort((x, y) => x - y);
+    const altPag = Math.round(cv.width * 1.414), paginas = [];
+    for (let y = 0; y < cv.height;) {
+      let fim = Math.min(cv.height, y + altPag);
+      if (fim < cv.height) { const c = cortes.filter((k) => k > y + altPag * 0.4 && k <= fim).pop(); if (c) fim = c; }
+      const pg = document.createElement('canvas');
+      pg.width = cv.width; pg.height = fim - y;
+      const g = pg.getContext('2d');
+      g.fillStyle = '#fff'; g.fillRect(0, 0, pg.width, pg.height);
+      g.drawImage(cv, 0, y, cv.width, pg.height, 0, 0, cv.width, pg.height);
+      const blob = await new Promise((ok) => pg.toBlob(ok, 'image/jpeg', 0.9));
+      paginas.push({ jpeg: new Uint8Array(await blob.arrayBuffer()), w: pg.width, h: pg.height });
+      y = fim;
+    }
+    const nome = `Controle Diário - ${NOME_PDF[tipo] || 'Relatório'} - ${hoje().split('-').reverse().join('-')}.pdf`;
+    if (pdfPronto) URL.revokeObjectURL(pdfPronto.url);
+    const arq = new File([montarPdf(paginas)], nome, { type: 'application/pdf' });
+    pdfPronto = { arq, url: URL.createObjectURL(arq) };
+    $('pdfNome').textContent = `${nome} · ${paginas.length} ${paginas.length > 1 ? 'páginas' : 'página'}`;
+    $('pdfCompartilhar').hidden = !(navigator.canShare && navigator.canShare({ files: [arq] }));
+    $('dPdf').showModal();
+  } catch (err) {
+    avisar('Não foi possível gerar o PDF', err.message || String(err));
+  } finally {
+    if (area) area.remove();
+    if (valoresOcultos !== ocultos) { valoresOcultos = ocultos; render(); }
+    document.documentElement.dataset.theme = tema;
+    botao.disabled = false; botao.innerHTML = txt;
+  }
+}
+$('pdfAbrir').onclick = () => { const j = window.open(pdfPronto.url, '_blank'); if (!j) location.href = pdfPronto.url; };
+$('pdfSalvar').onclick = () => { const a = document.createElement('a'); a.href = pdfPronto.url; a.download = pdfPronto.arq.name; document.body.appendChild(a); a.click(); a.remove(); };
+$('pdfCompartilhar').onclick = () => navigator.share({ files: [pdfPronto.arq], title: pdfPronto.arq.name }).catch(() => {});
+$('pdfFechar').onclick = () => $('dPdf').close();
+// Um "Exportar para PDF" logo abaixo de cada "Exportar para Excel".
+// Excel e PDF lado a lado, cada um com o seu icone (desenhados aqui, nas cores de cada tipo de arquivo).
+const ICO_EXCEL = '<svg class="icoArq" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" fill="#1d6f42"/><path d="M8 7l8 10M16 7l-8 10" stroke="#fff" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>';
+const ICO_PDF = '<svg class="icoArq" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2h10l5 5v15H5z" fill="#d93025"/><path d="M15 2v5h5z" fill="#f6aea9"/><text x="12.5" y="17.5" font-size="6.6" font-weight="700" text-anchor="middle" fill="#fff" font-family="Arial, sans-serif">PDF</text></svg>';
+document.querySelectorAll('[data-exportar]').forEach((b) => {
+  const linha = document.createElement('div'), pdf = document.createElement('button');
+  linha.className = 'expLinha';
+  b.before(linha);
+  b.innerHTML = ICO_EXCEL + 'Excel';
+  b.setAttribute('aria-label', 'Exportar para Excel');
+  pdf.type = 'button'; pdf.className = b.className; pdf.dataset.pdf = b.dataset.exportar;
+  pdf.innerHTML = ICO_PDF + 'PDF';
+  pdf.setAttribute('aria-label', 'Exportar para PDF');
+  linha.append(b, pdf);
+});
 function exportar(tipo) {
   const h = hoje();
   if (tipo === 'fluxo') {
@@ -3858,6 +3978,7 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
   if (d.fluxosel) { fluxoConta = d.fluxosel; $('fContaSel').open = false; renderFluxo(hoje()); return; }
   if (d.ressel) { abrirResDet(d.ressel); return; }
   if (d.exportar) { exportar(d.exportar); return; }
+  if (d.pdf) { exportarPdf(b); return; }
   if (d.inforesumo) { const sec = SECOES_RES.find((x) => x.id === d.inforesumo); avisar(sec.titulo, sec.info); return; }
   if (d.catdet) { abrirCatDet(d.catdet); return; }
   if ('atrasos' in d) { abrirAtrasos(); return; }
@@ -4127,7 +4248,7 @@ function renderUsa() {
   corpo('ab').innerHTML = htmlViagens(usaListas.ab, 'Nenhuma viagem em aberto.', usaSec.ab.lista);
   corpo('fin').innerHTML = htmlViagens(usaListas.fin, 'Nenhuma viagem finalizada.', usaSec.fin.lista);
   // Exportar aparece nas viagens so na visao Em lista; em Custos, sempre.
-  for (const id of ['ab', 'fin']) document.querySelector(`[data-exportar="usa-${id}"]`).hidden = !usaSec[id].lista;
+  for (const id of ['ab', 'fin']) document.querySelector(`[data-exportar="usa-${id}"]`).hidden = !usaSec[id].lista;  // o PDF aparece nas duas visoes
   const filtradas = usaListas.cus = filtrar('cus', todas.filter((v) => !v.semDesp));
   corpo('cus').innerHTML = !filtradas.length ? '<p class="fraco" style="margin:0">Nenhuma viagem no filtro.</p>'
     : filtradas.map((v) => `<button type="button" class="linha" data-usaviagem="${esc(v.id)}"><span class="q">${viagemFinalizada(v, h) ? '<span class="tipoViag fim">Encerrada</span>' : '<span class="tipoViag aberta">Em aberto</span>'} ${pilTipo(v)}<br><b>${esc(v.nome)}</b><small class="linhaViag">Período: ${datasViagem(v)}</small><small class="linhaViag">Custos: ${total(v)}</small>${htmlCorpPes(u, v)}</span></button>`).join('')
