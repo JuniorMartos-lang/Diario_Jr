@@ -84,6 +84,8 @@
   .recComp { display: inline-flex; align-items: center; gap: 4px; margin: 4px 0 0; font-size: 12px; color: var(--txt); }
   .recComp input { width: 16px; height: 16px; min-height: 0; margin: 0; }
   .etqComp { display: inline-block; margin-left: 4px; padding: 0 6px; border-radius: 999px; background: #1d4ed8; color: #fff; font-size: 10px; font-weight: 700; vertical-align: 1px; }
+  .catViag { display: flex; align-items: center; }
+  .catViag .icoCat { flex: none; margin-right: 19px; }
   .botoesMini.botoes3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .botoesMini.botoes3 button { min-width: 0; padding: 6px 4px; font-size: 13px; white-space: nowrap; }
   .botoesMini button.mini { flex: 1 1 auto; min-height: 36px; padding: 6px 12px; font-size: 13px; }
@@ -883,7 +885,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.78.1 · 09/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.78.2 · 10/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -4749,11 +4751,14 @@ function renderUsaDesp() {
   $('udCorp').innerHTML = htmlCorpPes(u, v);
   const h = hoje();
   let dia = '';
+  const porDia = new Map();
+  for (const d of desp) porDia.set(d.data, (porDia.get(d.data) || 0) + 1);
   const det = $('udDetalhes').checked;
   $('udLista').innerHTML = desp.map((d) => {
     const c = u.categorias.find((x) => x.id === d.cat) || { nome: '?' }, quem = textoQuem(d, v);
     // Dia como no Fluxo: "30 de novembro", ou Hoje.
-    const cab = d.data !== dia ? `<h3 class="dia">${d.data === h ? 'Hoje' : new Date(d.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</h3>` : '';
+    // Dia como no Fluxo ("30 de novembro" ou Hoje), com a quantidade de despesas do dia.
+    const cab = d.data !== dia ? `<h3 class="dia">${d.data === h ? 'Hoje' : new Date(d.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })} (${porDia.get(d.data)})</h3>` : '';
     dia = d.data;
     return cab + `${d.local ? '<div class="linhaMapa">' : ''}<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}${(d.recibos || []).length ? ` <b class="clipe" title="${d.recibos.length} ${d.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${d.recibos.length > 1 ? d.recibos.length : ''}</b>` : ''}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${d.local ? '<span class="pinoLugar" aria-hidden="true"></span>' : ''}${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>${d.local ? `<button type="button" class="btnMapa" data-usamapa="${esc(d.id)}" aria-label="Ver ${esc(d.local.nome)} no mapa">${PINO}</button></div>` : ''}`;
   }).join('') || '<p class="fraco" style="margin:0">Nenhuma despesa ainda. Toque em + para lançar.</p>';
@@ -4771,7 +4776,7 @@ function htmlCatsViagem(u, v, nat) {
   return grupos.map((g) => `${grupos.length > 1 ? `<h3 class="dia">${esc(moedaUsa(g.moeda).nome || g.moeda)} (${esc(moedaUsa(g.moeda).simbolo)})</h3>` : ''}`
     + g.lista.map((x) => {
       const c = u.categorias.find((k) => k.id === x.cat) || { nome: '?' };
-      return `<div class="linha" style="display:block"><div style="display:flex;justify-content:space-between;gap:10px"><span class="q">${iconeCat(c)}${esc(c.nome)}</span><span class="valor">${fmtMoeda(x.valor, g.moeda)} <small>${Math.round(x.pct)}%</small></span></div><div class="barra"><i style="width:${x.pct}%"></i></div></div>`;
+      return `<div class="linha" style="display:block"><div style="display:flex;justify-content:space-between;gap:10px"><span class="q catViag">${iconeCat(c)}${esc(c.nome)} (${x.qtd})</span><span class="valor">${fmtMoeda(x.valor, g.moeda)} <small>${Math.round(x.pct)}%</small></span></div><div class="barra"><i style="width:${x.pct}%"></i></div></div>`;
     }).join('')
     + `<div class="linha"><b class="q">Total${grupos.length > 1 ? ' em ' + esc(moedaUsa(g.moeda).simbolo) : ''}</b><b class="valor neg">${fmtMoeda(g.total, g.moeda)}</b></div>`).join('')
     || '<p class="fraco" style="margin:0">Nenhuma despesa.</p>';

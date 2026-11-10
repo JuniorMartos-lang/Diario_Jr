@@ -766,9 +766,10 @@ function totaisViagem(u, v, natureza) {
 // Com natureza ('C' ou 'P'), so as despesas corporativas ou pessoais.
 function categoriasViagem(u, v, natureza) {
   return totaisViagem(u, v, natureza).filter((t) => t.valor).map((t) => {
+    // Por categoria: valor somado e quantidade de despesas.
     const cats = new Map();
-    for (const d of u.despesas) if (d.viagem === v.id && d.moeda === t.moeda && (!natureza || naturezaDesp(d) === natureza)) cats.set(d.cat, (cats.get(d.cat) || 0) + d.valor);
-    const lista = [...cats].map(([cat, valor]) => ({ cat, valor, pct: valor / t.valor * 100 })).sort((a, b) => b.valor - a.valor);
+    for (const d of u.despesas) if (d.viagem === v.id && d.moeda === t.moeda && (!natureza || naturezaDesp(d) === natureza)) { const k = cats.get(d.cat) || { valor: 0, qtd: 0 }; k.valor += d.valor; k.qtd++; cats.set(d.cat, k); }
+    const lista = [...cats].map(([cat, k]) => ({ cat, valor: k.valor, qtd: k.qtd, pct: k.valor / t.valor * 100 })).sort((a, b) => b.valor - a.valor);
     return { moeda: t.moeda, total: t.valor, lista };
   });
 }
