@@ -792,6 +792,8 @@
       <div class="rotuloCampo" id="lRecBox" hidden><span>Recibos</span>
         <div id="lRecLista"></div>
         <div class="botoesMini botoes3"><button type="button" class="mini sec" id="lRecCam">Escanear</button><button type="button" class="mini sec" id="lRecGal">Foto</button><button type="button" class="mini sec" id="lRecDoc">Documento</button></div>
+        <button type="button" class="mini sec" id="lRecComp" style="width:100%;margin-top:2px">Buscar recibo compartilhado</button>
+        <div id="lRecCompLista" class="localSug"></div>
       </div>
       <div class="botoes">
         <button type="submit">Salvar</button>
@@ -881,7 +883,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.78.0 · 09/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.78.1 · 09/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -4127,6 +4129,7 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
     $('lCat').value = l.cat || '';
     soltarRecibosLanc(false);
     recL.lista = (l.recibos || []).map((x) => ({ ...x }));
+    $('lRecCompLista').innerHTML = '';
     renderRec(recL);
     formaLanc();
     $('lCat').value = l.cat || '';
@@ -5575,9 +5578,10 @@ async function enviarRecibos() {
         if (!blob) { recLocais.delete(r.id); continue; }
         const meio = [...db.cartoes, ...db.contasBanco].find((x) => x.id === l.meio), nomeP = ((meio && meio.nome) || 'Sem cartão').replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'Cartão';
         if (!pastas['m:' + nomeP]) pastas['m:' + nomeP] = await subpasta(nomeP, await subpasta('Recibos', await pastaDrive()));
-        const nome = nomeRecibo({ ...l, valor: Math.abs(l.valor) }, 'R$', l.recibos.length > 1 ? i + 1 : 0);
+        const nome = (r.comp ? 'Compartilhado - ' : '') + nomeRecibo({ ...l, valor: Math.abs(l.valor) }, 'R$', l.recibos.length > 1 ? i + 1 : 0);
         const f = await enviarDrive(nome, new File([blob], nome, { type: 'application/pdf' }), pastas['m:' + nomeP]);
         r.arq = f.id; r.nome = nome; mudou = true;
+        for (const o of db.lancs) for (const x of o.recibos || []) if (x.id === r.id) { x.arq = f.id; x.nome = nome; }
         recLocais.delete(r.id); await recApagar(r.id);
       }
     }
@@ -5612,7 +5616,7 @@ async function enviarRecibos() {
 }
 // Caixas de recibos: a lista em edicao (vale so ao Salvar), os feitos agora e os removidos.
 // recUd: despesa da viagem; recL: lancamento no cartao. recAlvo: para onde vai o recibo que esta sendo escaneado.
-const recUd = { lista: [], novos: [], tirados: [], el: 'udRecLista', compartilha: true }, recL = { lista: [], novos: [], tirados: [], el: 'lRecLista' };
+const recUd = { lista: [], novos: [], tirados: [], el: 'udRecLista', compartilha: true }, recL = { lista: [], novos: [], tirados: [], el: 'lRecLista', compartilha: true };
 let recAlvo = recUd, udSalvou = false;
 function renderRec(cx) {
   const n = cx.lista.length;
@@ -5667,6 +5671,31 @@ $('udRecComp').onclick = () => {
   $('udRecCompLista').innerHTML = recCompOps.map((o, i) => `<button type="button" class="linha" data-reccompesc="${i}"><span class="q"><b>📎 ${esc(o.despesas[0].desc)}</b><small>${dataBR(o.despesas[0].data)} · em ${o.despesas.length} ${o.despesas.length > 1 ? 'despesas' : 'despesa'}${o.r.pag ? ` · ${o.r.pag} ${o.r.pag > 1 ? 'páginas' : 'página'}` : ''}</small></span></button>`).join('')
     || '<p class="fraco" style="margin:6px 0">Nenhum recibo compartilhado nas outras despesas desta viagem. Marque "Recibo compartilhado" no recibo da despesa onde ele foi salvo.</p>';
 };
+// Lancamento: recibos compartilhados dos outros lancamentos do mesmo cartao (ou conta) escolhido em "Pago com".
+let recCompL = [];
+$('lRecComp').onclick = () => {
+  if ($('lRecCompLista').innerHTML) { $('lRecCompLista').innerHTML = ''; return; }
+  const meio = $('lMeio').value, usados = new Set(recL.lista.map((r) => r.id)), vistos = new Map();
+  for (const l of db.lancs) {
+    if (l.meio !== meio || l.id === lancEditando) continue;
+    for (const r of l.recibos || []) {
+      if (!r.comp || usados.has(r.id)) continue;
+      const o = vistos.get(r.id) || { r, lancs: [] };
+      o.lancs.push(l);
+      vistos.set(r.id, o);
+    }
+  }
+  recCompL = [...vistos.values()].sort((a, b) => b.r.em.localeCompare(a.r.em));
+  $('lRecCompLista').innerHTML = recCompL.map((o, i) => `<button type="button" class="linha" data-reccompl="${i}"><span class="q"><b>📎 ${esc(o.lancs[0].desc)}</b><small>${dataBR(o.lancs[0].data)} · em ${o.lancs.length} ${o.lancs.length > 1 ? 'lançamentos' : 'lançamento'}${o.r.pag ? ` · ${o.r.pag} ${o.r.pag > 1 ? 'páginas' : 'página'}` : ''}</small></span></button>`).join('')
+    || '<p class="fraco" style="margin:6px 0">Nenhum recibo compartilhado nos outros lançamentos deste cartão. Marque "Recibo compartilhado" no recibo do lançamento onde ele foi salvo.</p>';
+};
+$('lRecCompLista').onclick = (e) => {
+  const b = e.target.closest('[data-reccompl]');
+  if (!b) return;
+  recL.lista.push({ ...recCompL[Number(b.dataset.reccompl)].r, comp: true });
+  $('lRecCompLista').innerHTML = '';
+  renderRec(recL);
+};
 $('udRecCompLista').onclick = (e) => {
   const b = e.target.closest('[data-reccompesc]');
   if (!b) return;
@@ -5682,6 +5711,7 @@ const mesclarRecibos = (lista, atuais) => (lista.length ? lista.map((x) => { con
 function soltarRecibosLanc(gravou) {
   if (!gravou) for (const id of recL.novos) { recLocais.delete(id); recApagar(id); }
   recL.lista = []; recL.novos = []; recL.tirados = [];
+  $('lRecCompLista').innerHTML = '';
 }
 // Fechar o popup sem salvar: recibos feitos agora sao apagados do aparelho.
 $('dUsaDesp').addEventListener('close', () => {
