@@ -81,6 +81,9 @@
   .campoGravar input { flex: 1; min-width: 0; margin: 0; font-size: 13px; }
   .campoGravar button { flex: none; min-height: 44px; padding: 6px 14px; }
   .botoesMini { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+  .recComp { display: inline-flex; align-items: center; gap: 4px; margin: 4px 0 0; font-size: 12px; color: var(--txt); }
+  .recComp input { width: 16px; height: 16px; min-height: 0; margin: 0; }
+  .etqComp { display: inline-block; margin-left: 4px; padding: 0 6px; border-radius: 999px; background: #1d4ed8; color: #fff; font-size: 10px; font-weight: 700; vertical-align: 1px; }
   .botoesMini.botoes3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .botoesMini.botoes3 button { min-width: 0; padding: 6px 4px; font-size: 13px; white-space: nowrap; }
   .botoesMini button.mini { flex: 1 1 auto; min-height: 36px; padding: 6px 12px; font-size: 13px; }
@@ -878,7 +881,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.77.4 · 09/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.78.0 · 09/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1341,6 +1344,8 @@
   <div class="rotuloCampo" id="udRecBox"><span>Recibos</span>
     <div id="udRecLista"></div>
     <div class="botoesMini botoes3"><button type="button" class="mini sec" id="udRecCam">Escanear</button><button type="button" class="mini sec" id="udRecGal">Foto</button><button type="button" class="mini sec" id="udRecDoc">Documento</button></div>
+    <button type="button" class="mini sec" id="udRecComp" style="width:100%;margin-top:2px">Buscar recibo compartilhado</button>
+    <div id="udRecCompLista" class="localSug"></div>
   </div>
   <div class="botoes botoes2"><button type="submit">Salvar</button><button type="button" class="sec" id="udFechar">Fechar</button><button type="button" class="perigo" id="udExcluir" hidden>Excluir</button></div>
 </form></dialog>
@@ -4377,8 +4382,9 @@ $('uViagemExcluir').onclick = async () => {
   const id = viagemEd, n = usa().despesas.filter((d) => d.viagem === id).length;
   if (!await modal('Excluir viagem?', $('uViagem').value + (n ? `\nAs ${n} despesas desta viagem também serão excluídas.` : ''), 'Sim, excluir', 'Cancelar')) return;
   usa().viagens = usa().viagens.filter((x) => x.id !== id);
-  descartarRecibos(usa().despesas.filter((d) => d.viagem === id).flatMap((d) => d.recibos || []));
+  const recViagem = usa().despesas.filter((d) => d.viagem === id).flatMap((d) => d.recibos || []);
   usa().despesas = usa().despesas.filter((d) => d.viagem !== id);
+  descartarRecibos(recViagem);
   fecharEditor();
   salvar();
   enviarRecibos();
@@ -5412,6 +5418,7 @@ function abrirDespesa(id) {
   mostrarDoisMeios();
   $('udExcluir').hidden = !d;
   recUd.lista = ((d && d.recibos) || []).map((x) => ({ ...x }));
+  $('udRecCompLista').innerHTML = '';
   locUd.por(d && d.local);
   recUd.novos = []; recUd.tirados = []; udSalvou = false;
   renderRec(recUd);
@@ -5488,8 +5495,8 @@ $('fUsaDesp').onsubmit = (e) => {
 $('udExcluir').onclick = async () => {
   const id = despEd, d = usa().despesas.find((x) => x.id === id), n = ((d && d.recibos) || []).length;
   if (!await modal('Excluir despesa?', $('udDesc').value + (n ? `\n${n > 1 ? `Os ${n} recibos vão` : 'O recibo vai'} para a lixeira do Google Drive (dá para recuperar por 30 dias).` : ''), 'Sim, excluir', 'Cancelar')) return;
-  descartarRecibos([...((d && d.recibos) || []), ...recUd.lista]);
   usa().despesas = usa().despesas.filter((x) => x.id !== id);
+  descartarRecibos([...((d && d.recibos) || []), ...recUd.lista]);
   udSalvou = true;
   $('dUsaDesp').close();
   salvar();
@@ -5521,9 +5528,12 @@ idbFazer('readonly', (st) => st.getAllKeys()).then((k) => { recLocais = new Set(
 // Arquivos do Drive a mandar para a lixeira (despesa ou recibo excluido); ficam no aparelho ate dar certo.
 const lixoLer = () => { try { return JSON.parse(localStorage.getItem(CHAVE_LIXO)) || []; } catch { return []; } };
 const lixoGravar = (l) => { try { localStorage.setItem(CHAVE_LIXO, JSON.stringify(l)); } catch {} };
+// Recibo ainda usado em alguma despesa ou lancamento (recibo compartilhado) nao vai para a lixeira.
+const reciboEmUso = (id) => [...((db.usa && db.usa.despesas) || []), ...db.lancs].some((d) => (d.recibos || []).some((r) => r.id === id));
 function descartarRecibos(lista) {
   const lixo = lixoLer();
   for (const r of lista) {
+    if (reciboEmUso(r.id)) continue;
     if (r.arq && !lixo.includes(r.arq)) lixo.push(r.arq);
     if (recLocais.has(r.id)) { recLocais.delete(r.id); recApagar(r.id); }
   }
@@ -5550,9 +5560,10 @@ async function enviarRecibos() {
         if (!blob) { recLocais.delete(r.id); continue; }
         const v = u.viagens.find((x) => x.id === d.viagem), nomeV = (v ? v.nome : 'Sem viagem').replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'Viagem';
         if (!pastas[nomeV]) pastas[nomeV] = await subpasta(nomeV, await subpasta('Recibos', await pastaDrive()));
-        const nome = nomeRecibo(d, moedaUsa(d.moeda).simbolo, d.recibos.length > 1 ? i + 1 : 0);
+        const nome = (r.comp ? 'Compartilhado - ' : '') + nomeRecibo(d, moedaUsa(d.moeda).simbolo, d.recibos.length > 1 ? i + 1 : 0);
         const f = await enviarDrive(nome, new File([blob], nome, { type: 'application/pdf' }), pastas[nomeV]);
         r.arq = f.id; r.nome = nome; mudou = true;
+        for (const o of u.despesas) for (const x of o.recibos || []) if (x.id === r.id) { x.arq = f.id; x.nome = nome; }
         recLocais.delete(r.id); await recApagar(r.id);
       }
     }
@@ -5601,13 +5612,14 @@ async function enviarRecibos() {
 }
 // Caixas de recibos: a lista em edicao (vale so ao Salvar), os feitos agora e os removidos.
 // recUd: despesa da viagem; recL: lancamento no cartao. recAlvo: para onde vai o recibo que esta sendo escaneado.
-const recUd = { lista: [], novos: [], tirados: [], el: 'udRecLista' }, recL = { lista: [], novos: [], tirados: [], el: 'lRecLista' };
+const recUd = { lista: [], novos: [], tirados: [], el: 'udRecLista', compartilha: true }, recL = { lista: [], novos: [], tirados: [], el: 'lRecLista' };
 let recAlvo = recUd, udSalvou = false;
 function renderRec(cx) {
   const n = cx.lista.length;
   $(cx.el).innerHTML = cx.lista.map((r, i) => {
     const sit = r.arq ? 'No Google Drive' : recLocais.has(r.id) ? 'Aguardando envio ao Google Drive' : 'Ainda no aparelho onde foi escaneado';
-    return `<div class="linha"><span class="q">📎 ${cx.rotulo || 'Recibo'}${n > 1 ? ' ' + (i + 1) : ''}<br><small class="fraco">${sit}${r.pag ? ` · ${r.pag} ${r.pag > 1 ? 'páginas' : 'página'}` : ''}</small></span>`
+    return `<div class="linha"><span class="q">📎 ${cx.rotulo || 'Recibo'}${n > 1 ? ' ' + (i + 1) : ''}${r.comp ? '<span class="etqComp">Compartilhado</span>' : ''}<br><small class="fraco">${sit}${r.pag ? ` · ${r.pag} ${r.pag > 1 ? 'páginas' : 'página'}` : ''}</small>`
+      + `${cx.compartilha ? `<br><label class="recComp"><input type="checkbox" data-reccomp="${esc(r.id)}"${r.comp ? ' checked' : ''}>Recibo compartilhado</label>` : ''}</span>`
       + `${r.arq || recLocais.has(r.id) ? `<button type="button" class="sec" data-recabrir="${esc(r.id)}">Abrir</button>` : ''}<button type="button" class="perigo" data-rectirar="${esc(r.id)}">Remover</button></div>`;
   }).join('');
 }
@@ -5622,6 +5634,8 @@ async function abrirRecibo(r) {
   else avisar('Arquivo', 'A foto ainda está no aparelho onde foi tirada e não chegou ao Google Drive.');
 }
 const cliqueRecibos = (cx) => async (e) => {
+  const cp = e.target.closest('[data-reccomp]');
+  if (cp) { const r = cx.lista.find((x) => x.id === cp.dataset.reccomp); if (cp.checked) r.comp = true; else delete r.comp; renderRec(cx); return; }
   const ab = e.target.closest('[data-recabrir]'), ti = e.target.closest('[data-rectirar]');
   if (ab) return abrirRecibo(cx.lista.find((x) => x.id === ab.dataset.recabrir));
   if (ti) {
@@ -5635,6 +5649,32 @@ const cliqueRecibos = (cx) => async (e) => {
   }
 };
 $('udRecLista').onclick = cliqueRecibos(recUd);
+// Recibos marcados como compartilhados nas outras despesas desta viagem (um por arquivo); escolher junta a esta despesa.
+let recCompOps = [];
+$('udRecComp').onclick = () => {
+  if ($('udRecCompLista').innerHTML) { $('udRecCompLista').innerHTML = ''; return; }
+  const v = viagemAberta(), usados = new Set(recUd.lista.map((r) => r.id)), vistos = new Map();
+  for (const d of usa().despesas) {
+    if (d.viagem !== v.id || d.id === despEd) continue;
+    for (const r of d.recibos || []) {
+      if (!r.comp || usados.has(r.id)) continue;
+      const o = vistos.get(r.id) || { r, despesas: [] };
+      o.despesas.push(d);
+      vistos.set(r.id, o);
+    }
+  }
+  recCompOps = [...vistos.values()].sort((a, b) => b.r.em.localeCompare(a.r.em));
+  $('udRecCompLista').innerHTML = recCompOps.map((o, i) => `<button type="button" class="linha" data-reccompesc="${i}"><span class="q"><b>📎 ${esc(o.despesas[0].desc)}</b><small>${dataBR(o.despesas[0].data)} · em ${o.despesas.length} ${o.despesas.length > 1 ? 'despesas' : 'despesa'}${o.r.pag ? ` · ${o.r.pag} ${o.r.pag > 1 ? 'páginas' : 'página'}` : ''}</small></span></button>`).join('')
+    || '<p class="fraco" style="margin:6px 0">Nenhum recibo compartilhado nas outras despesas desta viagem. Marque "Recibo compartilhado" no recibo da despesa onde ele foi salvo.</p>';
+};
+$('udRecCompLista').onclick = (e) => {
+  const b = e.target.closest('[data-reccompesc]');
+  if (!b) return;
+  const o = recCompOps[Number(b.dataset.reccompesc)];
+  recUd.lista.push({ ...o.r, comp: true });
+  $('udRecCompLista').innerHTML = '';
+  renderRec(recUd);
+};
 $('lRecLista').onclick = cliqueRecibos(recL);
 // Ao gravar, o que ja subiu para o Drive enquanto a tela estava aberta continua com o endereco do arquivo.
 const mesclarRecibos = (lista, atuais) => (lista.length ? lista.map((x) => { const a = (atuais || []).find((y) => y.id === x.id); return a && a.arq ? { ...x, arq: a.arq, nome: a.nome } : x; }) : undefined);

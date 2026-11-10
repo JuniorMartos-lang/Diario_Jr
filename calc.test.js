@@ -830,7 +830,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   const jpg = 'data:image/jpeg;base64,/9j/AAAA', svg = 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=';
   const comUsa = { ...JSON.parse(JSON.stringify(dp)), usa: { moedas: c.MOEDAS_PADRAO, despesas: [{ id: 'd1', viagem: 'v1', desc: 'Parque', cat: 'u4', data: '2027-04-05', moeda: 'BRL', valor: 12345, quem: ['u3'], obs: 'Ingresso de 2 dias', pago: false, checkin: '2027-04-05', checkout: '2027-04-08',
       pagamentos: [{ meio: 'u1', valor: 10000 }, { meio: 'u2', valor: 2345 }], natureza: 'P',
-      recibos: [{ id: 'r1', em: '2027-04-05T15:00:00.000Z', pag: 2, arq: '1AbCdEfGhIjKlMnOp_q-r', nome: '2027-04-05 Parque R$ 123,45 (1).pdf' }, { id: 'r2', em: '2027-04-05T15:05:00.000Z', pag: 1 }],
+      recibos: [{ id: 'r1', em: '2027-04-05T15:00:00.000Z', pag: 2, arq: '1AbCdEfGhIjKlMnOp_q-r', nome: '2027-04-05 Parque R$ 123,45 (1).pdf' }, { id: 'r2', em: '2027-04-05T15:05:00.000Z', pag: 1, comp: true }],
       local: { nome: 'Hotel Teste', endereco: 'Rua Teste, 100, Cidade, EUA', lat: 40.1, lng: -70.1, id: 'ChIJ_abc-123' } }],
     viagens: [{ id: 'v1', nome: 'Orlando', inicio: '2027-04-04', fim: '2027-04-18', fundo: jpg, moedas: ['USD', 'BRL'], base: 'USD', viajantes: ['u3'], cot: { BRL: 0.1852 }, corporativa: true, pais: 'US' }, { id: 'v2', nome: 'NY', moedas: ['USD'], base: 'USD', viajantes: [], cot: {}, semItin: true }],
     contas: [{ id: 'u1', nome: 'Wise', icone: svg, iconeNome: 'Wise' }], cartoes: [{ id: 'u2', nome: 'Visa', tipo: 'V', icone: svg, iconeNome: 'Visa',
@@ -946,6 +946,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.ok(!comViaj({ passaporte: { num: 'A1', emissao: '2030-01-01', validade: '2020-01-01' } }), 'validade antes da emissao');
     assert.ok(!comViaj({ vistos: [{ id: 'x', pais: 'XX' }] }) && !comViaj({ vistos: [{ id: 'x', pais: 'US' }, { id: 'x', pais: 'CA' }] }) && !comViaj({ passaporte: { num: 'A'.repeat(31) } }));
     assert.ok(!comViaj({ passaporte: { fotos: [{ id: 'f' }] } }), 'foto no formato dos recibos');
+    assert.ok(c.recibosValidos([{ id: 'a', em: '2027-01-01T00:00:00Z', comp: true }]) && !c.recibosValidos([{ id: 'a', em: '2027-01-01T00:00:00Z', comp: false }]), 'recibo compartilhado');
     assert.ok(!comViaj({ passaporte: { num: 'A1', pais: 'ZZ' } }) && comViaj({ passaporte: { num: 'A1', pais: 'PT' } }), 'pais do passaporte');
     assert.ok(!comViaj({ passaporte: { nome: '' } }) && !comViaj({ passaporte: { nome: 'A'.repeat(81) } }) && comViaj({ passaporte: { nome: 'A'.repeat(80) } }), 'nome como no documento');
     assert.ok(!c.backupValido({ ...comUsa, usa: { ...comUsa.usa, viagens: comUsa.usa.viagens.map((v) => ({ ...v, pais: 'ZZ' })) } }));

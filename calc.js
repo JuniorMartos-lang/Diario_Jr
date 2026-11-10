@@ -830,7 +830,9 @@ const recibosValidos = (l) => l === undefined || (Array.isArray(l) && l.length <
   && l.every((r) => r && typeof r.id === 'string' && r.id.length >= 1 && r.id.length <= 40 && typeof r.em === 'string' && r.em.length <= 40 && !Number.isNaN(Date.parse(r.em))
     && (r.arq === undefined || (typeof r.arq === 'string' && /^[\w-]{10,200}$/.test(r.arq)))
     && (r.nome === undefined || (typeof r.nome === 'string' && r.nome.length <= 200))
-    && (r.pag === undefined || (Number.isInteger(r.pag) && r.pag >= 1 && r.pag <= 50))));
+    && (r.pag === undefined || (Number.isInteger(r.pag) && r.pag >= 1 && r.pag <= 50))
+    // Recibo compartilhado: o mesmo arquivo (mesmo id) em varias despesas da viagem.
+    && (r.comp === undefined || r.comp === true)));
 // Nome do PDF no Drive: data, descricao e valor, sem caracteres que o Drive ou o Windows recusam. n > 0 numera.
 function nomeRecibo(d, simbolo, n) {
   const valor = (d.valor / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
