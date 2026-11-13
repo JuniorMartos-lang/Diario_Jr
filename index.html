@@ -894,7 +894,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.80.2 · 13/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.80.3 · 13/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -2366,18 +2366,22 @@ function dadosCartoes(cartoes, h) {
   return cartoes.map((c) => {
     const falta = Math.max(restanteFatura(db, c, mes), 0), paga = db.faturasPagas[chaveFatura(c.id, mes)];
     const pago = db.parciais.filter((p) => p.cartao === c.id && p.ym === mes).reduce((a, p) => a + p.valor, paga ? paga.valor : 0);
-    return { c, total: totalFatura(db, c, mes), falta, pago, aPagar: dataNoMes(mes, c.vencimento) >= h ? falta : 0, status: statusFatura(db, c, mes, h) };
+    return { c, total: totalFatura(db, c, mes), ...antecipFatura(c), falta, pago, aPagar: dataNoMes(mes, c.vencimento) >= h ? falta : 0, status: statusFatura(db, c, mes, h) };
   });
+}
+// Antecipacoes da fatura (credito, tipo A) separadas do que foi lancado: total lancado = compras, sem as antecipacoes.
+function antecipFatura(c) {
+  const itens = itensFatura(db, c, mes), antecip = -itens.filter((p) => p.lanc.tipo === 'A').reduce((a, p) => a + p.valor, 0);
+  return { antecip, lancado: itens.reduce((a, p) => a + p.valor, 0) + antecip };
 }
 const somaCampo = (dados, campo) => dados.reduce((a, d) => a + d[campo], 0);
 function htmlCartoesResumido(dados) {
   const soma = (campo) => somaCampo(dados, campo);
   return `<div class="card">
-    ${dados.map((d) => `<div class="linha">${iconeHtml(d.c)}<span class="q">${esc(nomeExib(d.c))} <span class="selada ${clStatus(d.status)}">${d.status}</span></span><span class="valor">${brl(d.total)}</span></div>`).join('')}
-    <div class="linha"><b>Total das faturas</b><span class="valor">${brl(soma('total'))}</span></div>
-    <div class="linha"><span>Falta pagar</span><span class="valor">${brl(soma('falta'))}</span></div>
-    <div class="linha"><span>Já pago</span><span class="valor">${brl(soma('pago'))}</span></div>
-    <div class="linha"><span>A pagar <small>(vencimento de hoje em diante)</small></span><span class="valor">${brl(soma('aPagar'))}</span></div>
+    ${dados.map((d) => `<div class="linha">${iconeHtml(d.c)}<span class="q">${esc(nomeExib(d.c))} <span class="selada ${clStatus(d.status)}">${d.status}</span></span><span class="valor">${brl(d.lancado)}</span></div>`).join('')}
+    <div class="linha"><b>Total das faturas</b><span class="valor">${brl(soma('lancado'))}</span></div>
+    ${soma('antecip') ? `<div class="linha"><span>Falta pagar</span><span class="valor">${brl(soma('falta'))}</span></div>
+    <div class="linha"><span>Já pago</span><span class="valor">${brl(soma('antecip') + soma('pago'))}</span></div>` : ''}
   </div>`;
 }
 function clStatus(st) { return ({ Paga: 'stPaga', 'Em atraso': 'stAtraso' })[st] || ''; }
@@ -2449,14 +2453,15 @@ function renderCartoes(h) {
     const paga = db.faturasPagas[chaveFatura(c.id, mes)], venc = dataNoMes(mes, c.vencimento);
     const parciais = db.parciais.filter((p) => p.cartao === c.id && p.ym === mes);
     const pago = parciais.reduce((a, p) => a + p.valor, paga ? paga.valor : 0), falta = restanteFatura(db, c, mes);
-    const status = statusFatura(db, c, mes, h);
+    const status = statusFatura(db, c, mes, h), { antecip, lancado } = antecipFatura(c);
     const livre = limiteDisponivel(db, c);
     return `<div class="card">
       <h2>${iconeHtml(c)}${esc(nomeExib(c))} <span class="selada ${clStatus(status)}">${status}</span></h2>
       <small class="fraco">Fecha dia ${c.fechamento} · Vence ${dataBR(venc)}${paga ? ' · Paga em ' + dataBR(paga.data) : ''}${livre === null ? '' : `<br>Limite ${brl(c.limite)} · Disponível <span class="${livre < 0 ? 'neg' : ''}">${brl(livre)}</span>`}</small>
       ${c.finais && c.finais.length ? `<div class="finaisCard">${c.finais.map(numCartao).join('')}</div>` : ''}
-      <div class="linha"><b>Total da fatura</b><span class="valor">${brl(total)}</span></div>
-      ${parciais.length && !paga ? `<div class="linha"><span>Já pago</span><span class="valor">${brl(pago)}</span></div><div class="linha"><b>Falta pagar</b><span class="valor">${brl(falta)}</span></div>` : ''}
+      <div class="linha"><b>Total da fatura</b><span class="valor">${brl(lancado)}</span></div>
+      ${antecip ? `<div class="linha"><span>Falta pagar</span><span class="valor">${brl(Math.max(falta, 0))}</span></div><div class="linha"><span>Já pago</span><span class="valor">${brl(antecip + pago)}</span></div>`
+        : parciais.length && !paga ? `<div class="linha"><span>Já pago</span><span class="valor">${brl(pago)}</span></div><div class="linha"><b>Falta pagar</b><span class="valor">${brl(falta)}</span></div>` : ''}
       ${(paga && pago !== total) || falta < 0 ? `<div class="aviso">Foi pago ${brl(pago)}, mas a fatura agora soma ${brl(total)}. Desfaça o pagamento e pague de novo para corrigir.</div>` : ''}
       ${htmlLancsFatura(itens)}
       <div class="fatAcoes">${htmlBotoesFatura(c, mes, h)}</div>
