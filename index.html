@@ -356,6 +356,7 @@
   body.emFluxo.fluxoAberto:not(.emAjustes) #mais { bottom: calc(232px + env(safe-area-inset-bottom)); }
   .lado { text-align: right; flex: none; }
   .lado small { display: block; font-size: 12px; }
+  #fLista .lado small.jaPago { color: var(--pos); font-weight: 600; }
   #lLista .lado, #atLista .lado { padding: 6px 0 6px 10px; margin: -6px 0; cursor: pointer; }
   /* Situacao no Fluxo: elipse com texto branco em negrito; cores fixas nos dois temas. */
   #lLista .lado, #atLista .lado, #udLista .lado { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
@@ -894,7 +895,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.80.3 · 13/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.80.4 · 13/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -2378,7 +2379,7 @@ const somaCampo = (dados, campo) => dados.reduce((a, d) => a + d[campo], 0);
 function htmlCartoesResumido(dados) {
   const soma = (campo) => somaCampo(dados, campo);
   return `<div class="card">
-    ${dados.map((d) => `<div class="linha">${iconeHtml(d.c)}<span class="q">${esc(nomeExib(d.c))} <span class="selada ${clStatus(d.status)}">${d.status}</span></span><span class="valor">${brl(d.lancado)}</span></div>`).join('')}
+    ${dados.map((d) => `<div class="linha">${iconeHtml(d.c)}<span class="q">${esc(nomeExib(d.c))} <span class="selada ${clStatus(d.status)}">${d.status}</span></span><span class="lado"><span class="valor">${brl(d.lancado)}</span>${d.antecip ? `<small class="jaPago">Já pago: ${brl(d.antecip + d.pago)}</small>` : ''}</span></div>`).join('')}
     <div class="linha"><b>Total das faturas</b><span class="valor">${brl(soma('lancado'))}</span></div>
     ${soma('antecip') ? `<div class="linha"><span>Falta pagar</span><span class="valor">${brl(soma('falta'))}</span></div>
     <div class="linha"><span>Já pago</span><span class="valor">${brl(soma('antecip') + soma('pago'))}</span></div>` : ''}
