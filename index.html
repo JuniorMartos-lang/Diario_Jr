@@ -305,6 +305,9 @@
   .barra i { display: block; height: 100%; background: var(--pri); border-radius: 4px; }
   .aviso { background: var(--aviso); color: var(--avisoTxt); border-radius: 14px; padding: 10px 14px; margin-bottom: 14px; font-size: 14px; }
   .selada { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--campo); }
+  /* Aba Cartoes: paga em verde e atrasada em vermelho, texto branco (cores fixas nos dois temas). */
+  .selada.stPaga { background: #15803d; color: #fff; }
+  .selada.stAtraso { background: #c0262d; color: #fff; }
   .fluxo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 8px; }
   .fluxo div { min-width: 0; }
   .fluxo b { display: block; font-size: 14px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
@@ -890,7 +893,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.80.0 · 13/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.80.1 · 13/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -2369,13 +2372,14 @@ const somaCampo = (dados, campo) => dados.reduce((a, d) => a + d[campo], 0);
 function htmlCartoesResumido(dados) {
   const soma = (campo) => somaCampo(dados, campo);
   return `<div class="card">
-    ${dados.map((d) => `<div class="linha">${iconeHtml(d.c)}<span class="q">${esc(nomeExib(d.c))} <span class="selada ${d.status === 'Em atraso' ? 'neg' : ''}">${d.status}</span></span><span class="valor">${brl(d.total)}</span></div>`).join('')}
+    ${dados.map((d) => `<div class="linha">${iconeHtml(d.c)}<span class="q">${esc(nomeExib(d.c))} <span class="selada ${clStatus(d.status)}">${d.status}</span></span><span class="valor">${brl(d.total)}</span></div>`).join('')}
     <div class="linha"><b>Total das faturas</b><span class="valor">${brl(soma('total'))}</span></div>
     <div class="linha"><span>Falta pagar</span><span class="valor">${brl(soma('falta'))}</span></div>
     <div class="linha"><span>Já pago</span><span class="valor">${brl(soma('pago'))}</span></div>
     <div class="linha"><span>A pagar <small>(vencimento de hoje em diante)</small></span><span class="valor">${brl(soma('aPagar'))}</span></div>
   </div>`;
 }
+function clStatus(st) { return ({ Paga: 'stPaga', 'Em atraso': 'stAtraso' })[st] || ''; }
 $('fResumido').onchange = () => comCache(db, () => renderCartoes(hoje()));
 // Filtro da aba Cartoes, so na memoria. Nenhum marcado = todos.
 const filtroCartoes = new Set();
@@ -2402,7 +2406,7 @@ function renderFiltroCartoes(ativos, marcados) {
 function htmlAtrasadas(lista) {
   if (!lista.length) return '';
   return `<div class="card"><h2>Faturas atrasadas</h2>
-    ${lista.map((f) => `<div class="linha">${iconeHtml(f.cartao)}<span class="q">${esc(nomeExib(f.cartao))} <span class="selada neg">Em atraso</span></span><span class="lado"><small class="fraco">Venceu ${dataBR(f.venc)}</small><span class="valor">${brl(f.valor)}</span></span></div>`).join('')}
+    ${lista.map((f) => `<div class="linha">${iconeHtml(f.cartao)}<span class="q">${esc(nomeExib(f.cartao))} <span class="selada stAtraso">Em atraso</span></span><span class="lado"><small class="fraco">Venceu ${dataBR(f.venc)}</small><span class="valor">${brl(f.valor)}</span></span></div>`).join('')}
     <div class="linha"><b>Total atrasado</b><span class="valor">${brl(lista.reduce((a, f) => a + f.valor, 0))}</span></div>
   </div>`;
 }
@@ -2446,7 +2450,7 @@ function renderCartoes(h) {
     const status = statusFatura(db, c, mes, h);
     const livre = limiteDisponivel(db, c);
     return `<div class="card">
-      <h2>${iconeHtml(c)}${esc(nomeExib(c))} <span class="selada ${status === 'Em atraso' ? 'neg' : ''}">${status}</span></h2>
+      <h2>${iconeHtml(c)}${esc(nomeExib(c))} <span class="selada ${clStatus(status)}">${status}</span></h2>
       <small class="fraco">Fecha dia ${c.fechamento} · Vence ${dataBR(venc)}${paga ? ' · Paga em ' + dataBR(paga.data) : ''}${livre === null ? '' : `<br>Limite ${brl(c.limite)} · Disponível <span class="${livre < 0 ? 'neg' : ''}">${brl(livre)}</span>`}</small>
       ${c.finais && c.finais.length ? `<div class="finaisCard">${c.finais.map(numCartao).join('')}</div>` : ''}
       <div class="linha"><b>Total da fatura</b><span class="valor">${brl(total)}</span></div>
