@@ -774,7 +774,7 @@
     <form id="fLanc" class="card" novalidate>
       <h2 id="lTitulo">Novo lançamento</h2>
       <div class="dois">
-        <label>Tipo<select id="lTipo"><option value="S">Gasto</option><option value="E">Entrada</option><option value="T">Transferência</option></select></label>
+        <label>Tipo<select id="lTipo"><option value="S">Gasto</option><option value="E">Entrada</option><option value="T">Transferência</option><option value="A">Antecipação</option></select></label>
         <label>Data<input id="lData" type="date" required></label>
       </div>
       <label>Descrição<input id="lDesc" maxlength="80" autocomplete="off"></label>
@@ -890,7 +890,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.79.0 · 13/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.80.0 · 13/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -2185,12 +2185,13 @@ function renderResDet(h) {
 let fatCartao = null, fatMes = null, fatOrigem = 'resumo', fatRolagem = 0;
 const nomeMes = (ym, opcoes) => new Date(ym + '-15T12:00').toLocaleDateString('pt-BR', opcoes);
 // Lancamentos da fatura por data, da mais recente para a mais antiga: Detalhes da fatura e aba Cartoes.
+const ICO_ANTECIP = iconeCat({ nome: '', simbolo: 'carteira', cor: '#2d6a3e' });
 function htmlLancsFatura(itens) {
   let dia = '';
   return [...itens].sort((a, b) => b.lanc.data.localeCompare(a.lanc.data)).map((p) => {
     const titulo = p.lanc.data === dia ? '' : `<h3 class="dia">${new Date(p.lanc.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</h3>`;
     dia = p.lanc.data;
-    return `${titulo}<button type="button" class="linha" data-lanc="${esc(p.lanc.id)}">${iconeCat(db.categorias.find((x) => x.id === p.lanc.cat) || { nome: '' })}<span class="q">${esc(p.lanc.desc)}${(p.lanc.recibos || []).length ? ` <b class="clipe" title="${p.lanc.recibos.length} ${p.lanc.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${p.lanc.recibos.length > 1 ? p.lanc.recibos.length : ''}</b>` : ''}${p.de ? `<br><small>Parcela ${p.n}/${p.de}</small>` : ''}</span><span class="valor">${brl(p.valor)}</span></button>`;
+    return `${titulo}<button type="button" class="linha" data-lanc="${esc(p.lanc.id)}">${p.lanc.tipo === 'A' ? ICO_ANTECIP : iconeCat(db.categorias.find((x) => x.id === p.lanc.cat) || { nome: '' })}<span class="q">${esc(p.lanc.desc)}${(p.lanc.recibos || []).length ? ` <b class="clipe" title="${p.lanc.recibos.length} ${p.lanc.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${p.lanc.recibos.length > 1 ? p.lanc.recibos.length : ''}</b>` : ''}${p.de ? `<br><small>Parcela ${p.n}/${p.de}</small>` : ''}</span><span class="valor">${brl(p.valor)}</span></button>`;
   }).join('');
 }
 // Pagar e Desfazer: iguais em Detalhes da fatura e na aba Cartoes. Paga por inteiro, o botao diz que esta paga.
@@ -2501,36 +2502,37 @@ function encher(sel, html) {
   sel.value = v;
   if (sel.selectedIndex < 0) sel.selectedIndex = 0;
 }
-const tipoRepeticao = (editando) => (editando || $('lEstorno').checked ? '' : fatCartao ? ($('lParcelado').value && 'parc') : $('lRepTipo').value);
+const tipoRepeticao = (editando) => (editando || $('lEstorno').checked || $('lTipo').value === 'A' ? '' : fatCartao ? ($('lParcelado').value && 'parc') : $('lRepTipo').value);
 function formaLanc() {
-  // Dentro da fatura o lancamento e sempre compra em cartao.
+  // Dentro da fatura o lancamento e sempre no cartao: compra ou antecipacao.
   const soCartao = fatCartao || lancOrigem === 'cartoes';
-  $('lTipo').disabled = !!soCartao;
-  if (soCartao) $('lTipo').value = 'S';
-  const tipo = $('lTipo').value;
+  for (const o of $('lTipo').options) o.hidden = o.disabled = !!soCartao && !'SA'.includes(o.value);
+  if (soCartao && !'SA'.includes($('lTipo').value)) $('lTipo').value = 'S';
+  // Antecipacao: credito na fatura do cartao (aberta na data), sem categoria e sem mexer em conta.
+  const tipo = $('lTipo').value, antecip = tipo === 'A';
   encher($('lCat'), '<option value="">Escolha</option>' + db.categorias.filter((c) => c.tipo === (tipo === 'E' ? 'E' : 'S')).map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join(''));
-  encher($('lMeio'), (soCartao ? '' : opcoesContas()) + (tipo === 'S' ? opcoesDe(db.cartoes.filter((c) => !c.arquivadaEm)) : ''));
+  encher($('lMeio'), (soCartao || antecip ? '' : opcoesContas()) + (tipo === 'S' || antecip ? opcoesDe(db.cartoes.filter((c) => !c.arquivadaEm)) : ''));
   encher($('lDestino'), opcoesContas($('lMeio').value));
   const cartao = ehCartao(db, $('lMeio').value);
-  $('lMeioTxt').textContent = { S: 'Pago com', E: 'Conta', T: 'De' }[tipo];
+  $('lMeioTxt').textContent = { S: 'Pago com', E: 'Conta', T: 'De', A: 'Cartão' }[tipo];
   // Parcelar e repetir nao se misturam: conta fixa tem uma cobranca por vez.
   const editando = lancEditando && db.lancs.find((l) => l.id === lancEditando);
   // Estorno so em compra de cartao, e nunca dentro de uma serie.
   $('lEstornoBox').hidden = tipo !== 'S' || !cartao || !!(editando && editando.serie);
   if ($('lEstornoBox').hidden) $('lEstorno').checked = false;
   const estorno = $('lEstorno').checked, repete = tipoRepeticao(editando);
-  $('lRepBox').hidden = !!editando || !!fatCartao || estorno;
-  $('lParceladoBox').hidden = !!editando || !fatCartao || estorno;
+  $('lRepBox').hidden = !!editando || !!fatCartao || estorno || antecip;
+  $('lParceladoBox').hidden = !!editando || !fatCartao || estorno || antecip;
   $('lPerBox').hidden = !repete;
   $('lParcBox').hidden = repete !== 'parc' || (!!fatCartao && $('lParcelado').value !== 'mais');
-  $('lValorTxt').textContent = estorno ? 'Valor do estorno' : repete === 'parc' ? 'Valor total' : editando && editando.de ? 'Valor da parcela' : 'Valor';
+  $('lValorTxt').textContent = antecip ? 'Valor da antecipação' : estorno ? 'Valor do estorno' : repete === 'parc' ? 'Valor total' : editando && editando.de ? 'Valor da parcela' : 'Valor';
   mostrarParcInfo();
   $('lSerieInfo').hidden = !(editando && editando.serie);
   $('lSerieInfo').textContent = `${editando && editando.de ? `Parcela ${editando.parcela} de ${editando.de}` : 'Conta fixa'}: ao salvar ou excluir, você escolhe se vale só para esta ou também para as outras.`;
   $('lDestinoBox').hidden = tipo !== 'T';
-  $('lCatBox').hidden = tipo === 'T';
+  $('lCatBox').hidden = tipo === 'T' || antecip;
   // Compra no cartao nao tem situacao propria: quem paga e a fatura.
-  $('lPagoCaixa').hidden = cartao;
+  $('lPagoCaixa').hidden = cartao || antecip;
   $('lPagoTxt').textContent = { S: 'Já foi pago', E: 'Já foi recebido', T: 'Já foi feita' }[tipo];
   // Recibos: em gasto no cartao (e sempre que o lancamento ja tiver algum).
   $('lRecBox').hidden = !((tipo === 'S' && cartao) || recL.lista.length);
@@ -2604,25 +2606,26 @@ $('lData').onchange = () => { if ($('lData').value > hoje()) $('lPago').checked 
 $('lLimpar').onclick = limparLanc;
 $('fLanc').onsubmit = async (e) => {
   e.preventDefault();
-  const tipo = $('lTipo').value, transf = tipo === 'T', valor = centavos($('lValor'));
+  const tipo = $('lTipo').value, transf = tipo === 'T', antecip = tipo === 'A', valor = centavos($('lValor'));
   const meio = $('lMeio').value, cartao = ehCartao(db, meio);
   const editando = lancEditando && db.lancs.find((l) => l.id === lancEditando);
   const repete = tipoRepeticao(editando), noMenu = fatCartao && $('lParcelado').value !== 'mais';
   const parcelas = noMenu ? +$('lParcelado').value : +$('lParc').value;
   const erro = !$('lData').value ? 'Informe a data.'
     : !meio ? 'Nenhum cartão ativo para lançar.'
-    : editando && faturaPagaDoLanc(db, { meio, data: $('lData').value }) ? 'Essa data cai em uma fatura já paga. Escolha outra data ou desfaça o pagamento.'
+    : (editando || antecip) && faturaPagaDoLanc(db, { meio, data: $('lData').value }) ? 'Essa data cai em uma fatura já paga. Escolha outra data ou desfaça o pagamento.'
+    : antecip && editando && editando.serie ? 'Conta fixa ou parcela não vira antecipação.'
     : transf && !$('lDestino').value ? 'Cadastre outra conta em Ajustes para transferir.'
-    : !transf && !$('lDesc').value.trim() ? 'Informe a descrição.'
-    : !valor ? 'Informe o valor.' : !transf && !$('lCat').value ? 'Escolha a categoria.'
+    : !transf && !antecip && !$('lDesc').value.trim() ? 'Informe a descrição.'
+    : !valor ? 'Informe o valor.' : !transf && !antecip && !$('lCat').value ? 'Escolha a categoria.'
     : repete === 'parc' && (!Number.isInteger(parcelas) || parcelas < 2) ? 'Informe 2 parcelas ou mais.'
     : repete === 'parc' && !fatCartao && parcelas > 48 ? 'Parcelas: de 2 a 48.'
     : repete === 'parc' && valor < parcelas ? 'O valor total é menor que o número de parcelas.' : '';
   if (erro) return avisar('Falta informação', erro);
   const dados = {
-    tipo, data: $('lData').value, valor: $('lEstorno').checked ? -valor : valor, meio,
-    desc: $('lDesc').value.trim() || `Transferência para ${nomeMeio($('lDestino').value)}`,
-    cat: transf ? null : $('lCat').value,
+    tipo, data: $('lData').value, valor: $('lEstorno').checked || antecip ? -valor : valor, meio,
+    desc: $('lDesc').value.trim() || (antecip ? 'Antecipação de fatura' : `Transferência para ${nomeMeio($('lDestino').value)}`),
+    cat: transf || antecip ? null : $('lCat').value,
     destino: transf ? $('lDestino').value : undefined,
     pago: cartao || $('lPago').checked,
   };
@@ -2650,7 +2653,7 @@ $('fLanc').onsubmit = async (e) => {
   const lc = gravado || dados;
   if (!cartaoLanc) return avisar('Gravado com sucesso');
   const ymF = mesFatura(lc.data, cartaoLanc), vence = `${ymF}-${String(Math.min(cartaoLanc.vencimento, ultimoDia(ymF))).padStart(2, '0')}`;
-  avisar('Gravado com sucesso', `${repete === 'fixa' || repete === 'parc' ? 'A primeira entrou' : 'Entrou'} na fatura de ${nomeMesAno(ymF)} do ${cartaoLanc.nome}, que vence em ${dataBR4(vence)}. Na aba Cartões, veja em ${nomeMesAno(ymF)}.`);
+  avisar('Gravado com sucesso', `${antecip ? 'A antecipação diminuiu a' : repete === 'fixa' || repete === 'parc' ? 'A primeira entrou na' : 'Entrou na'} fatura de ${nomeMesAno(ymF)} do ${cartaoLanc.nome}, que vence em ${dataBR4(vence)}. Na aba Cartões, veja em ${nomeMesAno(ymF)}.`);
 };
 $('lExcluir').onclick = async () => {
   const fixa = !!db.lancs.find((l) => l.id === lancEditando).serie;
@@ -3303,7 +3306,7 @@ function exportar(tipo) {
   if (tipo === 'cartoes') {
     const ativos = db.cartoes.filter((c) => ativoEm(c, mes)), marcados = ativos.filter((c) => filtroCartoes.has(c.id));
     const linhas = (marcados.length ? marcados : ativos).flatMap((c) => itensFatura(db, c, mes).sort((a, b) => a.lanc.data.localeCompare(b.lanc.data))
-      .map((p) => [c.nome, nomeMesAno(mes), statusFatura(db, c, mes, h), dataCsv(p.lanc.data), p.lanc.desc, p.de ? `${p.n}/${p.de}` : '', nomeCat(p.lanc.cat), numCsv(p.valor)]));
+      .map((p) => [c.nome, nomeMesAno(mes), statusFatura(db, c, mes, h), dataCsv(p.lanc.data), p.lanc.desc, p.de ? `${p.n}/${p.de}` : '', p.lanc.tipo === 'A' ? 'Antecipação' : nomeCat(p.lanc.cat), numCsv(p.valor)]));
     return exportarCSV(`faturas-${mes}`, ['Cartão', 'Fatura', 'Situação', 'Data', 'Descrição', 'Parcela', 'Categoria', 'Valor'], linhas);
   }
 }

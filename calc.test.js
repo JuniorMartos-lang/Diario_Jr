@@ -826,6 +826,20 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.deepStrictEqual(volta.cartoes[0].finais, comFinais.cartoes[0].finais);
     assert.deepStrictEqual(volta.cartoes[0].finaisInativos, comFinais.cartoes[0].finaisInativos);
   }
+  // Antecipacao de fatura (tipo A): credito no cartao, sem categoria; diminui a fatura e passa pelos dois tipos de backup
+  const comAnt = JSON.parse(JSON.stringify(dp)), kA = comAnt.cartoes[0];
+  const ymA = c.mesFatura('2026-11-02', kA), antes = c.totalFatura(comAnt, kA, ymA);
+  comAnt.lancs.push({ id: 'ant1', tipo: 'A', data: '2026-11-02', valor: -5000, meio: kA.id, desc: 'Antecipação de fatura', cat: null, pago: true });
+  assert.strictEqual(c.totalFatura(comAnt, kA, ymA), antes - 5000);
+  for (const arq of [await c.cifrarBackup(comAnt, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comAnt, gApp)]) {
+    const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1'), '2026-11-03');
+    assert.ok(c.backupValido(volta));
+    assert.deepStrictEqual(volta.lancs.find((l) => l.id === 'ant1'), comAnt.lancs.at(-1));
+  }
+  { const r = JSON.parse(JSON.stringify(comAnt)), l = r.lancs.at(-1);
+    l.valor = 5000; assert.ok(!c.backupValido(r), 'antecipacao e sempre credito');
+    l.valor = -5000; l.meio = r.contasBanco[0].id; assert.ok(!c.backupValido(r), 'so em cartao');
+    l.meio = kA.id; l.cat = 'a'; assert.ok(!c.backupValido(r), 'sem categoria'); }
   // Area USA inteira (viagens com imagem, contas, cartoes, viajantes, categorias) passa pelos dois tipos de backup
   const jpg = 'data:image/jpeg;base64,/9j/AAAA', svg = 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=';
   const comUsa = { ...JSON.parse(JSON.stringify(dp)), usa: { moedas: c.MOEDAS_PADRAO, despesas: [{ id: 'd1', viagem: 'v1', desc: 'Parque', cat: 'u4', data: '2027-04-05', moeda: 'BRL', valor: 12345, quem: ['u3'], obs: 'Ingresso de 2 dias', pago: false, checkin: '2027-04-05', checkout: '2027-04-08',

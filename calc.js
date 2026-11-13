@@ -1238,6 +1238,7 @@ function backupValido(d) {
     && d.lancs.every((l) => data(l.data) && inteiro(l.valor) && typeof l.pago === 'boolean' && recibosValidos(l.recibos)
       && (l.tipo === 'T' ? conta(l.meio) && conta(l.destino) && l.meio !== l.destino
         : l.tipo === 'E' ? conta(l.meio)
+          : l.tipo === 'A' ? cartao(l.meio) && l.valor < 0 && !l.cat && !l.serie
           : l.tipo === 'S' && (conta(l.meio) || cartao(l.meio))))
     && Object.values(d.faturasPagas).every((f) => data(f.data) && inteiro(f.valor) && conta(f.conta))
     && d.parciais.every((p) => cartao(p.cartao) && /^\d{4}-\d{2}$/.test(p.ym) && data(p.data) && inteiro(p.valor) && conta(p.conta))
