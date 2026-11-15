@@ -1246,8 +1246,222 @@ function backupValido(d) {
       && inteiro(s.modelo.valor) && (s.encerrada || conta(s.modelo.meio) || cartao(s.modelo.meio)));
 }
 
+// --- PDF A4 de verdade (texto em Helvetica, sem biblioteca) ---
+// Desenho em pontos (A4 = 595,28 x 841,89), com y de baixo para cima como no PDF. Cada pagina e uma lista de
+// operacoes (txt, lin, ret, circ) que viram o arquivo (pdfDeDesenho) ou imagens para o visualizador do app.
+const A4 = [595.28, 841.89];
+const LARG_HELV = (() => {
+  const w = {}, asc = ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
+  const lw = [278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 278, 278, 584, 584, 584, 556, 1015,
+    667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833, 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 278, 278, 278, 469, 556, 333,
+    556, 556, 500, 556, 556, 278, 556, 556, 222, 222, 500, 222, 833, 556, 556, 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584];
+  [...asc].forEach((c, i) => { w[c] = lw[i]; });
+  return w;
+})();
+// Largura do texto na Helvetica (negrito um pouco mais largo); letra acentuada mede como a sem acento.
+function largTexto(t, tam, negrito) {
+  return [...t].reduce((s, c) => s + (LARG_HELV[c] ?? LARG_HELV[c.normalize('NFD')[0]] ?? 600), 0) * tam / 1000 * (negrito ? 1.07 : 1);
+}
+function quebrarTexto(t, tam, max, negrito) {
+  const linhas = [];
+  let atual = '';
+  for (const p of String(t).split(/\s+/).filter(Boolean)) {
+    const tenta = atual ? atual + ' ' + p : p;
+    if (largTexto(tenta, tam, negrito) <= max || !atual) atual = tenta; else { linhas.push(atual); atual = p; }
+  }
+  if (atual) linhas.push(atual);
+  return linhas.length ? linhas : [''];
+}
+// Relatorio A4 no estilo resumo de pedido, usado por todos os "Exportar para PDF".
+// R = { titulo, sub, quadro: [{ titulo, linhas: [{ e, d: [textos], negrito, cinza }] }] (1 a 3 colunas),
+//       secoes: [{ titulo, total, itens: [{ sig, cor, titulo, linhas: [{ s, cinza }], pilulas: [{ s, fundo, cor }], valor: [textos], valorCor }] }],
+//       vazio, totalFinal: { rotulo, valores: [textos] }, rodape, geradoEm }
+// Nenhum item e cortado entre paginas, o titulo de uma secao vai junto com o primeiro item, e o quadro da secao
+// fecha no fim da pagina e reabre na seguinte. Rodape com "Pagina X de Y".
+const COR_PDF = { CINZA: '#565959', AZUL: '#007185', PRETO: '#0f1111', VERDE: '#15803d', VERMELHO: '#b42318' };
+const PILULA = {
+  pago: { fundo: '#dcf2e3', cor: '#15803d' }, aPagar: { fundo: '#fdecd2', cor: '#a15c07' }, atraso: { fundo: '#fde2e1', cor: '#b42318' },
+  corp: { fundo: '#dbe7ff', cor: '#1d4ed8' }, neutra: { fundo: '#eceff1', cor: '#37474f' },
+};
+function relatorioA4(R) {
+  const M = 40, LARG = A4[0] - 2 * M, RODAPE = M + 24, { CINZA, AZUL, PRETO } = COR_PDF;
+  const dataBR = (d) => (d ? `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}` : '');
+  const paginas = [];
+  let pg, y;
+  const nova = () => { pg = []; paginas.push(pg); y = A4[1] - M; };
+  const txt = (s, x, yy, tam, { negrito = false, cor = PRETO, dir = false } = {}) => pg.push({ t: 'txt', s, x: dir ? x - largTexto(s, tam, negrito) : x, y: yy, tam, negrito, cor });
+  const lin = (x1, y1, x2, y2, cor = '#d5d9d9', esp = 0.6) => pg.push({ t: 'lin', x1, y1, x2, y2, cor, esp });
+  const ret = (x, yy, w, h, { cor = '#d5d9d9', fundo = null, raio = 6 } = {}) => pg.push({ t: 'ret', x, y: yy, w, h, cor, fundo, raio });
+  const corta = (s, tam, max, negrito) => { const l = quebrarTexto(s, tam, max, negrito)[0]; return l === String(s).replace(/\s+/g, ' ').trim() ? l : l + '…'; };
+  const pilula = (p, x, yy) => { const w = largTexto(p.s, 7.5, true) + 10; ret(x, yy - 3, w, 11, { cor: p.fundo, fundo: p.fundo, raio: 5.5 }); txt(p.s, x + 5, yy, 7.5, { negrito: true, cor: p.cor }); return w + 4; };
+
+  nova();
+  txt(R.titulo, M, y - 16, 20, { negrito: true });
+  y -= 34;
+  if (R.sub) { txt(corta(R.sub, 10, LARG), M, y, 10, { cor: CINZA }); y -= 14; }
+  // Quadro de ate tres colunas
+  const Q = (R.quadro || []).filter((c) => c && c.linhas.length);
+  if (Q.length) {
+    const prop = Q.length === 3 ? [0.31, 0.31, 0.38] : Q.length === 2 ? [0.5, 0.5] : [1];
+    const colW = prop.map((p) => (LARG - 24) * p);
+    const colX = colW.map((_, i) => M + 12 + colW.slice(0, i).reduce((a, b) => a + b, 0));
+    const alt = (c) => c.linhas.reduce((s, l) => s + Math.max(1, (l.d || []).length) * 13, 0);
+    const altQ = Math.max(...Q.map(alt)) + 32;
+    ret(M, y - altQ, LARG, altQ);
+    const yc = y - 20;
+    Q.forEach((c, i) => {
+      const dirX = i === Q.length - 1 ? M + LARG - 12 : colX[i] + colW[i] - 14;
+      txt(c.titulo, colX[i], yc, 10.5, { negrito: true });
+      let yl = yc - 16;
+      for (const l of c.linhas) {
+        const d = l.d || [], tam = l.negrito ? 10 : 9.5, cor = l.cinza ? CINZA : PRETO;
+        const largD = d.length ? Math.max(...d.map((s) => largTexto(s, tam, l.negrito))) + 8 : 0;
+        txt(corta(l.e, tam, dirX - colX[i] - largD, l.negrito), colX[i], yl, tam, { negrito: l.negrito, cor });
+        d.forEach((s, k) => txt(s, dirX, yl - k * 13, tam, { negrito: l.negrito, cor, dir: true }));
+        yl -= Math.max(1, d.length) * 13;
+      }
+    });
+    y -= altQ + 18;
+  }
+  // Secoes
+  const xt = M + 54, largVal = (it) => Math.max(0, ...(it.valor || []).map((s) => largTexto(s, 10.5, true)));
+  const medir = (it) => {
+    const tit = quebrarTexto(it.titulo, 10, LARG - 80 - largVal(it) - 20);
+    const nl = tit.length * 12.5 + (it.linhas || []).length * 12;
+    return { tit, h: 14 + Math.max(nl, (it.valor || []).length * 13) + 16 };
+  };
+  let topo = null;
+  const fecha = () => { if (topo !== null && topo - y > 1) ret(M, y, LARG, topo - y); topo = null; };
+  const secoes = (R.secoes || []).filter((s) => s.itens.length);
+  if (!secoes.length) txt(R.vazio || 'Nada para mostrar.', M, y - 10, 10, { cor: CINZA });
+  for (const s of secoes) {
+    if (y - 34 - medir(s.itens[0]).h < RODAPE) nova();
+    topo = y;
+    y -= 22;
+    const largTot = s.total ? largTexto(s.total, 11, true) + 16 : 0;
+    txt(corta(s.titulo, 12, LARG - 24 - largTot, true), M + 12, y, 12, { negrito: true });
+    if (s.total) txt(s.total, M + LARG - 12, y, 11, { negrito: true, dir: true });
+    y -= 8;
+    s.itens.forEach((it, n) => {
+      const { tit, h } = medir(it);
+      if (y - h < RODAPE) { fecha(); nova(); topo = y; }
+      const y0 = y - 14, sig = String(it.sig || '').slice(0, 3);
+      pg.push({ t: 'circ', cx: M + 30, cy: y0 - 6, r: 13, cor: it.cor || '#475569' });
+      const tamS = sig.length > 2 ? 7.5 : 9.5;
+      txt(sig, M + 30 - largTexto(sig, tamS, true) / 2, y0 - 6 - tamS * 0.36, tamS, { negrito: true, cor: '#ffffff' });
+      tit.forEach((l, i) => txt(l, xt, y0 - i * 12.5, 10, { cor: AZUL }));
+      let yy = y0 - tit.length * 12.5;
+      const maxL = LARG - 80 - largVal(it) - 10;
+      for (const l of it.linhas || []) { txt(corta(l.s, 8.5, maxL), xt, yy, 8.5, { cor: l.cinza ? CINZA : PRETO }); yy -= 12; }
+      if ((it.pilulas || []).length) { let xp = xt; for (const p of it.pilulas) xp += pilula(p, xp, yy - 1); } else yy += 4;
+      (it.valor || []).forEach((v, i) => txt(v, M + LARG - 12, y0 - i * 13, 10.5, { negrito: true, dir: true, cor: it.valorCor || PRETO }));
+      y = Math.min(yy, y0 - (it.valor || []).length * 13 + 4) - 10;
+      if (n < s.itens.length - 1) lin(xt, y + 3, M + LARG - 12, y + 3, '#e3e6e6');
+    });
+    y -= 4;
+    fecha();
+    y -= 12;
+  }
+  if (R.totalFinal && secoes.length) {
+    const vs = R.totalFinal.valores || [];
+    if (y - 24 - vs.length * 14 < RODAPE) nova();
+    lin(M, y, M + LARG, y, PRETO, 0.8);
+    y -= 16;
+    txt(R.totalFinal.rotulo, M, y, 11, { negrito: true });
+    vs.forEach((s, i) => txt(s, M + LARG, y - i * 14, 11, { negrito: true, dir: true }));
+  }
+  paginas.forEach((p, i) => {
+    pg = p;
+    lin(M, M + 12, M + LARG, M + 12, '#e3e6e6');
+    txt(corta(`Controle Diário  ·  ${R.rodape || R.titulo}  ·  gerado em ${dataBR(R.geradoEm)}`, 8, LARG - 80), M, M, 8, { cor: CINZA });
+    txt(`Página ${i + 1} de ${paginas.length}`, M + LARG, M, 8, { cor: CINZA, dir: true });
+  });
+  return paginas;
+}
+// Despesas da viagem: quadro com Destino, Pago com e Resumo; depois um quadro por categoria.
+// D = { viagem: { nome, inicio, fim, corporativa, pais, base, viajantes: [nomes] }, moedas: { cod: simbolo }, cats: { id: { nome, cor } },
+//       desp: [{ data, desc, cat, moeda, valor, nat: 'C'|'P', pago, meios: [nomes], ci, co, rec, local }], geradoEm, filtro }
+function relatorioViagem(D) {
+  const dataBR = (d) => (d ? `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}` : '');
+  const dm = (d) => (d ? `${d.slice(8, 10)}/${d.slice(5, 7)}` : '?');
+  const num = (c) => (c / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const v = D.viagem, desp = D.desp;
+  const moedas = [v.base, ...Object.keys(D.moedas).filter((m) => m !== v.base)];
+  const fmt = (c, m) => `${D.moedas[m] || m} ${num(c)}`;
+  const soma = (lista) => { const t = {}; for (const d of lista) t[d.moeda] = (t[d.moeda] || 0) + d.valor; return t; };
+  const porMoeda = (t) => moedas.filter((m) => t[m]).map((m) => fmt(t[m], m));
+  const hotel = desp.find((d) => /hot/i.test((D.cats[d.cat] || {}).nome || '') && d.local);
+  const meios = new Map();
+  for (const d of desp) for (const m of (d.meios.length ? d.meios : ['Não informado'])) meios.set(m, (meios.get(m) || 0) + 1);
+  const destino = [...v.viajantes, ...(hotel ? quebrarTexto(hotel.desc, 9.5, 135) : []), ...(hotel ? quebrarTexto(hotel.local, 9.5, 135) : []), v.pais].filter(Boolean).map((e) => ({ e }));
+  if (hotel && hotel.ci) destino.push({ e: `Hotel: ${dm(hotel.ci)} a ${dm(hotel.co)}`, cinza: true });
+  const resumo = [['Corporativo:', desp.filter((d) => d.nat === 'C')], ['Pessoal:', desp.filter((d) => d.nat === 'P')], ['Já pago:', desp.filter((d) => d.pago)], ['A pagar:', desp.filter((d) => !d.pago)]]
+    .filter(([r]) => v.corporativa || !['Corporativo:', 'Pessoal:'].includes(r)).map(([e, l]) => ({ e, d: porMoeda(soma(l)).length ? porMoeda(soma(l)) : ['—'] }));
+  const totais = porMoeda(soma(desp));
+  resumo.push({ e: 'Total geral:', d: totais.length ? totais : ['—'], negrito: true }, { e: 'Despesas:', d: [`${desp.length} (${desp.filter((d) => d.rec).length} com recibo)`], cinza: true });
+  const grupos = [...new Set(desp.map((d) => d.cat))].sort((a, b) => ((D.cats[a] || {}).nome || '').localeCompare((D.cats[b] || {}).nome || ''));
+  return relatorioA4({
+    titulo: 'Resumo da viagem', geradoEm: D.geradoEm, rodape: v.nome, vazio: 'Nenhuma despesa.',
+    sub: [v.nome, `${dataBR(v.inicio)} a ${dataBR(v.fim)}`, v.corporativa ? 'Viagem corporativa' : 'Viagem pessoal', D.filtro || ''].filter(Boolean).join('   |   '),
+    quadro: [{ titulo: 'Destino', linhas: destino }, { titulo: 'Pago com', linhas: [...meios].sort((a, b) => b[1] - a[1]).map(([e, n]) => ({ e, d: [String(n)] })) }, { titulo: 'Resumo', linhas: resumo }],
+    secoes: grupos.map((id) => {
+      const c = D.cats[id] || { nome: '?', cor: '#475569' }, itens = desp.filter((d) => d.cat === id).sort((a, b) => a.data.localeCompare(b.data));
+      return {
+        titulo: c.nome.replace(/\s+/g, ' '), total: `${porMoeda(soma(itens)).join(' + ')}  (${itens.length})`,
+        itens: itens.map((d) => ({
+          sig: c.nome.trim().slice(0, 2), cor: c.cor, titulo: d.desc, valor: [fmt(d.valor, d.moeda)],
+          linhas: [{ s: [`Pago com: ${d.meios.join(' + ') || 'Não informado'}`, `Compra em ${dataBR(d.data)}`, ...(d.rec ? ['Com recibo'] : [])].join('  ·  '), cinza: true },
+            ...(d.ci || d.co ? [{ s: `Check-in ${dataBR(d.ci) || '?'}  ·  Check-out ${dataBR(d.co) || '?'}` }] : []), ...(d.local && !d.ci ? [{ s: d.local }] : [])],
+          pilulas: [...(v.corporativa ? [d.nat === 'C' ? { s: 'Corporativa', ...PILULA.corp } : { s: 'Pessoal', ...PILULA.neutra }] : []), d.pago ? { s: 'Pago', ...PILULA.pago } : { s: 'A pagar', ...PILULA.aPagar }],
+        })),
+      };
+    }),
+    totalFinal: { rotulo: 'Total geral da viagem', valores: totais },
+  });
+}
+// Monta o arquivo PDF das paginas desenhadas. Texto em WinAnsi (cp1252), gravado em hexadecimal.
+function pdfDeDesenho(paginas) {
+  const CP = { '€': 0x80, '…': 0x85, '‘': 0x91, '’': 0x92, '“': 0x93, '”': 0x94, '•': 0x95, '–': 0x96, '—': 0x97, '™': 0x99 };
+  const hex = (t) => '<' + [...t].map((c) => { const n = CP[c] ?? c.charCodeAt(0); return (n < 256 ? n : 63).toString(16).padStart(2, '0'); }).join('') + '>';
+  const rgb = (h) => [1, 3, 5].map((i) => (parseInt(h.slice(i, i + 2), 16) / 255).toFixed(3)).join(' ');
+  const f = (n) => Number(n.toFixed(2));
+  const op = (o) => {
+    if (o.t === 'txt') return `BT /${o.negrito ? 'F2' : 'F1'} ${o.tam} Tf ${rgb(o.cor)} rg ${f(o.x)} ${f(o.y)} Td ${hex(o.s)} Tj ET`;
+    if (o.t === 'lin') return `${rgb(o.cor)} RG ${o.esp} w ${f(o.x1)} ${f(o.y1)} m ${f(o.x2)} ${f(o.y2)} l S`;
+    if (o.t === 'circ') {
+      const { cx, cy, r } = o, k = r * 0.552;
+      return `${rgb(o.cor)} rg ${f(cx + r)} ${f(cy)} m ${f(cx + r)} ${f(cy + k)} ${f(cx + k)} ${f(cy + r)} ${f(cx)} ${f(cy + r)} c ${f(cx - k)} ${f(cy + r)} ${f(cx - r)} ${f(cy + k)} ${f(cx - r)} ${f(cy)} c ${f(cx - r)} ${f(cy - k)} ${f(cx - k)} ${f(cy - r)} ${f(cx)} ${f(cy - r)} c ${f(cx + k)} ${f(cy - r)} ${f(cx + r)} ${f(cy - k)} ${f(cx + r)} ${f(cy)} c f`;
+    }
+    const { x, y, w, h } = o, r = Math.min(o.raio, h / 2, w / 2), k = r * 0.552;
+    const p = [`${f(x + r)} ${f(y)} m`, `${f(x + w - r)} ${f(y)} l`, `${f(x + w - r + k)} ${f(y)} ${f(x + w)} ${f(y + r - k)} ${f(x + w)} ${f(y + r)} c`, `${f(x + w)} ${f(y + h - r)} l`,
+      `${f(x + w)} ${f(y + h - r + k)} ${f(x + w - r + k)} ${f(y + h)} ${f(x + w - r)} ${f(y + h)} c`, `${f(x + r)} ${f(y + h)} l`, `${f(x + r - k)} ${f(y + h)} ${f(x)} ${f(y + h - r + k)} ${f(x)} ${f(y + h - r)} c`,
+      `${f(x)} ${f(y + r)} l`, `${f(x)} ${f(y + r - k)} ${f(x + r - k)} ${f(y)} ${f(x + r)} ${f(y)} c h`].join(' ');
+    return o.fundo ? `${rgb(o.fundo)} rg ${rgb(o.cor)} RG 0.6 w ${p} B` : `${rgb(o.cor)} RG 0.6 w ${p} S`;
+  };
+  const objs = [];
+  const add = (s) => { objs.push(s); return objs.length; };
+  const cat = add(''), pags = add('');
+  const f1 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  const f2 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+  const kids = paginas.map((p) => {
+    const corpo = p.map(op).join('\n');
+    const c = add(`<< /Length ${corpo.length} >>\nstream\n${corpo}\nendstream`);
+    return add(`<< /Type /Page /Parent ${pags} 0 R /MediaBox [0 0 ${A4[0]} ${A4[1]}] /Resources << /Font << /F1 ${f1} 0 R /F2 ${f2} 0 R >> >> /Contents ${c} 0 R >>`);
+  });
+  objs[cat - 1] = `<< /Type /Catalog /Pages ${pags} 0 R >>`;
+  objs[pags - 1] = `<< /Type /Pages /Kids [${kids.map((k) => k + ' 0 R').join(' ')}] /Count ${kids.length} >>`;
+  // Tudo e ASCII (o texto vai em hexadecimal), entao o tamanho em bytes e o numero de caracteres.
+  let out = '%PDF-1.4\n';
+  const offs = objs.map((o, i) => { const at = out.length; out += `${i + 1} 0 obj\n${o}\nendobj\n`; return at; });
+  const xref = out.length;
+  out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offs.map((o) => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+  out += `trailer\n<< /Size ${objs.length + 1} /Root ${cat} 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return Uint8Array.from(out, (c) => c.charCodeAt(0));
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
+    A4, largTexto, quebrarTexto, relatorioA4, PILULA, COR_PDF, relatorioViagem, pdfDeDesenho,
     anosEDias, contadorViagem, PAISES, ehPais, nomePais, formaDaCategoria, TIPOS_ITIN, itemItinValido, tipoDaCategoriaViagem, categoriaDeItinerario, despesaComCheckin, despesasParaItin, sincronizarItinDespesas, diasItinerario, localValido, ehChaveMaps, ehChaveAero, fusoDeOffset, horaLocalVoo, dadosDoVoo, offsetFuso, modelosDoVoo, vooNaData, lembretesAgenda, situacaoLembretes, idEvento, googleValido, ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
     protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, decifrarComHash, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,

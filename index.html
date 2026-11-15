@@ -153,8 +153,9 @@
   .pdfVerBotoes button { flex: 1; min-height: 36px; padding: 4px 8px; }
   #pdfPaginas { flex: 1; overflow-y: auto; padding: 10px; }
   #pdfPaginas img { display: block; width: 100%; margin: 0 auto 10px; background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, .4); }
-  #areaPdf { position: fixed; left: -10000px; top: 0; width: 420px; padding: 12px; background: #fff; }
-  #areaPdf .olhoSaldo { display: none; }
+  /* PDF A4 (despesas da viagem): a folha no tamanho de A4 na tela (794 px), com rolagem para os lados e para baixo. */
+  #pdfPaginas.a4 { overflow: auto; }
+  #pdfPaginas.a4 img { width: 794px; max-width: none; margin: 0 0 10px; }
   .vooModo.mesmoLoc { margin: 4px 0 0; }
   .paxLinha input.paxLoc[readonly] { opacity: .6; }
   .horaSel select { flex: 1; min-width: 0; margin: 0; padding: 0 6px; text-align: center; text-align-last: center; }
@@ -897,7 +898,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.80.6 · 15/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.81.0 · 15/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -3118,93 +3119,224 @@ async function exportarCSV(nome, cabecalho, linhas) {
 const situacaoLanc = (l) => (ehCartao(db, l.meio) ? 'Cartão' : l.pago ? (l.tipo === 'E' ? 'Recebido' : 'Pago') : 'Pendente');
 const linhaLancCsv = (l) => [dataCsv(l.data), l.desc, l.de ? `${l.parcela}/${l.de}` : '', nomeCat(l.cat), ondeDoMeio(l.meio), numCsv(l.valor), situacaoLanc(l)];
 const CAB_LANC = ['Data', 'Descrição', 'Parcela', 'Categoria', 'Conta ou cartão', 'Valor', 'Situação'];
-// Exportar para PDF: copia o quadro (secoes da aba Travel) ou a tela do botao, fora da vista, sem botoes de tela e com os
-// documentos abertos; "fotografa" a copia com o html2canvas (carregado da internet so na primeira vez, versao fixa), corta
-// em paginas sem partir linhas e monta o PDF (montarPdf, o mesmo dos recibos). Abre o popup com Abrir, Salvar e Compartilhar.
-// Sai no tema claro e com os valores visiveis, mesmo com o olhinho fechado (a tela continua oculta).
+// Exportar para PDF: relatorio A4 de verdade, com texto (relatorioA4 e pdfDeDesenho em calc.js), no estilo resumo de pedido,
+// montado com o que cada tela mostra (relatorioDaTela). Valores sempre reais no arquivo, mesmo com o olhinho fechado.
+// As paginas tambem viram imagens, so para o visualizador do app. Abre o popup com Abrir, Salvar e Compartilhar.
 const NOME_PDF = { fluxo: 'Fluxo', parcelas: 'Parcelamentos', categoria: 'Gastos da categoria', resumos: 'Resumo', cartoes: 'Cartões', 'usa-ab': 'Viagens em aberto',
   'usa-fin': 'Viagens finalizadas', 'usa-cus': 'Custos das viagens', itinerario: 'Itinerário', usadesp: 'Despesas da viagem' };
-let h2c = null, pdfPronto = null;
-const carregarH2C = () => h2c || (h2c = new Promise((ok, falha) => {
-  const sc = document.createElement('script');
-  sc.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-  sc.onload = () => ok(window.html2canvas);
-  sc.onerror = () => { h2c = null; sc.remove(); falha(new Error('Sem internet: o gerador de PDF não carregou. Tente de novo com conexão.')); };
-  document.head.appendChild(sc);
-}));
-// O html2canvas deforma SVG e "object-fit" (bandeiras, logos): cada imagem vira um PNG ja no tamanho e no corte da tela.
-async function imagensComuns(raiz) {
-  for (const img of raiz.querySelectorAll('img')) {
-    const cs = getComputedStyle(img), r = img.getBoundingClientRect();
-    const pl = parseFloat(cs.paddingLeft) + parseFloat(cs.borderLeftWidth), pt = parseFloat(cs.paddingTop) + parseFloat(cs.borderTopWidth);
-    const W = r.width - pl - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth), H = r.height - pt - parseFloat(cs.paddingBottom) - parseFloat(cs.borderBottomWidth);
-    if (W < 1 || H < 1) continue;
-    try {
-      const fonte = await new Promise((ok, falha) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => ok(i); i.onerror = falha; i.src = img.src; });
-      const iw = fonte.naturalWidth || W, ih = fonte.naturalHeight || H, k = 3, cv = document.createElement('canvas');
-      cv.width = Math.round(W * k); cv.height = Math.round(H * k);
-      const fit = cs.objectFit, esc = fit === 'cover' ? Math.max(W / iw, H / ih) : fit === 'contain' || fit === 'scale-down' ? Math.min(W / iw, H / ih) : null;
-      const g = cv.getContext('2d');
-      if (esc) { const dw = iw * esc, dh = ih * esc; g.drawImage(fonte, ((W - dw) / 2) * k, ((H - dh) / 2) * k, dw * k, dh * k); } else g.drawImage(fonte, 0, 0, cv.width, cv.height);
-      img.src = cv.toDataURL('image/png');
-      img.style.objectFit = 'fill';
-    } catch { /* imagem que nao carrega fica como esta */ }
+let pdfPronto = null;
+// Despesas da viagem: PDF A4 de verdade, com texto (relatorioViagem e pdfDeDesenho em calc.js), no estilo resumo de pedido.
+// As paginas tambem viram imagens, so para o visualizador do app. Segue o combo Tipos Gastos.
+function dadosPdfViagem() {
+  const v = viagemAberta(), u = usa(), tipoG = v.corporativa ? $('udTipoGasto').value : '';
+  const meios = [...u.contas, ...u.cartoes], nome = (id) => (meios.find((m) => m.id === id) || {}).nome;
+  const desp = u.despesas.filter((d) => d.viagem === v.id && (!tipoG || naturezaDesp(d) === tipoG));
+  const moedas = [...new Set([...v.moedas, ...desp.map((d) => d.moeda)])];
+  return {
+    viagem: { nome: v.nome, inicio: v.inicio || '', fim: v.fim || '', corporativa: !!v.corporativa, pais: v.pais ? nomePais(v.pais) : '', base: v.base,
+      viajantes: v.viajantes.map((id) => (u.viajantes.find((p) => p.id === id) || {}).nome).filter(Boolean) },
+    moedas: Object.fromEntries(moedas.map((m) => [m, moedaUsa(m).simbolo])),
+    cats: Object.fromEntries(u.categorias.map((c) => [c.id, { nome: c.nome, cor: aparenciaCat(c).cor }])),
+    desp: desp.map((d) => ({ data: d.data, desc: d.desc, cat: d.cat, moeda: d.moeda, valor: d.valor, nat: naturezaDesp(d), pago: d.pago !== false,
+      meios: (d.pagamentos || []).map((p) => nome(p.meio)).filter(Boolean), ci: d.checkin || '', co: d.checkout || '', rec: (d.recibos || []).length,
+      local: d.local ? d.local.endereco || d.local.nome : '' })),
+    geradoEm: hoje(), filtro: tipoG === 'P' ? 'Só despesas pessoais' : tipoG === 'C' ? 'Só despesas corporativas' : '',
+  };
+}
+// Desenha uma pagina A4 num canvas (2x) para o visualizador; o arquivo em si e o PDF com texto.
+function paginaEmImagem(ops) {
+  const e = 2, cv = document.createElement('canvas'), Y = (y) => A4[1] - y;
+  cv.width = Math.round(A4[0] * e); cv.height = Math.round(A4[1] * e);
+  const g = cv.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.scale(e, e);
+  for (const o of ops) {
+    g.beginPath();
+    if (o.t === 'txt') { g.font = `${o.negrito ? 'bold ' : ''}${o.tam}px Helvetica, Arial, sans-serif`; g.fillStyle = o.cor; g.fillText(o.s, o.x, Y(o.y)); }
+    else if (o.t === 'lin') { g.strokeStyle = o.cor; g.lineWidth = o.esp; g.moveTo(o.x1, Y(o.y1)); g.lineTo(o.x2, Y(o.y2)); g.stroke(); }
+    else if (o.t === 'circ') { g.fillStyle = o.cor; g.arc(o.cx, Y(o.cy), o.r, 0, 2 * Math.PI); g.fill(); }
+    else { g.roundRect(o.x, Y(o.y + o.h), o.w, o.h, Math.min(o.raio, o.h / 2, o.w / 2)); if (o.fundo) { g.fillStyle = o.fundo; g.fill(); } g.strokeStyle = o.cor; g.lineWidth = 0.6; g.stroke(); }
   }
+  return new Promise((ok) => cv.toBlob(ok, 'image/jpeg', 0.92));
+}
+// Relatorio A4 de cada tela (relatorioA4 em calc.js): o que a tela mostra, com quadro de resumo e secoes.
+// Valores sempre reais no arquivo, mesmo com o olhinho fechado.
+const sigDe = (nome) => { const n = String(nome || '').trim(), d = n.match(/^\d+/); return d ? d[0].slice(0, 2) : n.split(/[^\p{L}\p{N}]+/u).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase() || '?'; };
+const catVis = (id) => { const c = db.categorias.find((x) => x.id === id); return c ? { sig: sigDe(c.nome), cor: aparenciaCat(c).cor, nome: c.nome } : { sig: '?', cor: '#475569', nome: 'Sem categoria' }; };
+const pil = (k, s) => ({ s, ...PILULA[k] });
+const diaPdf = (d) => { const t = new Date(d + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); return t[0].toUpperCase() + t.slice(1); };
+const sinalBRL = (v) => `${v < 0 ? '− ' : '+ '}${brlReal(Math.abs(v))}`;
+const moedaReal = (c, m) => `${moedaUsa(m).simbolo} ${(c / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+// Agrupa em secoes por uma chave (dia, mes, categoria...), na ordem em que aparecem.
+function secoesPor(lista, chave, titulo, item, total) {
+  const g = new Map();
+  for (const x of lista) { const k = chave(x); if (!g.has(k)) g.set(k, []); g.get(k).push(x); }
+  return [...g].map(([k, xs]) => ({ titulo: titulo(k, xs), total: total ? total(xs) : '', itens: xs.map(item) }));
+}
+// Quadro "Por conta ou cartao": total de cada meio.
+function quadroMeios(lista, titulo = 'Por conta ou cartão') {
+  const t = new Map();
+  for (const l of lista) t.set(l.meio, (t.get(l.meio) || 0) + l.valor);
+  return { titulo, linhas: [...t].sort((a, b) => b[1] - a[1]).map(([m, v]) => ({ e: ondeDoMeio(m), d: [brlReal(v)] })) };
+}
+// Lancamento comum: categoria e conta ou cartao, situacao e valor.
+function itemLanc(l, h, extra = []) {
+  const c = catVis(l.cat), cartao = db.cartoes.find((x) => x.id === l.meio);
+  const sit = cartao ? (faturaPagaDoLanc(db, l) ? pil('pago', 'Fatura paga') : pil('neutra', `Fatura ${nomeMesAno(mesFatura(l.data, cartao))}`))
+    : l.pago ? pil('pago', l.tipo === 'E' ? 'Recebido' : 'Pago') : l.data < h ? pil('atraso', 'Atrasado') : pil('aPagar', 'Pendente');
+  return {
+    sig: c.sig, cor: c.cor, titulo: l.desc + (l.de ? ` (${l.parcela}/${l.de})` : ''),
+    linhas: [{ s: [c.nome, ondeDoMeio(l.meio), `Data ${dataBR4(l.data)}`, ...extra].join('  ·  '), cinza: true }],
+    pilulas: [sit], valor: [l.tipo === 'E' ? sinalBRL(l.valor) : brlReal(l.valor)], valorCor: l.tipo === 'E' ? COR_PDF.VERDE : undefined,
+  };
+}
+function relatorioDaTela(tipo) {
+  const h = hoje(), base = { geradoEm: h };
+  if (tipo === 'usadesp') return relatorioViagem(dadosPdfViagem());
+  if (tipo === 'fluxo') {
+    const conta = contaDoFluxo(), linhas = linhasFluxo(db, mes, 'fluxo', conta, mes).sort((a, b) => a.data.localeCompare(b.data));
+    const ent = linhas.filter((i) => i.sinal > 0).reduce((a, i) => a + i.valor, 0), sai = linhas.filter((i) => i.sinal < 0).reduce((a, i) => a + i.valor, 0);
+    const aPagar = linhas.filter((i) => i.sinal < 0 && !i.pago).reduce((a, i) => a + i.valor, 0);
+    return relatorioA4({
+      ...base, titulo: 'Fluxo de caixa', sub: `${nomeMeio(conta)}   |   ${nomeMesAno(mes)}`, rodape: `Fluxo de caixa · ${nomeMeio(conta)} · ${nomeMesAno(mes)}`, vazio: 'Nenhum lançamento neste mês.',
+      quadro: [
+        { titulo: 'Conta', linhas: [{ e: nomeMeio(conta) }, { e: 'Saldo hoje:', d: [brlReal(saldosPorConta(db, h)[conta] || 0)] }, { e: 'Lançamentos no mês:', d: [String(linhas.length)], cinza: true }] },
+        { titulo: 'Resumo do mês', linhas: [{ e: 'Entradas:', d: [brlReal(ent)] }, { e: 'Saídas:', d: [brlReal(sai)] }, { e: 'Ainda a pagar:', d: [brlReal(aPagar)], cinza: true }, { e: 'Resultado do mês:', d: [sinalBRL(ent - sai)], negrito: true }] },
+      ],
+      secoes: secoesPor(linhas, (i) => i.data, (d) => diaPdf(d), (i) => {
+        const c = i.fatura ? { sig: sigDe(i.fatura.cartao.nome), cor: '#1e3a5f', nome: 'Fatura de cartão' } : i.lanc.tipo === 'T' ? { sig: 'TR', cor: '#475569', nome: 'Transferência' } : catVis(i.lanc.cat);
+        const sit = i.pago ? pil('pago', i.sinal > 0 ? 'Recebido' : i.lanc && i.lanc.tipo === 'T' ? 'Feita' : 'Pago') : i.data < h ? pil('atraso', 'Atrasado') : pil('aPagar', i.sinal > 0 ? 'A receber' : 'A pagar');
+        return { sig: c.sig, cor: c.cor, titulo: i.desc, linhas: [{ s: c.nome, cinza: true }], pilulas: [sit], valor: [sinalBRL(i.sinal * i.valor)], valorCor: i.sinal > 0 ? COR_PDF.VERDE : COR_PDF.VERMELHO };
+      }, (xs) => sinalBRL(xs.reduce((a, i) => a + i.sinal * i.valor, 0))),
+      totalFinal: { rotulo: 'Resultado do mês', valores: [sinalBRL(ent - sai)] },
+    });
+  }
+  if (tipo === 'parcelas') {
+    const lista = parcelasDoFiltro().slice().sort((a, b) => a.data.localeCompare(b.data)), soma = (xs) => xs.reduce((a, l) => a + l.valor, 0);
+    const pagas = lista.filter((l) => situacaoParcela(l) === 'Paga');
+    return relatorioA4({
+      ...base, titulo: 'Parcelamentos', sub: `De ${dataBR4($('pdIni').value)} até ${dataBR4($('pdFim').value)}`, rodape: 'Parcelamentos', vazio: 'Nenhuma parcela no período.',
+      quadro: [{ titulo: 'Resumo', linhas: [{ e: 'Parcelas:', d: [String(lista.length)] }, { e: 'Já pagas:', d: [brlReal(soma(pagas))] }, { e: 'A pagar:', d: [brlReal(soma(lista) - soma(pagas))] }, { e: 'Total:', d: [brlReal(soma(lista))], negrito: true }] }, quadroMeios(lista)],
+      secoes: secoesPor(lista, (l) => l.data.slice(0, 7), (ym) => nomeMesAno(ym), (l) => ({ ...itemLanc(l, h), pilulas: [situacaoParcela(l) === 'Paga' ? pil('pago', 'Paga') : pil('aPagar', 'A pagar')] }), (xs) => `${brlReal(soma(xs))}  (${xs.length})`),
+      totalFinal: { rotulo: 'Total do período', valores: [brlReal(soma(lista))] },
+    });
+  }
+  if (tipo === 'categoria') {
+    const itens = lancsVisiveis(db).filter((l) => l.tipo === 'S' && l.cat === catDet && l.data.slice(0, 7) === mes).sort((a, b) => a.data.localeCompare(b.data)), soma = (xs) => xs.reduce((a, l) => a + l.valor, 0);
+    const c = catVis(catDet), lim = (db.categorias.find((x) => x.id === catDet) || {}).limite;
+    return relatorioA4({
+      ...base, titulo: 'Gastos da categoria', sub: `${c.nome}   |   ${nomeMesAno(mes)}`, rodape: `${c.nome} · ${nomeMesAno(mes)}`, vazio: 'Nenhum gasto neste mês.',
+      quadro: [{ titulo: 'Resumo', linhas: [{ e: 'Lançamentos:', d: [String(itens.length)] }, ...(lim ? [{ e: 'Limite do mês:', d: [brlReal(lim)] }, { e: 'Disponível:', d: [brlReal(lim - soma(itens))] }] : []), { e: 'Total:', d: [brlReal(soma(itens))], negrito: true }] }, quadroMeios(itens)],
+      secoes: secoesPor(itens, (l) => l.data, (d) => diaPdf(d), (l) => itemLanc(l, h), (xs) => brlReal(soma(xs))),
+      totalFinal: { rotulo: 'Total da categoria', valores: [brlReal(soma(itens))] },
+    });
+  }
+  if (tipo === 'resumos') {
+    const { sec, f } = resDet, per = f.ini === f.fim ? nomeMesAno(f.ini) : `${nomeMesAno(f.ini)} a ${nomeMesAno(f.fim)}`, soma = (xs) => xs.reduce((a, l) => a + l.valor, 0);
+    const sub = [per, f.cat ? catVis(f.cat).nome : '', sec.base ? (f.base === 'fatura' ? 'Pelo mês da fatura' : 'Pelo mês da compra') : ''].filter(Boolean).join('   |   ');
+    if (sec.id === 'apagar') {
+      const itens = resumoAPagar(db, f, h).slice().sort((a, b) => a.venc.localeCompare(b.venc)), atras = itens.filter((i) => i.venc < h);
+      return relatorioA4({
+        ...base, titulo: 'A pagar', sub, rodape: `A pagar · ${per}`, vazio: 'Nada a pagar no período.',
+        quadro: [{ titulo: 'Resumo', linhas: [{ e: 'Contas e faturas:', d: [String(itens.length)] }, { e: 'Atrasado:', d: [brlReal(soma(atras))] }, { e: 'Em aberto:', d: [brlReal(soma(itens) - soma(atras))] }, { e: 'Total:', d: [brlReal(soma(itens))], negrito: true }] }, quadroMeios(itens)],
+        secoes: secoesPor(itens, (i) => i.venc.slice(0, 7), (ym) => `Vencimento em ${nomeMesAno(ym)}`, (i) => {
+          const c = i.tipo === 'conta' ? catVis(i.lanc.cat) : { sig: sigDe(nomeMeio(i.meio)), cor: '#1e3a5f', nome: 'Fatura de cartão' };
+          return { sig: c.sig, cor: c.cor, titulo: i.desc, linhas: [{ s: [c.nome, ondeDoMeio(i.meio), `Vence ${dataBR4(i.venc)}`].join('  ·  '), cinza: true }], pilulas: [i.venc < h ? pil('atraso', 'Atrasado') : pil('aPagar', 'Em aberto')], valor: [brlReal(i.valor)] };
+        }, (xs) => `${brlReal(soma(xs))}  (${xs.length})`),
+        totalFinal: { rotulo: 'Total a pagar', valores: [brlReal(soma(itens))] },
+      });
+    }
+    const lista = sec.id === 'conta' ? resumoConta(db, f) : sec.id === 'cartoes' ? resumoCartoes(db, f) : [...resumoConta(db, f), ...resumoCartoes(db, f)].sort((a, b) => nomeCat(a.cat).localeCompare(nomeCat(b.cat)) || a.data.localeCompare(b.data));
+    const cats = new Map();
+    for (const l of lista) cats.set(l.cat, (cats.get(l.cat) || 0) + l.valor);
+    return relatorioA4({
+      ...base, titulo: sec.titulo, sub, rodape: `${sec.titulo} · ${per}`, vazio: 'Nenhum lançamento no período.',
+      quadro: [{ titulo: 'Resumo', linhas: [{ e: 'Lançamentos:', d: [String(lista.length)] }, { e: 'Total:', d: [brlReal(soma(lista))], negrito: true }] }, quadroMeios(lista),
+        ...(sec.id === 'cats' ? [] : [{ titulo: 'Maiores categorias', linhas: [...cats].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => ({ e: catVis(k).nome, d: [brlReal(v)] })) }])],
+      secoes: sec.id === 'cats' ? secoesPor(lista, (l) => l.cat, (k) => catVis(k).nome, (l) => itemLanc(l, h), (xs) => `${brlReal(soma(xs))}  (${xs.length})`)
+        : secoesPor(lista, (l) => mesDoGasto(db, l, f.base), (ym) => nomeMesAno(ym), (l) => itemLanc(l, h), (xs) => `${brlReal(soma(xs))}  (${xs.length})`),
+      totalFinal: { rotulo: 'Total do período', valores: [brlReal(soma(lista))] },
+    });
+  }
+  if (tipo === 'cartoes') {
+    const ativos = db.cartoes.filter((c) => ativoEm(c, mes)), marcados = ativos.filter((c) => filtroCartoes.has(c.id)), cartoes = marcados.length ? marcados : ativos;
+    const dados = dadosCartoes(cartoes, h), soma = (k) => dados.reduce((a, d) => a + d[k], 0);
+    const atras = faturasAtrasadas(db, h).filter((f) => cartoes.some((c) => c.id === f.cartao.id || c.id === f.cartao));
+    return relatorioA4({
+      ...base, titulo: 'Faturas dos cartões', sub: `${nomeMesAno(mes)}   |   ${marcados.length ? cartoes.map((c) => c.nome).join(', ') : 'Todos os cartões'}`, rodape: `Faturas · ${nomeMesAno(mes)}`, vazio: 'Nenhum cartão neste mês.',
+      quadro: [
+        { titulo: 'Faturas do mês', linhas: dados.map((d) => ({ e: nomeExib(d.c), d: [brlReal(d.lancado)] })) },
+        { titulo: 'Resumo', linhas: [{ e: 'Total das faturas:', d: [brlReal(soma('lancado'))], negrito: true }, { e: 'Já pago:', d: [brlReal(soma('antecip') + soma('pago'))] }, { e: 'Falta pagar:', d: [brlReal(soma('falta'))] },
+          ...(atras.length ? [{ e: 'Atrasadas (outros meses inclusive):', d: [brlReal(atras.reduce((a, f) => a + f.valor, 0))] }] : [])] },
+      ],
+      secoes: dados.map((d) => {
+        const venc = dataNoMes(mes, d.c.vencimento), itens = itensFatura(db, d.c, mes).sort((a, b) => a.lanc.data.localeCompare(b.lanc.data));
+        return {
+          titulo: `${nomeExib(d.c)} · ${d.status} · vence ${dataBR4(venc)}`, total: brlReal(d.lancado),
+          itens: itens.map((p) => {
+            const a = p.lanc.tipo === 'A', c = a ? { sig: 'AN', cor: '#2d6a3e', nome: 'Antecipação' } : catVis(p.lanc.cat);
+            return { sig: c.sig, cor: c.cor, titulo: p.lanc.desc + (p.de ? ` (${p.n}/${p.de})` : ''), linhas: [{ s: [c.nome, `Compra em ${dataBR4(p.lanc.data)}`].join('  ·  '), cinza: true }],
+              valor: [p.valor < 0 ? sinalBRL(-p.valor) : brlReal(p.valor)], valorCor: p.valor < 0 ? COR_PDF.VERDE : undefined };
+          }),
+        };
+      }),
+      totalFinal: { rotulo: 'Total das faturas', valores: [brlReal(soma('lancado'))] },
+    });
+  }
+  if (tipo.startsWith('usa-')) {
+    const u = usa(), lista = usaListas[tipo.slice(4)], tot = (t) => t.filter((x) => x.valor).map((x) => moedaReal(x.valor, x.moeda));
+    const corp = lista.filter((v) => v.corporativa).length, totais = tot(totaisViagens(u, lista.filter((v) => !v.semDesp)));
+    return relatorioA4({
+      ...base, titulo: NOME_PDF[tipo], sub: `${lista.length} ${lista.length === 1 ? 'viagem' : 'viagens'}`, rodape: NOME_PDF[tipo], vazio: 'Nenhuma viagem.',
+      quadro: [{ titulo: 'Resumo', linhas: [{ e: 'Viagens:', d: [String(lista.length)] }, { e: 'Corporativas:', d: [String(corp)] }, { e: 'Pessoais:', d: [String(lista.length - corp)] }, { e: 'Custos:', d: totais.length ? totais : ['—'], negrito: true }] }],
+      secoes: [{ titulo: NOME_PDF[tipo], total: '', itens: lista.map((v) => {
+        const fin = viagemFinalizada(v, h), cont = contadorViagem(v, h, fin);
+        return {
+          sig: sigDe(v.nome), cor: v.corporativa ? '#1d4ed8' : '#2d7d46', titulo: v.nome,
+          linhas: [{ s: [`Período: ${datasViagem(v)}`, v.pais ? nomePais(v.pais) : '', cont].filter(Boolean).join('  ·  '), cinza: true }],
+          pilulas: [v.corporativa ? pil('corp', 'Corporativa') : pil('pago', 'Pessoal'), fin ? pil('neutra', 'Encerrada') : pil('aPagar', 'Em aberto')],
+          valor: v.semDesp ? [] : tot(totaisViagem(u, v)),
+        };
+      }) }],
+      totalFinal: totais.length ? { rotulo: 'Total dos custos', valores: totais } : null,
+    });
+  }
+  if (tipo === 'itinerario') {
+    const u = usa(), v = viagemDoItin(), det = $('itDetalhes').checked, dias = diasItinerario(u, v.id), caixa = document.createElement('div');
+    const nomes = v.viajantes.map((id) => (u.viajantes.find((p) => p.id === id) || {}).nome).filter(Boolean);
+    const qtd = new Map();
+    for (const x of (u.itinerario || []).filter((i) => i.viagem === v.id)) { const n = (catDoItem(x) || { nome: ROT_ITIN[x.tipo] ? x.tipo : 'Outros' }).nome; qtd.set(n, (qtd.get(n) || 0) + 1); }
+    return relatorioA4({
+      ...base, titulo: 'Itinerário', sub: [v.nome, datasViagem(v), v.pais ? nomePais(v.pais) : ''].filter(Boolean).join('   |   '), rodape: `Itinerário · ${v.nome}`, vazio: 'Nenhum item no itinerário.',
+      quadro: [{ titulo: 'Viagem', linhas: [{ e: v.nome }, { e: `Período: ${datasViagem(v)}` }, ...(v.pais ? [{ e: nomePais(v.pais) }] : []), ...nomes.map((e) => ({ e, cinza: true }))] },
+        { titulo: 'Itens', linhas: [...[...qtd].sort((a, b) => b[1] - a[1]).map(([e, n]) => ({ e, d: [String(n)] })), { e: 'Total:', d: [String([...qtd.values()].reduce((a, n) => a + n, 0))], negrito: true }] }],
+      secoes: dias.map((dia) => ({ titulo: diaPdf(dia.data), total: `${dia.itens.length} ${dia.itens.length === 1 ? 'item' : 'itens'}`, itens: dia.itens.map((e) => {
+        // O texto vem da mesma linha do tempo da tela (htmlItemItin), com ou sem Detalhes, como na tela.
+        caixa.innerHTML = htmlItemItin(e, det);
+        const c = catDoItem(e.item), b = caixa.querySelector('.itTexto b'), tag = caixa.querySelector('.itTag');
+        const hora = caixa.querySelector('.itHora b'), fuso = caixa.querySelector('.itHora small');
+        return { sig: sigDe(c ? c.nome : e.item.tipo), cor: c ? aparenciaCat(c).cor : '#1e3a5f', titulo: (b.firstChild || {}).textContent || e.item.titulo,
+          linhas: [...caixa.querySelectorAll('.itTexto small')].map((s) => ({ s: s.textContent })), pilulas: tag ? [pil('corp', tag.textContent)] : [],
+          valor: [hora ? hora.textContent : '', fuso ? fuso.textContent : ''].filter(Boolean) };
+      }) })),
+    });
+  }
+  return null;
 }
 async function exportarPdf(botao) {
-  const tipo = botao.dataset.pdf, alvo = () => document.querySelector(`[data-pdf="${tipo}"]`).closest('[data-usasec]') || document.querySelector(`[data-pdf="${tipo}"]`).closest('section');
-  const txt = botao.innerHTML;
+  const tipo = botao.dataset.pdf, txt = botao.innerHTML;
   botao.disabled = true; botao.textContent = 'Gerando...';
-  const ocultos = valoresOcultos, tema = document.documentElement.dataset.theme;
-  let area = null;
   try {
-    const html2canvas = await carregarH2C();
-    if (ocultos) { valoresOcultos = false; render(); }
-    document.documentElement.dataset.theme = 'light';
-    area = document.createElement('div');
-    area.id = 'areaPdf';
-    document.body.appendChild(area);
-    const copia = alvo().cloneNode(true);
-    copia.hidden = false;
-    copia.querySelectorAll('#itMais, #udMais, .voltarTela, [data-exportar], [data-pdf], .docSeta, .itPino, .btnMapa, label.caixaTit').forEach((el) => el.remove());
-    copia.querySelectorAll('.docViaj').forEach((el) => el.classList.add('aberto'));
-    copia.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
-    area.replaceChildren(copia);
-    if (ocultos) { valoresOcultos = true; render(); }
-    await Promise.all([...copia.querySelectorAll('img')].map((im) => (im.complete ? 0 : new Promise((ok) => { im.onload = im.onerror = ok; setTimeout(ok, 4000); }))));
-    await imagensComuns(copia);
-    const esc2 = 2, cv = await html2canvas(area, { scale: esc2, useCORS: true, backgroundColor: '#ffffff', logging: false });
-    // Pontos de corte: o topo de cada bloco (quadro, dia, linha, item); a pagina termina no ultimo que couber.
-    const topo = area.getBoundingClientRect().top;
-    // (um item logo depois do titulo do dia nao e ponto de corte: o titulo nao fica sozinho no fim da pagina)
-    const cortes = [...new Set([...copia.querySelectorAll('.card, .itDia, .itItem, .linha, .docViaj, .docBloco, .usaCardBox, tr, h2, h3')].filter((el) => !(el.previousElementSibling && el.previousElementSibling.matches('.itDia, h2, h3')))
-      .map((el) => Math.round((el.getBoundingClientRect().top - topo) * esc2)))].filter((y) => y > 0).sort((x, y) => x - y);
-    const altPag = Math.round(cv.width * 1.414), paginas = [];
-    for (let y = 0; y < cv.height;) {
-      let fim = Math.min(cv.height, y + altPag);
-      if (fim < cv.height) { const c = cortes.filter((k) => k > y + altPag * 0.4 && k <= fim).pop(); if (c) fim = c; }
-      const pg = document.createElement('canvas');
-      pg.width = cv.width; pg.height = fim - y;
-      const g = pg.getContext('2d');
-      g.fillStyle = '#fff'; g.fillRect(0, 0, pg.width, pg.height);
-      g.drawImage(cv, 0, y, cv.width, pg.height, 0, 0, cv.width, pg.height);
-      const blob = await new Promise((ok) => pg.toBlob(ok, 'image/jpeg', 0.9));
-      paginas.push({ jpeg: new Uint8Array(await blob.arrayBuffer()), w: pg.width, h: pg.height });
-      y = fim;
-    }
+    const paginas = relatorioDaTela(tipo);
     const nome = `Controle Diário - ${NOME_PDF[tipo] || 'Relatório'} - ${hoje().split('-').reverse().join('-')}.pdf`;
     liberarPdf();
-    const arq = new File([montarPdf(paginas)], nome, { type: 'application/pdf' });
-    pdfPronto = { arq, url: URL.createObjectURL(arq), pags: paginas.map((pg) => new Blob([pg.jpeg], { type: 'image/jpeg' })), verUrls: [] };
-    $('pdfNome').textContent = `${nome} · ${paginas.length} ${paginas.length > 1 ? 'páginas' : 'página'}`;
+    const arq = new File([pdfDeDesenho(paginas)], nome, { type: 'application/pdf' });
+    pdfPronto = { arq, url: URL.createObjectURL(arq), pags: await Promise.all(paginas.map(paginaEmImagem)), verUrls: [], a4: true };
+    $('pdfNome').textContent = `${nome} · ${paginas.length} ${paginas.length > 1 ? 'páginas' : 'página'} A4`;
     $('pdfCompartilhar').hidden = !(navigator.canShare && navigator.canShare({ files: [arq] }));
     $('dPdf').showModal();
   } catch (err) {
     avisar('Não foi possível gerar o PDF', err.message || String(err));
   } finally {
-    if (area) area.remove();
-    if (valoresOcultos !== ocultos) { valoresOcultos = ocultos; render(); }
-    document.documentElement.dataset.theme = tema;
     botao.disabled = false; botao.innerHTML = txt;
   }
 }
@@ -3222,6 +3354,7 @@ $('pdfAbrir').onclick = () => {
   pdfPronto.verUrls = pdfPronto.pags.map((b) => URL.createObjectURL(b));
   $('pdfVerNome').textContent = pdfPronto.arq.name;
   $('pdfPaginas').innerHTML = pdfPronto.verUrls.map((u, i) => `<img src="${u}" alt="Página ${i + 1}">`).join('');
+  $('pdfPaginas').classList.toggle('a4', !!pdfPronto.a4);
   $('pdfVerCompartilhar').hidden = $('pdfCompartilhar').hidden;
   $('dPdfVer').showModal();
   $('pdfPaginas').scrollTop = 0;

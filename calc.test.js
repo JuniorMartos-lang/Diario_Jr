@@ -1168,5 +1168,23 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   dbRg.lancs.push({ id: 'f', tipo: 'S', data: '2026-11-05', valor: 200, meio: 'cc', cat: 'sx', pago: false }, { id: 'g', tipo: 'T', data: '2026-11-05', valor: 5000, meio: 'cc', destino: 'pp', pago: true });
   assert.deepStrictEqual(c.fluxoPeriodo(dbRg, '2026-11', '2026-11'), { entradas: 999, resgates: 870, saidas: 200 });
   assert.deepStrictEqual(c.fluxoPeriodo(dbRg, '2026-10', '2026-11'), { entradas: 999, resgates: 910, saidas: 200 });
+  // PDF A4 da viagem: texto de verdade, paginas A4, xref certo, titulo da categoria nunca sozinho no fim da folha
+  { const desp = Array.from({ length: 40 }, (_, i) => ({ data: '2026-11-0' + (1 + (i % 9)), desc: 'Compra número ' + i + ' com um nome bem comprido para quebrar a linha no relatório', cat: i < 30 ? 'a' : 'b', moeda: i % 2 ? 'USD' : 'BRL', valor: 1000 + i, nat: i % 3 ? 'P' : 'C', pago: i !== 5, meios: i % 4 ? ['Cartão X'] : [], ci: i === 0 ? '2026-11-01' : '', co: i === 0 ? '2026-11-03' : '', rec: i % 2, local: i === 1 ? 'Rua Teste, 1' : '' }));
+    const D = { viagem: { nome: 'Viagem Teste', inicio: '2026-11-01', fim: '2026-11-09', corporativa: true, pais: 'Brasil', base: 'USD', viajantes: ['Ana'] }, moedas: { USD: 'US$', BRL: 'R$' },
+      cats: { a: { nome: '01 - Hotéis', cor: '#c0262d' }, b: { nome: '02 - Táxi', cor: '#1b76c9' } }, desp, geradoEm: '2026-11-15' };
+    const pags = c.relatorioViagem(D);
+    assert.ok(pags.length >= 2, 'quebra em paginas');
+    for (const p of pags) for (const o of p) if (o.t === 'txt') { assert.ok(o.x >= 39 && o.x + c.largTexto(o.s, o.tam, o.negrito) <= c.A4[0] - 39, 'texto dentro da margem: ' + o.s); assert.ok(o.y >= 39 && o.y <= c.A4[1] - 39); }
+    for (const p of pags) { const tit = p.filter((o) => o.t === 'txt' && o.tam === 12); for (const t of tit) assert.ok(t.y > 64 + 60, 'titulo com espaco para o 1o item'); }
+    const txt = pags.flat().filter((o) => o.t === 'txt').map((o) => o.s).join('|');
+    assert.ok(txt.includes('Página ' + pags.length + ' de ' + pags.length));
+    assert.ok(txt.includes('Total geral da viagem') && txt.includes('US$ 204,00'));
+    const pdf = Buffer.from(c.pdfDeDesenho(pags)).toString('latin1');
+    assert.ok(pdf.startsWith('%PDF-1.4') && pdf.endsWith('%%EOF\n'));
+    assert.ok(pdf.includes('/Count ' + pags.length) && pdf.includes('/MediaBox [0 0 595.28 841.89]'));
+    const xref = +pdf.match(/startxref\n(\d+)/)[1];
+    assert.strictEqual(pdf.slice(xref, xref + 4), 'xref');
+    [...pdf.matchAll(/(\d{10}) 00000 n /g)].forEach((m, i) => assert.ok(pdf.slice(+m[1]).startsWith(`${i + 1} 0 obj`), 'offset do objeto ' + (i + 1)));
+    assert.ok(pdf.includes(Buffer.from('Hotéis', 'latin1').toString('hex')), 'acentos em WinAnsi'); }
   console.log('calc.js: todos os testes passaram');
 })().catch((e) => { console.error(e); process.exit(1); });
