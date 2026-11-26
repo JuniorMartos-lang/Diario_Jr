@@ -907,7 +907,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.83.3 · 26/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.83.4 · 26/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -5240,6 +5240,7 @@ function formaItem() {
   $('itLocRot').hidden = comPax;
   // Item ligado a despesa com check-in: datas e local podem mudar e voltam para a despesa ao salvar; so a categoria fica presa.
   $('itCatSel').classList.toggle('travado', daDesp);
+  minDatasIt();
 }
 // Companhia: escolhida na lista (CIAS_AEREAS em icones.js), com filtro; a que veio do voo e nao esta na lista tambem vale.
 function porCia(nome, p = 'it') {
@@ -5336,6 +5337,7 @@ function aplicarVoo(v, p = 'it') {
   porCia(cia ? cia[1] : v.cia, p);
   for (const [id, val] of [['Voo', v.voo], ['Origem', v.origem], ['Destino', v.destino], ['AeroO', v.aeroOrigem], ['AeroD', v.aeroDestino], ['Data', v.data], ['Hora', v.hora], ['Fuso', v.fuso],
     ['Fim', v.fim], ['HoraFim', v.horaFim], ['FusoFim', v.fusoFim]]) por(id, val);
+  minDatasIt();
   $(p + 'VooOpcoes').innerHTML = `<p class="fraco" style="margin:6px 0 0">Preenchido: ${esc(v.origem)} → ${esc(v.destino)} em ${dataBR(v.data)}. Confira e toque em Salvar.</p>`;
 }
 $('itBuscarVoo').onclick = () => buscarVoo('it');
@@ -5415,6 +5417,19 @@ function abrirItem(id) {
 }
 $('itMais').onclick = () => abrirItem(null);
 $('itSoIda').addEventListener('change', formaItem);
+// Datas do item: chegada/check-out e a volta nunca antes do comeco; o calendario so deixa escolher dali em diante.
+// Mudou o comeco: o fim vazio ou anterior passa a comecar nele (como o check-out das despesas), em cadeia (ida, volta, chegada da volta).
+const PARES_DATA_IT = [['itData', 'itFim'], ['itData', 'itVData'], ['itVData', 'itVFim']];
+function minDatasIt(mudou) {
+  // So voo e hotel ganham o fim preenchido; nos outros (carro, evento), fim vazio continua vazio.
+  const mudados = new Set(['aereo', 'hotel'].includes(formaItemAtual()) ? [mudou] : []);
+  for (const [a, b] of PARES_DATA_IT) {
+    const ini = $(a).value;
+    $(b).min = ini || '';
+    if (mudados.has(a) && ini && (!$(b).value || $(b).value < ini)) { $(b).value = ini; mudados.add(b); }
+  }
+}
+for (const id of ['itData', 'itVData']) $(id).addEventListener('change', () => minDatasIt(id));
 // Encerramento da viagem: um so por viagem (voo ou hotel). Ja existe em outro item: nao deixa marcar e avisa qual e.
 function outroEncerra() {
   const v = viagemDoItin();
