@@ -829,7 +829,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   // Antecipacao de fatura (tipo A): credito no cartao, sem categoria; diminui a fatura e passa pelos dois tipos de backup
   const comAnt = JSON.parse(JSON.stringify(dp)), kA = comAnt.cartoes[0];
   const ymA = c.mesFatura('2026-11-02', kA), antes = c.totalFatura(comAnt, kA, ymA);
-  comAnt.lancs.push({ id: 'ant1', tipo: 'A', data: '2026-11-02', valor: -5000, meio: kA.id, desc: 'Antecipação de fatura', cat: null, pago: true });
+  comAnt.lancs.push({ id: 'ant1', tipo: 'A', data: '2026-11-02', valor: -5000, meio: kA.id, desc: 'Antecipação de fatura', cat: null, pago: true, final: '4321' });
   assert.strictEqual(c.totalFatura(comAnt, kA, ymA), antes - 5000);
   for (const arq of [await c.cifrarBackup(comAnt, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comAnt, gApp)]) {
     const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1'), '2026-11-03');
@@ -839,7 +839,10 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   { const r = JSON.parse(JSON.stringify(comAnt)), l = r.lancs.at(-1);
     l.valor = 5000; assert.ok(!c.backupValido(r), 'antecipacao e sempre credito');
     l.valor = -5000; l.meio = r.contasBanco[0].id; assert.ok(!c.backupValido(r), 'so em cartao');
-    l.meio = kA.id; l.cat = 'a'; assert.ok(!c.backupValido(r), 'sem categoria'); }
+    l.meio = kA.id; l.cat = 'a'; assert.ok(!c.backupValido(r), 'sem categoria');
+    // Numero do cartao (final) no lancamento: 4 numeros, so em cartao
+    l.cat = null; l.final = '12'; assert.ok(!c.backupValido(r), 'final com 4 numeros');
+    l.final = '1234'; assert.ok(c.backupValido(r)); l.meio = r.contasBanco[0].id; l.valor = 100; l.tipo = 'S'; l.cat = 'a'; assert.ok(!c.backupValido(r), 'final so em cartao'); }
   // Area USA inteira (viagens com imagem, contas, cartoes, viajantes, categorias) passa pelos dois tipos de backup
   const jpg = 'data:image/jpeg;base64,/9j/AAAA', svg = 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=';
   const comUsa = { ...JSON.parse(JSON.stringify(dp)), usa: { moedas: c.MOEDAS_PADRAO, despesas: [{ id: 'd1', viagem: 'v1', desc: 'Parque', cat: 'u4', data: '2027-04-05', moeda: 'BRL', valor: 12345, quem: ['u3'], obs: 'Ingresso de 2 dias', pago: false, checkin: '2027-04-05', checkout: '2027-04-08',
@@ -858,6 +861,14 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
       local: { nome: 'Hotel', endereco: 'Rua 1', lat: 28.5, lng: -81.4 } }] } };
   comUsa.usa.moedas = c.MOEDAS_PADRAO.map((m) => (m.id === 'EUR' ? { ...m, arquivadaEm: '2026-11-03' } : m));
   comUsa.usa.contas[0].arquivadaEm = '2026-11-03';
+  // Numero do cartao (final) na despesa da viagem: so com o primeiro pagamento num cartao Travel
+  { const d2 = { id: 'd2', viagem: 'v1', desc: 'Jantar', cat: 'u4', data: '2027-04-06', moeda: 'BRL', valor: 5000, quem: [], pagamentos: [{ meio: 'u2', valor: 5000 }], final: '1234' };
+    comUsa.usa.despesas.push(d2);
+    assert.ok(c.backupValido(comUsa));
+    const ok = (p) => c.backupValido({ ...comUsa, usa: { ...comUsa.usa, despesas: [{ ...d2, ...p }] } });
+    assert.ok(!ok({ final: '12' }), 'final com 4 numeros');
+    assert.ok(!ok({ pagamentos: [{ meio: 'u1', valor: 5000 }] }), 'final so em cartao');
+    assert.ok(!ok({ pagamentos: undefined }), 'final sem pagamento'); }
   for (const arq of [await c.cifrarBackup(comUsa, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comUsa, gApp)]) {
     const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
     const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-03');
@@ -1186,5 +1197,17 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.strictEqual(pdf.slice(xref, xref + 4), 'xref');
     [...pdf.matchAll(/(\d{10}) 00000 n /g)].forEach((m, i) => assert.ok(pdf.slice(+m[1]).startsWith(`${i + 1} 0 obj`), 'offset do objeto ' + (i + 1)));
     assert.ok(pdf.includes(Buffer.from('Hotéis', 'latin1').toString('hex')), 'acentos em WinAnsi'); }
+  // Recibo de compra parcelada: em todas as parcelas (ao gravar e na conversao dos dados antigos); conta fixa nao
+  { const d = { lancs: [1, 2, 3].map((n) => ({ id: 'p' + n, tipo: 'S', data: `2026-1${n - 1}-05`, valor: 100, meio: 'k', pago: true, serie: 's1', parcela: n, de: 3 }))
+      .concat([{ id: 'f1', tipo: 'S', data: '2026-10-05', valor: 50, meio: 'k', pago: true, serie: 's2' }, { id: 'f2', tipo: 'S', data: '2026-11-05', valor: 50, meio: 'k', pago: true, serie: 's2' }]) };
+    d.lancs[0].recibos = [{ id: 'r1', em: '2026-10-05T10:00:00.000Z', pag: 1 }];
+    d.lancs[3].recibos = [{ id: 'r2', em: '2026-10-05T10:00:00.000Z', pag: 1 }];
+    const m = c.migrar(d, '2026-10-06');
+    assert.deepStrictEqual(m.lancs.map((l) => (l.recibos || []).map((r) => r.id).join()), ['r1', 'r1', 'r1', 'r2', ''], 'parcelas recebem, conta fixa nao');
+    m.lancs[1].recibos = [{ id: 'r3', em: '2026-11-05T10:00:00.000Z', pag: 2 }];
+    c.recibosNasParcelas(m, m.lancs[1]);
+    assert.deepStrictEqual(m.lancs.slice(0, 3).map((l) => l.recibos.map((r) => r.id).join()), ['r3', 'r3', 'r3'], 'editar uma parcela vale para todas');
+    delete m.lancs[2].recibos; c.recibosNasParcelas(m, m.lancs[2]);
+    assert.ok(m.lancs.slice(0, 3).every((l) => !l.recibos), 'tirar o recibo tira de todas'); }
   console.log('calc.js: todos os testes passaram');
 })().catch((e) => { console.error(e); process.exit(1); });

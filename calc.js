@@ -648,7 +648,18 @@ function migrar(d, hoje) {
     novo.usa = { ...novo.usa, moedas, despesas: novo.usa.despesas || [], itinerario: novo.usa.itinerario || [],
       viagens: novo.usa.viagens.map((v) => (!v || v.moedas ? v : { ...v, moedas: ['USD'], base: 'USD', viajantes: v.viajantes || [], cot: v.cot || {} })) };
   }
+  // Ate a 1.82: o recibo de compra parcelada ficava so na primeira parcela; passa a estar em todas.
+  for (const l of novo.lancs) if (l && l.de > 1 && l.serie && (l.recibos || []).length) recibosNasParcelas(novo, l, true);
   return novo;
+}
+// Compra parcelada: o mesmo recibo em todas as parcelas da compra (mesma serie, de > 1). Com soFaltando, so
+// preenche as parcelas que ainda nao tem recibo (conversao dos dados antigos); sem, todas ficam iguais a esta.
+function recibosNasParcelas(db, l, soFaltando) {
+  if (!(l.de > 1) || !l.serie) return;
+  for (const o of db.lancs) {
+    if (o === l || o.serie !== l.serie || !(o.de > 1) || (soFaltando && (o.recibos || []).length)) continue;
+    if ((l.recibos || []).length) o.recibos = l.recibos.map((r) => ({ ...r })); else delete o.recibos;
+  }
 }
 
 // Logo baixado vira texto gravado nos dados. Recusa arquivo grande ou com conteudo executavel;
@@ -1150,7 +1161,8 @@ function usaValido(u) {
       // Pago com: um ou dois meios (contas ou cartoes da area), diferentes, somando o valor da despesa.
       && (d.pagamentos === undefined || (Array.isArray(d.pagamentos) && d.pagamentos.length >= 1 && d.pagamentos.length <= 2
         && d.pagamentos.every((p) => p && (tem(u.contas, p.meio) || tem(u.cartoes, p.meio)) && Number.isInteger(p.valor) && p.valor > 0)
-        && new Set(d.pagamentos.map((p) => p.meio)).size === d.pagamentos.length && d.pagamentos.reduce((a, p) => a + p.valor, 0) === d.valor)))
+        && new Set(d.pagamentos.map((p) => p.meio)).size === d.pagamentos.length && d.pagamentos.reduce((a, p) => a + p.valor, 0) === d.valor))
+      && (d.final === undefined || (/^\d{4}$/.test(d.final) && !!d.pagamentos && tem(u.cartoes, d.pagamentos[0].meio))))
     && (u.itinerario === undefined || (Array.isArray(u.itinerario) && u.itinerario.every((x) => itemItinValido(x, u))))
     && itens(u.contas, (x) => iconeValido(x.icone))
     && itens(u.cartoes, (x) => iconeValido(x.icone) && (x.tipo === undefined || x.tipo === 'F' || x.tipo === 'V') && finaisValidos(x))
@@ -1236,6 +1248,7 @@ function backupValido(d) {
       && (c.limite === undefined || (inteiro(c.limite) && c.limite >= 0))
       && finaisValidos(c) && (c.ativoAte === undefined || /^\d{4}-\d{2}$/.test(c.ativoAte)))
     && d.lancs.every((l) => data(l.data) && inteiro(l.valor) && typeof l.pago === 'boolean' && recibosValidos(l.recibos)
+      && (l.final === undefined || (/^\d{4}$/.test(l.final) && cartao(l.meio)))
       && (l.tipo === 'T' ? conta(l.meio) && conta(l.destino) && l.meio !== l.destino
         : l.tipo === 'E' ? conta(l.meio)
           : l.tipo === 'A' ? cartao(l.meio) && l.valor < 0 && !l.cat && !l.serie
@@ -1410,7 +1423,7 @@ function relatorioViagem(D) {
         titulo: c.nome.replace(/\s+/g, ' '), total: `${porMoeda(soma(itens)).join(' + ')}  (${itens.length})`,
         itens: itens.map((d) => ({
           sig: c.nome.trim().slice(0, 2), cor: c.cor, titulo: d.desc, valor: [fmt(d.valor, d.moeda)],
-          linhas: [{ s: [`Pago com: ${d.meios.join(' + ') || 'Não informado'}`, `Compra em ${dataBR(d.data)}`, ...(d.rec ? ['Com recibo'] : [])].join('  ·  '), cinza: true },
+          linhas: [{ s: [`Pago com: ${d.meios.join(' + ') || 'Não informado'}${d.final ? ` (final ${d.final})` : ''}`, `Compra em ${dataBR(d.data)}`, ...(d.rec ? ['Com recibo'] : [])].join('  ·  '), cinza: true },
             ...(d.ci || d.co ? [{ s: `Check-in ${dataBR(d.ci) || '?'}  ·  Check-out ${dataBR(d.co) || '?'}` }] : []), ...(d.local && !d.ci ? [{ s: d.local }] : [])],
           pilulas: [...(v.corporativa ? [d.nat === 'C' ? { s: 'Corporativa', ...PILULA.corp } : { s: 'Pessoal', ...PILULA.neutra }] : []), d.pago ? { s: 'Pago', ...PILULA.pago } : { s: 'A pagar', ...PILULA.aPagar }],
         })),
@@ -1461,7 +1474,7 @@ function pdfDeDesenho(paginas) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    A4, largTexto, quebrarTexto, relatorioA4, PILULA, COR_PDF, relatorioViagem, pdfDeDesenho,
+    recibosNasParcelas, A4, largTexto, quebrarTexto, relatorioA4, PILULA, COR_PDF, relatorioViagem, pdfDeDesenho,
     anosEDias, contadorViagem, PAISES, ehPais, nomePais, formaDaCategoria, TIPOS_ITIN, itemItinValido, tipoDaCategoriaViagem, categoriaDeItinerario, despesaComCheckin, despesasParaItin, sincronizarItinDespesas, diasItinerario, localValido, ehChaveMaps, ehChaveAero, fusoDeOffset, horaLocalVoo, dadosDoVoo, offsetFuso, modelosDoVoo, vooNaData, lembretesAgenda, situacaoLembretes, idEvento, googleValido, ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
     protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, decifrarComHash, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,

@@ -287,7 +287,11 @@
   .dois { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .dois > * { min-width: 0; }
   /* Sem o campo Para (gasto ou entrada), Pago com ocupa a linha toda e o nome do cartao nao corta. */
-  #lMeioLinha:has(> #lDestinoBox[hidden]) > label { grid-column: 1 / -1; }
+  #lMeioLinha:has(> #lDestinoBox[hidden]) > label:has(#lMeio) { grid-column: 1 / -1; }
+  /* Com Numero Cartao: ele ocupa 1/3 da linha e Pago com, 2/3. */
+  #lMeioLinha:has(> #lFinalBox:not([hidden])) { grid-template-columns: 1fr 2fr; }
+  #lMeioLinha:has(> #lFinalBox:not([hidden])) > label:has(#lMeio) { grid-column: auto; }
+  .finalLanc { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 3px; background: #1d4ed8; color: #fff; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; vertical-align: 1px; }
   button { font: inherit; font-weight: 600; min-height: 44px; padding: 8px 16px; border: 0; border-radius: 999px; background: var(--pri); color: #fff; cursor: pointer; }
   :root[data-theme=dark] button:not(.sec):not(.perigo):not(.linha):not(.cartaoRes):not(.colGraf):not(.opcIco):not(.opcCor):not(.mesFatBtn):not(.pagarFat):not(.cardLim):not(.resumoIco):not(.voltarTela):not(.olho):not(.olhoSaldo):not(.setaFluxo):not(.infoBtn):not(.linkTexto):not(.campoLink):not(.mesBar button):not(.usaCard):not(.docPessoa) { color: #06201d; }
   button.sec { background: var(--campo); color: var(--txt); }
@@ -461,6 +465,10 @@
   .seletorFluxo > span.saldoTopo { display: flex; }
   .linhaPag { margin: 4px 0 6px; }
   .linhaPag:has(> input[hidden]) > details { grid-column: 1 / -1; }
+  /* Numero Cartao antes do Pago com: 1/3 e 2/3; com dois meios, o valor vai na mesma linha. */
+  #udLinha1:has(> #udFinal:not([hidden])) { grid-template-columns: 1fr 2fr; }
+  #udLinha1:has(> #udFinal:not([hidden])) > details { grid-column: auto; }
+  #udLinha1:has(> #udFinal:not([hidden])):has(> input.valorUd:not([hidden])) { grid-template-columns: 1fr 1.6fr 1fr; }
   .selMeio summary { margin-left: 0; border-top: 0; }
   .txtMeio { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .txtMeio .ico { width: 24px; height: 24px; padding: 2px; font-size: 9px; }
@@ -791,6 +799,7 @@
         <div id="lCatBox" class="rotuloCampo"><span id="lCatRotulo">Categoria</span><select id="lCat" hidden></select><button type="button" class="campoLink" id="lCatBtn" aria-labelledby="lCatRotulo lCatBtnTxt"><span id="lCatBtnTxt"></span><span class="seta" aria-hidden="true">›</span></button></div>
       </div>
       <div class="dois" id="lMeioLinha">
+        <label id="lFinalBox" hidden>Número Cartão<select id="lFinal"></select></label>
         <label><span id="lMeioTxt">Pago com</span><select id="lMeio"></select></label>
         <label id="lDestinoBox">Para<select id="lDestino"></select></label>
       </div>
@@ -898,7 +907,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.81.0 · 15/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.83.0 · 26/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1352,7 +1361,7 @@
   <div class="dois" id="udCheckBox" hidden><label>Check-in<input id="udCheckin" type="date"></label><label>Check-out<input id="udCheckout" type="date"></label></div>
   <div class="dois"><label>Moeda<select id="udMoeda"></select></label><label>Valor<input id="udValor" inputmode="numeric" autocomplete="off" placeholder="0,00"></label></div>
   <div class="rotuloCampo" id="udPagBox"><span>Pago com</span>
-    <div class="dois linhaPag"><details class="multiSel selMeio" id="udMeio1Sel"><summary><span class="txtMeio"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" aria-label="Meio de pagamento"></div></details><input type="hidden" id="udMeio1"><input id="udValor1" class="valorUd" inputmode="numeric" autocomplete="off" placeholder="0,00" aria-label="Valor no primeiro meio" hidden></div>
+    <div class="dois linhaPag" id="udLinha1"><select id="udFinal" aria-label="Número Cartão" hidden></select><details class="multiSel selMeio" id="udMeio1Sel"><summary><span class="txtMeio"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" aria-label="Meio de pagamento"></div></details><input type="hidden" id="udMeio1"><input id="udValor1" class="valorUd" inputmode="numeric" autocomplete="off" placeholder="0,00" aria-label="Valor no primeiro meio" hidden></div>
     <label class="caixaTit"><input type="checkbox" id="udDoisMeios">Usar dois meios de pagamento</label>
     <div class="dois linhaPag" id="udMeio2Box" hidden><details class="multiSel selMeio" id="udMeio2Sel"><summary><span class="txtMeio"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" aria-label="Segundo meio de pagamento"></div></details><input type="hidden" id="udMeio2"><input id="udValor2" class="valorUd" inputmode="numeric" autocomplete="off" placeholder="0,00" aria-label="Valor no segundo meio"></div>
   </div>
@@ -2199,7 +2208,7 @@ function htmlLancsFatura(itens) {
   return [...itens].sort((a, b) => b.lanc.data.localeCompare(a.lanc.data)).map((p) => {
     const titulo = p.lanc.data === dia ? '' : `<h3 class="dia">${new Date(p.lanc.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</h3>`;
     dia = p.lanc.data;
-    return `${titulo}<button type="button" class="linha" data-lanc="${esc(p.lanc.id)}">${p.lanc.tipo === 'A' ? ICO_ANTECIP : iconeCat(db.categorias.find((x) => x.id === p.lanc.cat) || { nome: '' })}<span class="q">${esc(p.lanc.desc)}${(p.lanc.recibos || []).length ? ` <b class="clipe" title="${p.lanc.recibos.length} ${p.lanc.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${p.lanc.recibos.length > 1 ? p.lanc.recibos.length : ''}</b>` : ''}${p.de ? `<br><small>Parcela ${p.n}/${p.de}</small>` : ''}</span><span class="valor">${brl(p.valor)}</span></button>`;
+    return `${titulo}<button type="button" class="linha" data-lanc="${esc(p.lanc.id)}">${p.lanc.tipo === 'A' ? ICO_ANTECIP : iconeCat(db.categorias.find((x) => x.id === p.lanc.cat) || { nome: '' })}<span class="q">${esc(p.lanc.desc)}${p.lanc.final ? ` <span class="finalLanc">${esc(p.lanc.final)}</span>` : ''}${(p.lanc.recibos || []).length ? ` <b class="clipe" title="${p.lanc.recibos.length} ${p.lanc.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${p.lanc.recibos.length > 1 ? p.lanc.recibos.length : ''}</b>` : ''}${p.de ? `<br><small>Parcela ${p.n}/${p.de}</small>` : ''}</span><span class="valor">${brl(p.valor)}</span></button>`;
   }).join('');
 }
 // Pagar e Desfazer: iguais em Detalhes da fatura e na aba Cartoes. Paga por inteiro, o botao diz que esta paga.
@@ -2528,6 +2537,13 @@ function formaLanc() {
   encher($('lCat'), '<option value="">Escolha</option>' + db.categorias.filter((c) => c.tipo === (tipo === 'E' ? 'E' : 'S')).map((c) => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join(''));
   encher($('lMeio'), (soCartao || antecip ? '' : opcoesContas()) + (tipo === 'S' || antecip ? opcoesDe(db.cartoes.filter((c) => !c.arquivadaEm)) : ''));
   encher($('lDestino'), opcoesContas($('lMeio').value));
+  // Numero Cartao: os finais ativos dos cartoes que estao em Pago com. Escolher um final escolhe o cartao;
+  // trocar Pago com para outro meio limpa o final. Opcional.
+  const noMeio = new Set([...$('lMeio').options].map((o) => o.value));
+  const finaisLanc = db.cartoes.filter((c) => noMeio.has(c.id)).flatMap((c) => (c.finais || []).map((f) => ({ c, f })));
+  $('lFinalBox').hidden = !['S', 'A'].includes(tipo) || !finaisLanc.length;
+  encher($('lFinal'), '<option value="">—</option>' + opcoesFinais(finaisLanc));
+  if ($('lFinalBox').hidden || $('lFinal').value.split('|')[0] !== $('lMeio').value) $('lFinal').value = '';
   const cartao = ehCartao(db, $('lMeio').value);
   $('lMeioTxt').textContent = { S: 'Pago com', E: 'Conta', T: 'De', A: 'Cartão' }[tipo];
   // Parcelar e repetir nao se misturam: conta fixa tem uma cobranca por vez.
@@ -2616,6 +2632,16 @@ $('lParcelado').onchange = () => {
   if ($('lParcelado').value === 'mais') { $('lParc').value = ''; $('lParc').focus(); }
 };
 $('lTipo').onchange = $('lMeio').onchange = $('lRepTipo').onchange = $('lEstorno').onchange = formaLanc;
+$('lFinal').onchange = () => { if ($('lFinal').value) $('lMeio').value = $('lFinal').value.split('|')[0]; formaLanc(); rotulosFinais(false); };
+// Na lista aberta, cada final com o cartao, Titular/Adicional e Fisico/Virtual; escolhido, o combo mostra so o numero.
+const rotulosFinais = (longo, sel = $('lFinal')) => { for (const o of sel.options) if (o.value) o.textContent = longo ? o.dataset.longo : o.dataset.curto; };
+['lFinal', 'udFinal'].forEach((id) => {
+  $(id).addEventListener('pointerdown', () => rotulosFinais(true, $(id)));
+  $(id).addEventListener('keydown', () => rotulosFinais(true, $(id)));
+  $(id).addEventListener('blur', () => rotulosFinais(false, $(id)));
+});
+// Opcoes de Numero Cartao: data-curto (so o numero, no combo fechado) e data-longo (na lista aberta).
+const opcoesFinais = (lista) => lista.map(({ c, f }) => `<option value="${esc(c.id)}|${esc(f.n)}" data-curto="${esc(f.n)}" data-longo="${esc(`${f.n} · ${c.nome} · ${f.dono === 'A' ? 'Adicional' : 'Titular'} · ${f.tipo === 'V' ? 'Virtual' : 'Físico'}`)}">${esc(f.n)}</option>`).join('');
 // Data futura costuma ser conta ainda nao paga. So desmarca: conta atrasada nao pode virar paga sozinha.
 $('lData').onchange = () => { if ($('lData').value > hoje()) $('lPago').checked = false; };
 $('lLimpar').onclick = limparLanc;
@@ -2643,6 +2669,7 @@ $('fLanc').onsubmit = async (e) => {
     cat: transf || antecip ? null : $('lCat').value,
     destino: transf ? $('lDestino').value : undefined,
     pago: cartao || $('lPago').checked,
+    final: $('lFinal').value ? $('lFinal').value.split('|')[1] : undefined,
   };
   let idGravado;
   if (editando) {
@@ -2652,9 +2679,9 @@ $('fLanc').onsubmit = async (e) => {
   } else if (repete === 'fixa') { idGravado = novoId(); criarSerie(db, idGravado, dados, $('lRep').value, hoje()); idGravado += '-0'; }
   else if (repete === 'parc') { idGravado = novoId(); criarParcelada(db, idGravado, dados, $('lRep').value, parcelas, hoje()); idGravado += '-0'; }
   else { idGravado = novoId(); db.lancs.push({ id: idGravado, ...dados }); }
-  // Recibos ficam so no lancamento aberto (na conta fixa ou parcelada, na primeira ocorrencia).
+  // Recibos ficam no lancamento aberto; na compra parcelada, em todas as parcelas (recibosNasParcelas); na conta fixa, so na ocorrencia.
   const gravado = db.lancs.find((l) => l.id === idGravado);
-  if (gravado) { gravado.recibos = mesclarRecibos(recL.lista, gravado.recibos); if (!gravado.recibos) delete gravado.recibos; }
+  if (gravado) { gravado.recibos = mesclarRecibos(recL.lista, gravado.recibos); if (!gravado.recibos) delete gravado.recibos; recibosNasParcelas(db, gravado); }
   descartarRecibos(recL.tirados);
   soltarRecibosLanc(true);
   const cartaoLanc = db.cartoes.find((x) => x.id === dados.meio);
@@ -3139,7 +3166,7 @@ function dadosPdfViagem() {
     cats: Object.fromEntries(u.categorias.map((c) => [c.id, { nome: c.nome, cor: aparenciaCat(c).cor }])),
     desp: desp.map((d) => ({ data: d.data, desc: d.desc, cat: d.cat, moeda: d.moeda, valor: d.valor, nat: naturezaDesp(d), pago: d.pago !== false,
       meios: (d.pagamentos || []).map((p) => nome(p.meio)).filter(Boolean), ci: d.checkin || '', co: d.checkout || '', rec: (d.recibos || []).length,
-      local: d.local ? d.local.endereco || d.local.nome : '' })),
+      local: d.local ? d.local.endereco || d.local.nome : '', final: d.final || '' })),
     geradoEm: hoje(), filtro: tipoG === 'P' ? 'Só despesas pessoais' : tipoG === 'C' ? 'Só despesas corporativas' : '',
   };
 }
@@ -3274,7 +3301,7 @@ function relatorioDaTela(tipo) {
           titulo: `${nomeExib(d.c)} · ${d.status} · vence ${dataBR4(venc)}`, total: brlReal(d.lancado),
           itens: itens.map((p) => {
             const a = p.lanc.tipo === 'A', c = a ? { sig: 'AN', cor: '#2d6a3e', nome: 'Antecipação' } : catVis(p.lanc.cat);
-            return { sig: c.sig, cor: c.cor, titulo: p.lanc.desc + (p.de ? ` (${p.n}/${p.de})` : ''), linhas: [{ s: [c.nome, `Compra em ${dataBR4(p.lanc.data)}`].join('  ·  '), cinza: true }],
+            return { sig: c.sig, cor: c.cor, titulo: p.lanc.desc + (p.de ? ` (${p.n}/${p.de})` : ''), linhas: [{ s: [c.nome, `Compra em ${dataBR4(p.lanc.data)}`, ...(p.lanc.final ? [`Cartão final ${p.lanc.final}`] : [])].join('  ·  '), cinza: true }],
               valor: [p.valor < 0 ? sinalBRL(-p.valor) : brlReal(p.valor)], valorCor: p.valor < 0 ? COR_PDF.VERDE : undefined };
           }),
         };
@@ -4302,6 +4329,7 @@ Volta a ficar pendente e sai do saldo de hoje.`, `Sim, não ${t}`, 'Cancelar')) 
     formaLanc();
     $('lMeio').value = l.meio;
     formaLanc();
+    $('lFinal').value = l.final ? `${l.meio}|${l.final}` : '';
     if (l.destino) $('lDestino').value = l.destino;
     $('lCat').value = l.cat || '';
     soltarRecibosLanc(false);
@@ -4941,7 +4969,7 @@ function renderUsaDesp() {
     // Dia como no Fluxo ("30 de novembro" ou Hoje), com a quantidade de despesas do dia.
     const cab = d.data !== dia ? `<h3 class="dia">${d.data === h ? 'Hoje' : new Date(d.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })} (${porDia.get(d.data)})</h3>` : '';
     dia = d.data;
-    return cab + `${d.local ? '<div class="linhaMapa">' : ''}<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}${(d.recibos || []).length ? ` <b class="clipe" title="${d.recibos.length} ${d.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${d.recibos.length > 1 ? d.recibos.length : ''}</b>` : ''}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${d.local ? '<span class="pinoLugar" aria-hidden="true"></span>' : ''}${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>${d.local ? `<button type="button" class="btnMapa" data-usamapa="${esc(d.id)}" aria-label="Ver ${esc(d.local.nome)} no mapa">${PINO}</button></div>` : ''}`;
+    return cab + `${d.local ? '<div class="linhaMapa">' : ''}<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}${d.final ? ` <span class="finalLanc">${esc(d.final)}</span>` : ''}${(d.recibos || []).length ? ` <b class="clipe" title="${d.recibos.length} ${d.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${d.recibos.length > 1 ? d.recibos.length : ''}</b>` : ''}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${d.local ? '<span class="pinoLugar" aria-hidden="true"></span>' : ''}${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>${d.local ? `<button type="button" class="btnMapa" data-usamapa="${esc(d.id)}" aria-label="Ver ${esc(d.local.nome)} no mapa">${PINO}</button></div>` : ''}`;
   }).join('') || `<p class="fraco" style="margin:0">${desp.length ? `Nenhuma despesa ${tipoG === 'P' ? 'pessoal' : 'corporativa'} nesta viagem.` : 'Nenhuma despesa ainda. Toque em + para lançar.'}</p>`;
   requestAnimationFrame(posicionarMapas);
   // Por categoria, uma parte por moeda (base primeiro); o total de cada moeda e o mesmo do alto da tela.
@@ -5604,12 +5632,18 @@ function abrirDespesa(id) {
   // Pago com: contas e cartoes da area Travel, sem os arquivados (o da despesa editada continua).
   const pags = (d && d.pagamentos) || [], usados = pags.map((p) => p.meio);
   const meios = [...u.contas.map((x) => ({ ...x, rot: 'Conta' })), ...u.cartoes.map((x) => ({ ...x, rot: 'Cartão' }))].filter((x) => !x.arquivadaEm || usados.includes(x.id));
+  // Numero Cartao (as mesmas regras de Lancar): finais dos cartoes Travel do Pago com; escolher um final escolhe o cartao.
+  const finaisUd = meios.filter((x) => x.rot === 'Cartão').flatMap((c) => (c.finais || []).map((f) => ({ c, f })));
+  $('udFinal').hidden = !finaisUd.length;
+  $('udFinal').innerHTML = '<option value="">Nº cartão</option>' + opcoesFinais(finaisUd);
   // Lista propria para mostrar o logo do banco ou a bandeira, como no combo das categorias.
   [1, 2].forEach((n) => {
     $(`udMeio${n}Sel`).querySelector('.multiOpcoes').innerHTML = `<button type="button" class="linha" data-udmeio="${n}" data-id=""><span class="q">Não informado</span></button>`
       + meios.map((x) => `<button type="button" class="linha" data-udmeio="${n}" data-id="${esc(x.id)}">${iconeHtml(x)}<span class="q">${x.rot}: ${esc(x.nome)}</span></button>`).join('');
     escolherUdMeio(n, pags[n - 1] ? pags[n - 1].meio : '');
   });
+  $('udFinal').value = d && d.final && pags[0] ? `${pags[0].meio}|${d.final}` : '';
+  if ($('udFinal').selectedIndex < 0) $('udFinal').value = '';
   $('udValor1').value = pags[1] ? fmtValorUd(pags[0].valor) : '';
   $('udValor2').value = pags[1] ? fmtValorUd(pags[1].valor) : '';
   $('udDoisMeios').checked = pags.length === 2;
@@ -5640,7 +5674,10 @@ function escolherUdMeio(n, id) {
   $(`udMeio${n}`).value = x ? id : '';
   $(`udMeio${n}Sel`).querySelector('.txtMeio').innerHTML = x ? `${iconeHtml(x)}<span>${esc(x.nome)}</span>` : '<span>Não informado</span>';
   $(`udMeio${n}Sel`).open = false;
+  // Trocar o primeiro meio para outro limpa o numero do cartao.
+  if (n === 1 && $('udFinal').value.split('|')[0] !== $('udMeio1').value) $('udFinal').value = '';
 }
+$('udFinal').addEventListener('change', () => { if ($('udFinal').value) escolherUdMeio(1, $('udFinal').value.split('|')[0]); rotulosFinais(false, $('udFinal')); });
 function mostrarDoisMeios() {
   const dois = $('udDoisMeios').checked;
   $('udMeio2Box').hidden = $('udValor1').hidden = !dois;
@@ -5682,7 +5719,8 @@ $('fUsaDesp').onsubmit = (e) => {
   if (checkin && checkout && checkout < checkin) return avisar('Datas inválidas', 'O check-out não pode ser antes do check-in.');
   // Nenhum marcado ou Todos: divide entre todos os viajantes da viagem.
   const sel = marcados($('udQuemBox')), quem = $('udQuemBox').hidden ? [] : sel.length ? sel : [...udPessoas];
-  const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem, pago: $('udPago').checked, natureza: v.corporativa ? $('udNat').value : undefined, obs: $('udObs').value.trim() || undefined, checkin, checkout, pagamentos, local: locUd.valor || undefined };
+  const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem, pago: $('udPago').checked, natureza: v.corporativa ? $('udNat').value : undefined, obs: $('udObs').value.trim() || undefined, checkin, checkout, pagamentos, local: locUd.valor || undefined,
+    final: $('udFinal').value && $('udFinal').value.split('|')[0] === m1 ? $('udFinal').value.split('|')[1] : undefined };
   const atual = usa().despesas.find((x) => x.id === despEd);
   dados.recibos = mesclarRecibos(recUd.lista, atual && atual.recibos);
   if (atual) Object.assign(atual, dados); else usa().despesas.push({ id: novoId(), ...dados });
