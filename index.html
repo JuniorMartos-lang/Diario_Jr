@@ -907,7 +907,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.83.2 · 26/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.83.3 · 26/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -2503,7 +2503,7 @@ function renderAjustes() {
   $('aArqCartoesBox').hidden = !cartoesArq.length;
   $('aMenuArq').hidden = !contasArq.length && !cartoesArq.length;
   $('aArqVazio').hidden = !$('aMenuArq').hidden ? true : false;
-  $('aCartoes').innerHTML = db.cartoes.filter((c) => !c.arquivadaEm).map((c) => `<button type="button" class="linha" data-editcartao="${esc(c.id)}">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>Fecha dia ${c.fechamento} · Vence dia ${c.vencimento} · Paga por ${esc(nomeMeio(c.contaPag))}${c.finais && c.finais.length ? '<br>' + textoFinais(c) : ''}</small></span><span class="valor">${c.limite ? brl(c.limite) : ''}</span>${SETA}</button>`).join('');
+  $('aCartoes').innerHTML = db.cartoes.filter((c) => !c.arquivadaEm).map((c) => `<button type="button" class="linha" data-editcartao="${esc(c.id)}">${iconeHtml(c)}<span class="q">${esc(c.nome)}<br><small>Fecha dia ${c.fechamento} · Vence dia ${c.vencimento} · Paga por ${esc(nomeMeio(c.contaPag))}</small>${finaisHtml(c)}</span><span class="valor">${c.limite ? brl(c.limite) : ''}</span>${SETA}</button>`).join('');
   const listaCats = (tipo, titulo) => `<h3 class="dia">${titulo}</h3>` + db.categorias.filter((c) => c.tipo === tipo && !c.arquivadaEm).map((c) => `<button type="button" class="linha" data-editcat="${esc(c.id)}">${iconeCat(c)}<span class="q">${esc(c.nome)}</span><span class="valor">${c.limite ? brl(c.limite) + ' <small>por mês</small>' : ''}</span>${SETA}</button>`).join('');
   $('aCats').innerHTML = listaCats('S', 'Despesas') + listaCats('E', 'Receitas');
   // Arquivados aparecem abaixo de cada lista, com Desarquivar.
@@ -4449,17 +4449,17 @@ const USA_NOVO = { contas: 'Nova conta', cartoes: 'Novo cartão', viajantes: 'No
 const TELA_USA = { contas: 'tUsaMeios', cartoes: 'tUsaMeios', viajantes: 'tUsaViaj', categorias: 'tUsaCats', moedas: 'tUsaMoedas' };
 const USA_ITEM = { contas: 'conta', cartoes: 'cartão', viajantes: 'viajante', categorias: 'categoria', moedas: 'moeda' };
 const fotoViajante = (v) => (v.foto ? `<img class="ico foto" src="${esc(v.foto)}" alt="">` : iconeHtml(v));
-// Finais do cartao numa linha ("XX 1234 físico · XX 5678 virtual"), nas listas de Ajustes e Ajustes Travel.
-const textoFinais = (c) => (c.finais || []).map((f) => `XX ${esc(f.n)} ${f.tipo === 'V' ? 'virtual' : 'físico'}`).join(' · ');
+// Finais do cartao em retangulos azuis (como nos cards da aba Cartoes), nas listas de Ajustes e Ajustes Travel.
+const finaisHtml = (c) => (c.finais && c.finais.length ? `<div class="finaisCard">${c.finais.map(numCartao).join('')}</div>` : '');
 function renderUsa() {
   const u = usa();
-  const lista = (tipo, ico, sub) => u[tipo].filter((x) => !x.arquivadaEm).map((x) => `<button type="button" class="linha" data-editusa="${tipo}" data-id="${esc(x.id)}">${ico(x)}<span class="q">${esc(x.nome)}${sub ? `<br><small>${sub(x)}</small>` : ''}</span>${SETA}</button>`).join('')
+  const lista = (tipo, ico, sub, extra) => u[tipo].filter((x) => !x.arquivadaEm).map((x) => { const t = sub && sub(x); return `<button type="button" class="linha" data-editusa="${tipo}" data-id="${esc(x.id)}">${ico(x)}<span class="q">${esc(x.nome)}${t ? `<br><small>${t}</small>` : ''}${extra ? extra(x) : ''}</span>${SETA}</button>`; }).join('')
     || '<p class="fraco">Nenhum cadastro ainda.</p>';
   $('uViagensAj').innerHTML = lista('viagens', icoViagem, datasViagem);
   $('uContas').innerHTML = lista('contas', iconeHtml);
-  const subCartao = (c) => (c.finais && c.finais.length ? textoFinais(c) : c.tipo === 'V' ? 'Virtual' : c.tipo === 'F' ? 'Físico' : 'Sem finais')
-    + (c.finaisInativos && c.finaisInativos.length ? ` · ${c.finaisInativos.length} desabilitado${c.finaisInativos.length > 1 ? 's' : ''}` : '');
-  $('uCartoes').innerHTML = lista('cartoes', iconeHtml, subCartao);
+  const subCartao = (c) => [c.finais && c.finais.length ? '' : c.tipo === 'V' ? 'Virtual' : c.tipo === 'F' ? 'Físico' : 'Sem finais',
+    c.finaisInativos && c.finaisInativos.length ? `${c.finaisInativos.length} desabilitado${c.finaisInativos.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ');
+  $('uCartoes').innerHTML = lista('cartoes', iconeHtml, subCartao, finaisHtml);
   $('uViajantes').innerHTML = lista('viajantes', fotoViajante);
   $('uCats').innerHTML = lista('categorias', (c) => iconeCat(c));
   $('uMoedas').innerHTML = lista('moedas', icoMoeda, (m) => `${esc(m.codigo)} · ${esc(m.simbolo)}`);
