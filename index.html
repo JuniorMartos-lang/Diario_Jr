@@ -331,6 +331,7 @@
   .finaisCard { display: grid; grid-template-columns: minmax(0, 240px); gap: 3px; margin-top: 6px; }
   .finaisCard .numCartao { display: grid; grid-template-columns: 31fr 29fr 37fr; gap: 2px; white-space: nowrap; }
   /* Azul fixo nos dois temas: contraste de 6,7:1 com o branco. */
+  .fatInfo { margin: 10px 0 0; padding: 10px 12px; }
   .numCartao .tipoCartao { padding: 2px 0; border-radius: 3px; background: #1d4ed8; color: #fff; font-weight: 700; font-size: 11px; text-align: center; font-variant-numeric: tabular-nums; }
   .dia { margin: 12px 0 0; font-size: 13px; font-weight: 700; color: var(--mut); }
   .dia + .linha { border-top: 0; }
@@ -907,7 +908,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.83.4 · 26/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.83.5 · 26/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -2229,7 +2230,7 @@ function renderFatura(h) {
   const pago = parciais.reduce((a, p) => a + p.valor, paga ? paga.valor : 0), falta = restanteFatura(db, c, ym);
   const fecha = fechamentoFatura(c, ym), venc = dataNoMes(ym, c.vencimento);
   const status = statusFatura(db, c, ym, h);
-  const lista = htmlLancsFatura(itens);
+  const lista = htmlLancsFatura(itens), livre = limiteDisponivel(db, c);
   $('fatConteudo').innerHTML = `<div class="mesesFat">
       <button type="button" class="mesFatBtn" data-fatmes="-1"><span style="display:inline-block">‹ ${nomeMes(addMes(ym, -1), { month: 'long' })}</span></button>
       <b aria-live="polite">${nomeMes(ym, { month: 'long', year: 'numeric' })}</b>
@@ -2248,6 +2249,7 @@ function renderFatura(h) {
           <div><small>Falta pagar</small><b class="${falta > 0 ? 'falta' : ''}">${brl(Math.max(falta, 0))}</b></div>
         </div>
     </div>
+    <div class="card fatInfo"><small class="fraco">Fecha dia ${c.fechamento} · Vence dia ${c.vencimento}${livre === null ? ' · Sem limite' : `<br>Limite ${brl(c.limite)} · Disponível <span class="${livre < 0 ? 'neg' : ''}">${brl(livre)}</span>`}</small>${finaisHtml(c)}</div>
     <div class="fatAcoes">
       ${(paga && pago !== total) || falta < 0 ? `<div class="aviso">Foi pago ${brl(pago)}, mas a fatura agora soma ${brl(total)}. Desfaça o pagamento e pague de novo para corrigir.</div>` : ''}
       ${htmlBotoesFatura(c, ym, h)}
