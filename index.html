@@ -141,7 +141,7 @@
   .horaSel { display: flex; align-items: center; gap: 4px; }
   .vooModo { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0 0 6px; }
   .vooModo label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; }
-  .vooModo input[type=checkbox] { width: 18px; height: 18px; min-height: 0; margin: 0; }
+  .vooModo input[type=checkbox], .vooModo input[type=radio] { width: 18px; height: 18px; min-height: 0; margin: 0; flex: none; }
   h4.vooSecao { margin: 10px 0 6px; padding: 6px 10px; border-radius: 8px; background: #1d4ed8; color: #fff; font-size: 14px; }
   #itVPax input:disabled { opacity: .6; }
   .itItem.fimTrilho .itTrilho::before { display: none; }
@@ -332,6 +332,22 @@
   .finaisCard .numCartao { display: grid; grid-template-columns: 31fr 29fr 37fr; gap: 2px; white-space: nowrap; }
   /* Azul fixo nos dois temas: contraste de 6,7:1 com o branco. */
   .fatInfo { margin: 10px 0 0; padding: 10px 12px; }
+  /* Aba Periodo: grafico de barras de uma serie, com eixo de R$ a esquerda e o valor em cima da barra (ate 6 meses). */
+  #pFiltros .multiSel summary { margin-left: 0; border-top: 0; }
+  .perTit { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .perLogos { display: inline-flex; gap: 3px; }
+  .perLogos .ico { width: 24px; height: 24px; padding: 2px; margin: 0; }
+  .perGraf { display: grid; grid-template-columns: auto 1fr; gap: 0 6px; margin-top: 8px; }
+  /* O topo das barras fica 16 px abaixo da borda (lugar do valor); o eixo comeca na mesma altura. */
+  .perGraf .grafico { padding-top: 16px; box-sizing: border-box; }
+  .eixoY { display: flex; flex-direction: column; justify-content: space-between; height: 156px; margin-bottom: -6px; padding-top: 10px; box-sizing: border-box; line-height: 12px; font-size: 11px; color: var(--mut); text-align: right; font-variant-numeric: tabular-nums; }
+  .eixoY b { font-weight: 600; }
+  .perGraf .colGraf { flex-direction: column; align-items: center; justify-content: flex-end; }
+  .perGraf .colGraf i { width: 60%; max-width: 30px; }
+  .perGraf .colGraf small { font-size: 10px; color: var(--txt); white-space: nowrap; margin-bottom: 2px; }
+  .perGraf .eixoGraf { grid-column: 2; }
+  .perTip { min-height: 20px; margin: 8px 0 0; font-size: 13px; }
+  .perMes { display: flex; justify-content: space-between; }
   .numCartao .tipoCartao { padding: 2px 0; border-radius: 3px; background: #1d4ed8; color: #fff; font-weight: 700; font-size: 11px; text-align: center; font-variant-numeric: tabular-nums; }
   .dia { margin: 12px 0 0; font-size: 13px; font-weight: 700; color: var(--mut); }
   .dia + .linha { border-top: 0; }
@@ -771,6 +787,19 @@
     </details>
   </section>
 
+  <section id="s-periodo" hidden>
+    <div class="topoTela topoLim"><span class="espaco"></span><h2>Gastos dos cartões por período</h2><span class="espaco"></span></div>
+    <div class="olhoCart"><button type="button" class="olhoSaldo" id="pOlho" aria-pressed="false" aria-label="Ocultar valores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+    <div class="card filtrosRes" id="pFiltros">
+      <div class="rotuloCampo"><span>Cartões</span><details class="multiSel" id="pCartSel"><summary><span id="pCartTxt">Todos os cartões</span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes"></div></details></div>
+      <div class="dois" data-datas><div class="campoDe"><div class="rotDe"><span>De</span><label class="soMes"><input type="checkbox" id="pUnico" checked>Somente mês</label></div><input type="month" id="pIni" aria-label="De"></div><label id="pAteBox" hidden>Até<input type="month" id="pFim"></label></div>
+      <div class="vooModo"><label><input type="radio" name="pVisao" value="cartao" checked>Cada cartão por mês</label><label><input type="radio" name="pVisao" value="soma">Somado por mês</label></div>
+      <small class="fraco">Gasto lançado em cada fatura, pelo mês do vencimento: compras e estornos, sem antecipações e sem descontar pagamentos.</small>
+    </div>
+    <div id="pTabela"></div>
+    <div id="pGraficos"></div>
+  </section>
+
   <section id="s-limite" hidden>
     <div class="topoTela topoLim">
       <button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button>
@@ -908,7 +937,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.83.6 · 26/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.84.0 · 26/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1217,6 +1246,7 @@
   <button data-aba="limites"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>Limites</button>
   <button data-aba="contas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>Resumos</button>
   <button data-aba="cartoes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18"/></svg>Cartões</button>
+  <button data-aba="periodo"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18M7 15h4"/></svg>Período</button>
   <button data-aba="usa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h13l-2.5 4.5L18 13H5"/></svg>Travel</button>
   <button data-aba="ajustes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Ajustes</button>
 </nav>
@@ -1690,6 +1720,7 @@ function desenhar() {
   renderCartoes(h);
   if (fatCartao) renderFatura(h);
   renderLimites();
+  renderPeriodo();
   if (limCat) renderLimite();
   renderAjustes();
   renderUsa();
@@ -3487,6 +3518,68 @@ function exportar(tipo) {
     return exportarCSV(`faturas-${mes}`, ['Cartão', 'Fatura', 'Situação', 'Data', 'Descrição', 'Parcela', 'Categoria', 'Valor'], linhas);
   }
 }
+// Aba Periodo: gasto das faturas dos cartoes por mes (mes do vencimento, gastoFatura em calc.js). Filtros so na memoria.
+$('pIni').value = $('pFim').value = hoje().slice(0, 7);
+// Valor curto para o eixo e para cima da barra: "4,5 mil", "850".
+function brlCurto(c) {
+  if (valoresOcultos) return '••';
+  const r = c / 100;
+  return Math.abs(r) >= 1000 ? `${(r / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mil` : Math.round(r).toLocaleString('pt-BR');
+}
+function graficoPeriodo(titulo, ico, valores, meses) {
+  const topo = Math.max(...valores, 0), alt = (v) => (topo ? Math.max(v, 0) / topo * 100 : 0), passo = Math.ceil(meses.length / 6), comValor = meses.length <= 6;
+  const cols = meses.map((m, i) => {
+    const tip = esc(`${mesAno(m)}: ${brl(valores[i])}`);
+    return `<button type="button" class="colGraf" data-pergraf="${tip}" aria-pressed="false" aria-label="${tip}">${comValor ? `<small>${brlCurto(valores[i])}</small>` : ''}<i style="height:${alt(valores[i])}%;background:var(--cDesp)"></i></button>`;
+  }).join('');
+  const eixo = meses.map((m, i) => `<span>${i % passo === 0 ? mesCurto(m) : ''}</span>`).join('');
+  return `<div class="card"><h2 class="perTit">${ico}<span>${titulo}</span></h2>
+    <div class="perMes"><span class="fraco">Total no período</span><b class="valor">${brl(valores.reduce((a, v) => a + v, 0))}</b></div>
+    <div class="perGraf"><div class="eixoY"><b>R$ ${brlCurto(topo)}</b><span>${brlCurto(topo / 2)}</span><span>0</span></div><div class="grafico">${cols}</div><div class="eixoGraf">${eixo}</div></div>
+    <p class="fraco perTip" aria-live="polite">Toque em um mês para ver o valor.</p></div>`;
+}
+function renderPeriodo() {
+  const unico = $('pUnico').checked, ini = $('pIni').value || hoje().slice(0, 7), fim = unico ? ini : $('pFim').value || ini;
+  $('pAteBox').hidden = unico;
+  $('pOlho').setAttribute('aria-pressed', valoresOcultos);
+  $('pOlho').setAttribute('aria-label', valoresOcultos ? 'Mostrar valores' : 'Ocultar valores');
+  const meses = [];
+  for (let m = ini; m <= fim && meses.length < MAX_MESES; m = addMes(m, 1)) meses.push(m);
+  const vazio = (t) => { $('pTabela').innerHTML = `<div class="card"><p class="fraco" style="margin:0">${t}</p></div>`; $('pGraficos').innerHTML = ''; };
+  if (!meses.length) return vazio('O mês Até não pode ser antes do De.');
+  // Cartoes ativos em algum mes do periodo; a escolha anterior continua marcada.
+  const lista = $('pCartSel').querySelector('.multiOpcoes'), antes = marcados($('pFiltros'));
+  const base = db.cartoes.filter((c) => antes.includes(c.id) || meses.some((m) => ativoEm(c, m)));
+  lista.innerHTML = OPC_TODOS + base.map((c) => `<label>${iconeHtml(c)}<span class="q">${esc(nomeExib(c))}</span><input type="checkbox" value="${esc(c.id)}"${antes.includes(c.id) ? ' checked' : ''}></label>`).join('');
+  ajustarTodos(lista);
+  const sel = marcados($('pFiltros')), cartoes = sel.length ? base.filter((c) => sel.includes(c.id)) : base;
+  $('pCartTxt').textContent = !sel.length ? 'Todos os cartões' : sel.length === 1 ? nomeExib(cartoes[0]) : `${sel.length} cartões`;
+  if (!cartoes.length) return vazio('Nenhum cartão neste período.');
+  const vals = cartoes.map((c) => ({ c, v: meses.map((m) => gastoFatura(db, c, m)) }));
+  const somaMes = meses.map((_, i) => vals.reduce((a, x) => a + x.v[i], 0)), total = somaMes.reduce((a, v) => a + v, 0);
+  const nomeLongo = (m) => nomeMes(m, { month: 'long', year: 'numeric' });
+  const linha = (ico, nome, v) => `<div class="linha">${ico}<span class="q">${nome}</span><span class="valor">${brl(v)}</span></div>`;
+  const porCartao = document.querySelector('input[name="pVisao"]:checked').value === 'cartao';
+  const corpo = porCartao
+    ? meses.map((m, i) => `${meses.length > 1 ? `<h3 class="dia perMes"><span>${nomeLongo(m)}</span><span>${brl(somaMes[i])}</span></h3>` : ''}${vals.map((x) => linha(iconeHtml(x.c), esc(nomeExib(x.c)), x.v[i])).join('')}`).join('')
+    : meses.map((m, i) => linha('', nomeLongo(m), somaMes[i])).join('');
+  const titulo = meses.length > 1 ? `${mesAno(meses[0])} a ${mesAno(meses.at(-1))}` : nomeLongo(meses[0]);
+  $('pTabela').innerHTML = `<div class="card"><h2>${porCartao ? 'Cada cartão' : 'Todos somados'} · ${titulo}</h2>${corpo}`
+    + `<div class="linha"><b>Total${cartoes.length > 1 ? ` (${cartoes.length} cartões)` : ''}</b><b class="valor">${brl(total)}</b></div></div>`;
+  // Graficos: com mais de um cartao, primeiro a soma deles; depois um por cartao. Sempre com os logos.
+  const logos = `<span class="perLogos">${cartoes.map((c) => iconeHtml(c)).join('')}</span>`;
+  $('pGraficos').innerHTML = (cartoes.length > 1 ? graficoPeriodo(sel.length ? `${cartoes.length} cartões somados` : 'Todos os cartões somados', logos, somaMes, meses) : '')
+    + vals.map((x) => graficoPeriodo(esc(nomeExib(x.c)), iconeHtml(x.c), x.v, meses)).join('');
+}
+$('pFiltros').addEventListener('change', () => comCache(db, renderPeriodo));
+$('pOlho').onclick = () => $('hOlho').click();
+$('pGraficos').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-pergraf]');
+  if (!b) return;
+  const card = b.closest('.card');
+  card.querySelectorAll('[data-pergraf]').forEach((x) => x.setAttribute('aria-pressed', x === b));
+  card.querySelector('.perTip').textContent = b.dataset.pergraf;
+});
 $('hOlho').onclick = () => {
   valoresOcultos = !valoresOcultos;
   render();
@@ -4170,14 +4263,14 @@ function abrirAba(aba) {
   }
   $('lTopo').hidden = true;
   sairDasTelas();
-  document.body.classList.toggle('emAjustes', aba === 'ajustes' || aba === 'limites' || aba === 'usa');
+  document.body.classList.toggle('emAjustes', aba === 'ajustes' || aba === 'limites' || aba === 'usa' || aba === 'periodo');
   document.querySelectorAll('main > section').forEach((s) => { s.hidden = s.id !== 's-' + aba; });
   document.body.classList.toggle('emResumo', aba === 'resumo');
   document.body.classList.toggle('emCartoes', aba === 'cartoes');
   document.body.classList.toggle('emFluxo', aba === 'fluxo');
   // O Resumo mostra sempre o mes corrente; o navegador de meses fica nas outras abas.
   if (aba === 'resumo' && mes !== hoje().slice(0, 7)) { mes = hoje().slice(0, 7); render(); }
-  $('mais').hidden = aba === 'lancar' || aba === 'limites' || aba === 'usa';
+  $('mais').hidden = aba === 'lancar' || aba === 'limites' || aba === 'usa' || aba === 'periodo';
   document.querySelectorAll('nav button').forEach((b) => {
     if (b.dataset.aba === aba) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });

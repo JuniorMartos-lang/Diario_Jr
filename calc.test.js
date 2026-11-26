@@ -831,6 +831,7 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
   const ymA = c.mesFatura('2026-11-02', kA), antes = c.totalFatura(comAnt, kA, ymA);
   comAnt.lancs.push({ id: 'ant1', tipo: 'A', data: '2026-11-02', valor: -5000, meio: kA.id, desc: 'Antecipação de fatura', cat: null, pago: true, final: '4321' });
   assert.strictEqual(c.totalFatura(comAnt, kA, ymA), antes - 5000);
+  assert.strictEqual(c.gastoFatura(comAnt, kA, ymA), antes, 'gasto da fatura nao desconta antecipacao');
   for (const arq of [await c.cifrarBackup(comAnt, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comAnt, gApp)]) {
     const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1'), '2026-11-03');
     assert.ok(c.backupValido(volta));

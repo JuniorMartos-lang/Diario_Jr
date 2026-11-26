@@ -83,6 +83,11 @@ function totalFatura(db, cartao, ym) {
   return itensFatura(db, cartao, ym).reduce((s, p) => s + p.valor, 0);
 }
 
+// Gasto lancado na fatura (aba Periodo): compras e estornos, sem as antecipacoes (que so pagam a fatura antes).
+function gastoFatura(db, cartao, ym) {
+  return itensFatura(db, cartao, ym).filter((p) => p.lanc.tipo !== 'A').reduce((s, p) => s + p.valor, 0);
+}
+
 // Data em que a fatura com vencimento no mes ym fecha.
 function fechamentoFatura(cartao, ym) {
   return dataNoMes(cartao.vencimento > cartao.fechamento ? ym : addMes(ym, -1), cartao.fechamento);
@@ -1476,7 +1481,7 @@ if (typeof module !== 'undefined') {
   module.exports = {
     recibosNasParcelas, A4, largTexto, quebrarTexto, relatorioA4, PILULA, COR_PDF, relatorioViagem, pdfDeDesenho,
     anosEDias, contadorViagem, PAISES, ehPais, nomePais, formaDaCategoria, TIPOS_ITIN, itemItinValido, tipoDaCategoriaViagem, categoriaDeItinerario, despesaComCheckin, despesasParaItin, sincronizarItinDespesas, diasItinerario, localValido, ehChaveMaps, ehChaveAero, fusoDeOffset, horaLocalVoo, dadosDoVoo, offsetFuso, modelosDoVoo, vooNaData, lembretesAgenda, situacaoLembretes, idEvento, googleValido, ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
-    comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, chaveFatura,
+    comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, gastoFatura, chaveFatura,
     protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, decifrarComHash, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }
