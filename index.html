@@ -907,7 +907,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.83.0 · 26/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.83.1 · 26/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1382,6 +1382,7 @@
   <div id="itDespBox" class="vooBusca" hidden><button type="button" class="mini" id="itDoDesp"></button><small class="fraco">Hotel, aéreo, carro, transporte, parques, shows e passeios lançados nas despesas desta viagem. Escolha um para preencher o item.</small><div id="itDespOpcoes" class="localSug"></div></div>
   <div class="rotuloCampo"><span>Categoria</span><details class="multiSel" id="itCatSel"><summary><span id="itCatTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" id="itCatOpcoes"></div></details><input type="hidden" id="itCat"></div>
   <div data-it="aereo" class="vooModo"><label><input type="checkbox" id="itSoIda">Somente ida (um voo)</label><label id="itEncerraBox"><input type="checkbox" id="itEncerra">Encerramento da viagem</label></div>
+  <div data-it="hotel" class="vooModo"><label><input type="checkbox" id="itHEncerra">Encerramento da viagem</label></div>
   <h4 class="vooSecao" id="itIdaTit" data-it="aereo">Voo de ida</h4>
   <p id="itDaDesp" class="fraco" hidden>Este item veio de uma despesa com check-in: as datas e o local ficam iguais nos dois: mudar aqui também muda o check-in, o check-out e o local da despesa.</p>
   <div class="dois" data-it="aereo"><div class="rotuloCampo"><span>Companhia</span><details class="multiSel" id="itCiaSel"><summary><span id="itCiaTxt"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes ciaOpcoes"><input id="itCiaFiltro" type="search" autocomplete="off" placeholder="Buscar companhia" aria-label="Buscar companhia"><div id="itCiaOpcoes"></div></div></details><input type="hidden" id="itCia"></div><label>Nº do voo<input id="itVoo" maxlength="12" autocomplete="off" inputmode="text" placeholder="Ex.: 1234"></label></div>
@@ -5137,11 +5138,14 @@ function htmlItemItin(e, det) {
   if (x.obs) D.push(`<span class="itObs">Obs: ${esc(x.obs)}</span>`);
   if (x.despesa) D.push(x.lado ? `Lançado nas despesas (${x.lado === 'ida' ? 'ida' : 'volta'})` : 'Lançado nas despesas');
   const linhas = det ? [...P, ...D] : P;
-  const tag = x.despesa ? `<span class="itTag">${x.lado === 'volta' ? 'Volta · despesa' : x.lado === 'ida' ? 'Ida · despesa' : 'Da despesa'}</span>`
-    : x.par ? `<span class="itTag">${x.lado === 'volta' ? 'Volta' : 'Ida'}</span>` : x.encerra ? '<span class="itTag">Fim da viagem</span>' : '';
+  let tag = x.despesa ? `<span class="itTag">${x.lado === 'volta' ? 'Volta · despesa' : x.lado === 'ida' ? 'Ida · despesa' : 'Da despesa'}</span>`
+    : x.par ? `<span class="itTag">${x.lado === 'volta' ? 'Volta' : 'Ida'}</span>` : '';
+  // Hotel que encerra: o traco termina no check-out (a linha do fim), quando ha.
+  const encerraAqui = x.encerra && (x.tipo === 'hotel' && x.fim && x.fim !== x.data ? fim : !fim);
+  if (encerraAqui) tag += '<span class="itTag">Fim da viagem</span>';
   // O alfinete da devolucao do carro abre o local de devolucao, quando e outro.
   const lugar = fim && x.tipo === 'carro' && x.localDev ? x.localDev : x.local;
-  return `<div class="itItem${x.encerra && !fim ? ' fimTrilho' : ''}"><div class="itHora">${hora ? `<b>${esc(hora)}</b><small>${esc(fuso || '')}</small>` : ''}</div>`
+    return `<div class="itItem${encerraAqui ? ' fimTrilho' : ''}"><div class="itHora">${hora ? `<b>${esc(hora)}</b><small>${esc(fuso || '')}</small>` : ''}</div>`
     + `<div class="itTrilho">${c ? iconeCat(c) : `<span class="itIco"><svg viewBox="0 0 24 24" aria-hidden="true">${ICO_ITIN[x.tipo]}</svg></span>`}</div>`
     + `<button type="button" class="itTexto" data-ititem="${esc(x.id)}"><b>${esc(titulo)}${tag}</b>${linhas.map((l) => `<small>${l}</small>`).join('')}</button>`
     + `${lugar ? `<button type="button" class="itPino" data-itmapa="${esc(x.id)}"${lugar === x.localDev ? ' data-itfim="1"' : ''} aria-label="Ver ${esc(lugar.nome)} no mapa">${PINO}</button>` : '<span></span>'}</div>`;
@@ -5392,7 +5396,8 @@ function abrirItem(id) {
   $('itVRepetir').checked = !voltaEd || JSON.stringify(voltaEd.pax || []) === JSON.stringify((x && x.pax) || []);
   // Volta ja gravada: o que esta nela e da pessoa (a ida nao sobrescreve). Item novo: termina a viagem, por padrao.
   if (voltaEd) $('itVPax').querySelectorAll('input').forEach((i) => { if (i.value) i.dataset.editado = '1'; });
-  $('itVEncerra').checked = voltaEd ? !!voltaEd.encerra : true;
+  $('itVEncerra').checked = voltaEd ? !!voltaEd.encerra : !outroEncerra();
+  $('itHEncerra').checked = !!(x && x.encerra && x.tipo === 'hotel');
   porMesmoLoc('it'); porMesmoLoc('itV');
   $('itExcluir').hidden = $('itDuplicar').hidden = !x;
   // Item novo: oferece as despesas da viagem que podem virar item e ainda nao viraram.
@@ -5408,6 +5413,18 @@ function abrirItem(id) {
 }
 $('itMais').onclick = () => abrirItem(null);
 $('itSoIda').addEventListener('change', formaItem);
+// Encerramento da viagem: um so por viagem (voo ou hotel). Ja existe em outro item: nao deixa marcar e avisa qual e.
+function outroEncerra() {
+  const v = viagemDoItin();
+  return usa().itinerario.find((i) => i.viagem === v.id && i.encerra && i.id !== itemEd && !(voltaEd && i.id === voltaEd.id));
+}
+function avisoEncerra(o) {
+  avisar('Não é possível', `Esta viagem já tem o encerramento em "${o.titulo}" (${dataBR(o.data)}). Só pode haver um: desmarque lá primeiro.`);
+}
+for (const id of ['itEncerra', 'itVEncerra', 'itHEncerra']) $(id).addEventListener('change', () => {
+  const o = $(id).checked && outroEncerra();
+  if (o) { $(id).checked = false; avisoEncerra(o); }
+});
 // Repetir da ida: copia localizador e assento da ida para a volta e continua copiando o que se digita na ida,
 // menos nos campos que a pessoa mudou na volta (assento diferente, por exemplo). Tudo continua editavel.
 function repetirIda(forcar) {
@@ -5439,6 +5456,7 @@ $('itVPax').addEventListener('input', (e) => { if (e.target.matches('input')) e.
 $('itDuplicar').onclick = () => {
   itemEd = null; itDespSel = null; voltaEd = null;
   $('itfTit').textContent = 'Novo item (cópia)';
+  $('itEncerra').checked = $('itVEncerra').checked = $('itHEncerra').checked = false;  // so um encerramento por viagem
   // Titulo feito sozinho de origem e destino: some, para ser refeito com os novos ao salvar.
   if ($('itTitulo').value === `${$('itOrigem').value || '?'} - ${$('itDestino').value || '?'}`) $('itTitulo').value = '';
   $('itExcluir').hidden = $('itDuplicar').hidden = true;
@@ -5511,10 +5529,12 @@ $('fItin').onsubmit = (e) => {
     Object.assign(item, { lado: 'ida', par: volta.id });
     delete item.encerra;
   } else {
-    if (t === 'aereo' && $('itEncerra').checked) item.encerra = true;
+    if ((t === 'aereo' && $('itEncerra').checked) || (t === 'hotel' && $('itHEncerra').checked)) item.encerra = true;
     if (voltaEd) { delete item.par; if (!item.despesa) delete item.lado; }
   }
   for (const k of Object.keys(item)) if (item[k] === undefined) delete item[k];
+  const oEnc = (item.encerra || (volta && volta.encerra)) && outroEncerra();
+  if (oEnc) return avisoEncerra(oEnc);
   if (!itemItinValido(item, usa()) || (volta && !itemItinValido(volta, usa()))) return avisar('Não foi possível salvar', 'Confira a hora (hh:mm) e o tamanho dos textos.');
   // Item ligado a despesa com check-in: as datas (e o local) voltam para a despesa, para a ligacao nao desfazer a mudanca.
   const desp = item.despesa && usa().despesas.find((d) => d.id === item.despesa);
