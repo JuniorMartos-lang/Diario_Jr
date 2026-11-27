@@ -332,6 +332,10 @@
   .finaisCard .numCartao { display: grid; grid-template-columns: 31fr 29fr 37fr; gap: 2px; white-space: nowrap; }
   /* Azul fixo nos dois temas: contraste de 6,7:1 com o branco. */
   .fatInfo { margin: 10px 0 0; padding: 10px 12px; }
+  .mesCampo { position: relative; display: block; }
+  .mesCampo input[type=month] { color: transparent; }
+  .mesCampo input[type=month]::-webkit-datetime-edit { color: transparent; }
+  .mesCampo > span { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--txt); pointer-events: none; white-space: nowrap; }
   /* Aba Periodo: grafico de barras de uma serie, com eixo de R$ a esquerda e o valor em cima da barra (ate 6 meses). */
   #pFiltros .multiSel summary { margin-left: 0; border-top: 0; }
   .perTit { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -813,7 +817,7 @@
     <div class="olhoCart"><button type="button" class="olhoSaldo" id="pOlho" aria-pressed="false" aria-label="Ocultar valores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
     <div class="card filtrosRes" id="pFiltros">
       <div class="rotuloCampo"><span>Cartões</span><details class="multiSel" id="pCartSel"><summary><span id="pCartTxt">Todos os cartões</span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes"></div></details></div>
-      <div class="dois" data-datas><div class="campoDe"><div class="rotDe"><span>De</span><label class="soMes"><input type="checkbox" id="pUnico" checked>Somente mês</label></div><input type="month" id="pIni" aria-label="De"></div><label id="pAteBox" hidden>Até<input type="month" id="pFim"></label></div>
+      <div class="dois" data-datas><div class="campoDe"><div class="rotDe"><span>De</span><label class="soMes"><input type="checkbox" id="pUnico" checked>Somente mês</label></div><span class="mesCampo"><input type="month" id="pIni" aria-label="De"><span id="pIniTxt" aria-hidden="true"></span></span></div><label id="pAteBox" hidden>Até<span class="mesCampo"><input type="month" id="pFim"><span id="pFimTxt" aria-hidden="true"></span></span></label></div>
       <div class="vooModo"><label><input type="radio" name="pVisao" value="cartao" checked>Cada cartão por mês</label><label><input type="radio" name="pVisao" value="soma">Somado por mês</label><label><input type="checkbox" id="pLinha">Gráfico em linha</label></div>
       <small class="fraco">Gasto lançado em cada fatura, pelo mês do vencimento: compras e estornos, sem antecipações e sem descontar pagamentos.</small>
     </div>
@@ -960,7 +964,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.86.0 · 26/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.86.2 · 26/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -3640,6 +3644,9 @@ $('cotAgora').onclick = async () => {
   $('cotAgora').disabled = false;
 };
 // Aba Periodo: gasto das faturas dos cartoes por mes (mes do vencimento, gastoFatura em calc.js). Filtros so na memoria.
+// De e Ate: o campo de mes do aparelho (com o calendario dele), mas o texto que ele escreve ("setembro de 2026", que
+// cortava) fica invisivel e por cima vai "Setembro 2026" (mesExtenso).
+const mesExtenso = (ym) => { const t = nomeMes(ym, { month: 'long' }); return `${t[0].toUpperCase()}${t.slice(1)} ${ym.slice(0, 4)}`; };
 $('pIni').value = $('pFim').value = hoje().slice(0, 7);
 // Valor curto para o eixo e para cima da barra: "4,5 mil", "850".
 function brlCurto(c) {
@@ -3674,6 +3681,8 @@ function renderPeriodo() {
   // Ate nunca antes do De: o calendario so mostra dali em diante, e o Ate anterior passa a ser o De.
   $('pFim').min = ini;
   if (!unico && $('pFim').value < ini) $('pFim').value = ini;
+  $('pIniTxt').textContent = mesExtenso(ini);
+  $('pFimTxt').textContent = $('pFim').value ? mesExtenso($('pFim').value) : '';
   const fim = unico ? ini : $('pFim').value || ini;
   $('pOlho').setAttribute('aria-pressed', valoresOcultos);
   $('pOlho').setAttribute('aria-label', valoresOcultos ? 'Mostrar valores' : 'Ocultar valores');
