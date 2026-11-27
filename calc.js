@@ -535,6 +535,8 @@ function gerarParcelas(dados, id, per, total, cartao, hoje) {
     return {
       ...camposSerie(dados), id: id + '-' + i, data, valor: base + (i < resto ? 1 : 0), parcela: i + 1, de: total,
       compra: dados.data, pago: !!cartao || (dados.pago && data <= hoje), serie: id,
+      // Numero do cartao escolhido vai em todas as parcelas.
+      ...(dados.final ? { final: dados.final } : {}),
     };
   });
 }
@@ -660,7 +662,18 @@ function migrar(d, hoje) {
   if (novo.cotacao && novo.cotacao.ultima && typeof novo.cotacao.ultima.v === 'number') novo.cotacao = { ...novo.cotacao, ultima: { ...novo.cotacao.ultima, v: Math.round(novo.cotacao.ultima.v * 100) / 100 } };
   // Ate a 1.82: o recibo de compra parcelada ficava so na primeira parcela; passa a estar em todas.
   for (const l of novo.lancs) if (l && l.de > 1 && l.serie && (l.recibos || []).length) recibosNasParcelas(novo, l, true);
+  // Ate a 1.86.3: o numero do cartao (final) da compra parcelada ficava so na primeira parcela; passa a estar em todas.
+  for (const l of novo.lancs) if (l && l.de > 1 && l.serie && l.final) finalNasParcelas(novo, l, true);
   return novo;
+}
+// Compra parcelada no cartao: o mesmo numero do cartao (final) em todas as parcelas da compra (mesma serie e cartao).
+// Com soFaltando, so preenche as que ainda nao tem (conversao dos dados antigos); sem, todas ficam iguais a esta.
+function finalNasParcelas(db, l, soFaltando) {
+  if (!(l.de > 1) || !l.serie) return;
+  for (const o of db.lancs) {
+    if (o === l || o.serie !== l.serie || !(o.de > 1) || o.meio !== l.meio || (soFaltando && o.final)) continue;
+    if (l.final) o.final = l.final; else delete o.final;
+  }
 }
 // Compra parcelada: o mesmo recibo em todas as parcelas da compra (mesma serie, de > 1). Com soFaltando, so
 // preenche as parcelas que ainda nao tem recibo (conversao dos dados antigos); sem, todas ficam iguais a esta.
@@ -1536,7 +1549,7 @@ function pdfDeDesenho(paginas) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
-    recibosNasParcelas, A4, largTexto, quebrarTexto, relatorioA4, PILULA, COR_PDF, relatorioViagem, pdfDeDesenho,
+    recibosNasParcelas, finalNasParcelas, A4, largTexto, quebrarTexto, relatorioA4, PILULA, COR_PDF, relatorioViagem, pdfDeDesenho,
     anosEDias, contadorViagem, PAISES, ehPais, nomePais, formaDaCategoria, TIPOS_ITIN, itemItinValido, tipoDaCategoriaViagem, categoriaDeItinerario, despesaComCheckin, despesasParaItin, sincronizarItinDespesas, diasItinerario, localValido, ehChaveMaps, ehChaveAero, fusoDeOffset, horaLocalVoo, dadosDoVoo, offsetFuso, modelosDoVoo, vooNaData, lembretesAgenda, situacaoLembretes, idEvento, googleValido, ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
     comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, gastoFatura, chaveFatura, reaisDespesa, estimadoViagem, iofDoMeio, iofEfetivo,
     protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, decifrarComHash, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,

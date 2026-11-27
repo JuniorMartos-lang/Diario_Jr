@@ -1265,5 +1265,18 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.deepStrictEqual(m.lancs.slice(0, 3).map((l) => l.recibos.map((r) => r.id).join()), ['r3', 'r3', 'r3'], 'editar uma parcela vale para todas');
     delete m.lancs[2].recibos; c.recibosNasParcelas(m, m.lancs[2]);
     assert.ok(m.lancs.slice(0, 3).every((l) => !l.recibos), 'tirar o recibo tira de todas'); }
+  // Numero do cartao (final) da compra parcelada: em todas as parcelas (ao gravar e na conversao dos dados antigos); conta fixa nao
+  { const d = { lancs: [1, 2, 3].map((n) => ({ id: 'p' + n, tipo: 'S', data: `2026-1${n - 1}-05`, valor: 100, meio: 'k', pago: true, serie: 's1', parcela: n, de: 3 }))
+      .concat([{ id: 'f1', tipo: 'S', data: '2026-10-05', valor: 50, meio: 'k', pago: true, serie: 's2', final: '1111' }, { id: 'f2', tipo: 'S', data: '2026-11-05', valor: 50, meio: 'k', pago: true, serie: 's2' }]) };
+    d.lancs[0].final = '1234';
+    const m = c.migrar(d, '2026-10-06');
+    assert.deepStrictEqual(m.lancs.map((l) => l.final || ''), ['1234', '1234', '1234', '1111', ''], 'parcelas recebem, conta fixa nao');
+    m.lancs[2].final = '5678'; c.finalNasParcelas(m, m.lancs[2]);
+    assert.deepStrictEqual(m.lancs.slice(0, 3).map((l) => l.final), ['5678', '5678', '5678'], 'trocar numa parcela vale para todas');
+    delete m.lancs[1].final; c.finalNasParcelas(m, m.lancs[1]);
+    assert.ok(m.lancs.slice(0, 3).every((l) => !l.final), 'tirar tira de todas');
+    const nova = { lancs: [], series: [], cartoes: [{ id: 'k', nome: 'K', fechamento: 5, vencimento: 15 }] };
+    c.criarParcelada(nova, 'np', { tipo: 'S', data: '2026-11-27', valor: 300, meio: 'k', cat: 'a', desc: 'X', pago: true, final: '4321' }, 'mensal', 3, '2026-11-27');
+    assert.deepStrictEqual(nova.lancs.map((l) => l.final), ['4321', '4321', '4321'], 'compra parcelada nova ja nasce com o final em todas'); }
   console.log('calc.js: todos os testes passaram');
 })().catch((e) => { console.error(e); process.exit(1); });
