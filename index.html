@@ -716,8 +716,10 @@
   .icoMini .ico, .icoMini .ico.ini { width: 18px; height: 18px; padding: 1px; margin-left: 4px; font-size: 7px; }
   .topoLancs { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 6px; font-size: 16px; }
   .versao { text-align: center; color: var(--mut); font-size: 12px; }
-  nav { position: fixed; z-index: 10; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; background: var(--card); border-top: 1px solid var(--linha); padding-bottom: env(safe-area-inset-bottom); }
-  nav button { flex: 1; max-width: 128px; min-height: 60px; background: none; color: var(--mut) !important; border-radius: 0; padding: 6px 2px; font-size: 11px; font-weight: 500; }
+  /* Menu de baixo que corre para os lados: com 9 abas, em celular estreito as que nao cabem ficam a direita. */
+  nav { position: fixed; z-index: 10; left: 0; right: 0; bottom: 0; display: flex; justify-content: safe center; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; background: var(--card); border-top: 1px solid var(--linha); padding-bottom: env(safe-area-inset-bottom); }
+  nav::-webkit-scrollbar { display: none; }
+  nav button { flex: 1 0 64px; max-width: 128px; min-height: 60px; background: none; color: var(--mut) !important; border-radius: 0; padding: 6px 2px; font-size: 11px; font-weight: 500; }
   nav button[aria-current=page] { color: var(--pri) !important; font-weight: 700; }
   nav svg { display: block; margin: 0 auto 2px; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   dialog { border: 0; border-radius: 20px; padding: 18px; width: min(340px, calc(100vw - 32px)); background: var(--card); color: var(--txt); }
@@ -964,7 +966,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.86.2 · 26/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.86.3 · 26/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -4418,6 +4420,9 @@ function abrirAba(aba) {
   document.querySelectorAll('nav button').forEach((b) => {
     if (b.dataset.aba === aba) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
+  // Menu que corre: a aba aberta fica sempre a vista.
+  const atual = document.querySelector(`nav button[data-aba="${aba}"]`);
+  if (atual) atual.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   scrollTo(0, 0);
 }
 $('mesAnt').onclick = () => { mes = addMes(mes, -1); render(); };
