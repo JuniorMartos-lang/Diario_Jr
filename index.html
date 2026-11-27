@@ -346,6 +346,12 @@
   .perGraf .colGraf i { width: 60%; max-width: 30px; }
   .perGraf .colGraf small { font-size: 10px; color: var(--txt); white-space: nowrap; margin-bottom: 2px; }
   .perGraf .eixoGraf { grid-column: 2; }
+  /* Grafico em linha: a linha (SVG) cobre a area das barras; cada mes continua um botao, com um ponto e o valor. */
+  .perGraf .grafico.emLinha { position: relative; }
+  .perGraf .grafico.emLinha svg { position: absolute; left: 0; right: 0; top: 16px; bottom: 0; width: 100%; height: calc(100% - 16px); overflow: visible; pointer-events: none; }
+  .perGraf .emLinha .colGraf { position: relative; }
+  .perGraf .emLinha .colGraf i.ponto { position: absolute; left: 50%; width: 10px; height: 10px; margin: 0 0 -5px -5px; border-radius: 50%; border: 2px solid var(--card); box-sizing: content-box; }
+  .perGraf .emLinha .colGraf small { position: absolute; left: 0; right: 0; text-align: center; margin: 0; }
   .perTip { min-height: 20px; margin: 8px 0 0; font-size: 13px; }
   .perMes { display: flex; justify-content: space-between; }
   .numCartao .tipoCartao { padding: 2px 0; border-radius: 3px; background: #1d4ed8; color: #fff; font-weight: 700; font-size: 11px; text-align: center; font-variant-numeric: tabular-nums; }
@@ -459,6 +465,9 @@
   .filtroUsa .rotuloInfo { display: flex; align-items: center; justify-content: space-between; }
   /* Lista de viagens: nome, periodo e custos em linhas proprias, para nome longo nao cortar no celular. */
   .linhaViag { display: block; margin-top: 2px; overflow-wrap: anywhere; }
+  #udCotBox input[readonly] { opacity: .6; }
+  /* Na coluna do valor, que nao quebra linha: largura limitada para nao espremer o nome da despesa. */
+  .emReais { display: block; max-width: 150px; margin-left: auto; white-space: normal; text-align: right; font-size: 12px; font-weight: 600; color: var(--txt); }
   .corpoUsa b { overflow-wrap: anywhere; }
   .corpoUsa > .linha:first-child { border-top: 0; }
   .corpoUsa .usaGrade .usaCard { box-shadow: none; border: 1px solid var(--linha); }
@@ -570,6 +579,18 @@
   .rotChave label { margin: 0; }
   #dInfoChave ol { margin: 0; padding-left: 20px; font-size: 14px; color: var(--mut); }
   #dInfoChave li { margin-bottom: 4px; }
+  dialog#dEstimado { max-height: calc(100dvh - 32px); overflow-y: auto; }
+  #dEstimado h4 { margin: 14px 0 4px; font-size: 15px; display: flex; justify-content: space-between; gap: 8px; }
+  #dEstimado p { margin: 0; font-size: 14px; color: var(--mut); }
+  #dEstimado .linha { padding: 6px 0; font-size: 14px; }
+  #dEstimado > button { width: 100%; margin-top: 16px; }
+  /* "i" do Total Conv. em Reais (a esquerda do texto): dentro do card ou da linha da viagem (que sao botoes), por isso um span com papel de botao. */
+  .infoEst { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin-right: 6px; border: 1.5px solid currentColor; border-radius: 50%; color: var(--pri); font-size: 12px; font-weight: 700; font-style: normal; vertical-align: middle; cursor: pointer; }
+  /* Azul: todas as despesas entram no total; vermelho: alguma a pagar ou sem conversao. Cores fixas nos dois temas. */
+  .infoEst { color: #1d4ed8; }
+  .infoEst.pendente { color: #c0262d; }
+  :root[data-theme=dark] .infoEst { color: #60a5fa; }
+  :root[data-theme=dark] .infoEst.pendente { color: #f87171; }
   dialog#dInfoChave, dialog#dInfoBackup, dialog#dInfoMes { max-height: calc(100dvh - 32px); overflow-y: auto; }
   #dInfoChave h4, #dInfoBackup h4, #dInfoMes h4 { margin: 12px 0 4px; font-size: 15px; }
   #dInfoChave p, #dInfoBackup p, #dInfoMes p { margin: 0; font-size: 14px; color: var(--mut); }
@@ -793,11 +814,12 @@
     <div class="card filtrosRes" id="pFiltros">
       <div class="rotuloCampo"><span>Cartões</span><details class="multiSel" id="pCartSel"><summary><span id="pCartTxt">Todos os cartões</span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes"></div></details></div>
       <div class="dois" data-datas><div class="campoDe"><div class="rotDe"><span>De</span><label class="soMes"><input type="checkbox" id="pUnico" checked>Somente mês</label></div><input type="month" id="pIni" aria-label="De"></div><label id="pAteBox" hidden>Até<input type="month" id="pFim"></label></div>
-      <div class="vooModo"><label><input type="radio" name="pVisao" value="cartao" checked>Cada cartão por mês</label><label><input type="radio" name="pVisao" value="soma">Somado por mês</label></div>
+      <div class="vooModo"><label><input type="radio" name="pVisao" value="cartao" checked>Cada cartão por mês</label><label><input type="radio" name="pVisao" value="soma">Somado por mês</label><label><input type="checkbox" id="pLinha">Gráfico em linha</label></div>
       <small class="fraco">Gasto lançado em cada fatura, pelo mês do vencimento: compras e estornos, sem antecipações e sem descontar pagamentos.</small>
     </div>
     <div id="pTabela"></div>
     <div id="pGraficos"></div>
+    <button type="button" class="sec gerenciar" data-exportar="periodo"><svg class="icoBtn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg>Exportar para Excel</button>
   </section>
 
   <section id="s-limite" hidden>
@@ -926,6 +948,7 @@
         <button type="button" class="linha" data-tela="tCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias e limites</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tBackup"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 10a4 4 0 0 1-.5 8"/><path d="M12 20v-8M9 15l3-3 3 3"/></svg><span class="q">Backup</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tAgenda"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg><span class="q">Lembretes</span><span class="seta" aria-hidden="true">›</span></button>
+        <button type="button" class="linha" data-tela="tCotacao"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Cotação do dólar</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tAparencia"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg><span class="q">Aparência</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tArquivadas" id="aMenuArq" hidden><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg><span class="q">Arquivadas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
@@ -937,7 +960,7 @@
         <button type="button" class="linha" data-tela="tUsaCats"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><path d="M16.75 14v6M13.75 17h6"/></svg><span class="q">Categorias</span><span class="seta" aria-hidden="true">›</span></button>
         <button type="button" class="linha" data-tela="tUsaMoedas"><svg class="icoMenu" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5V8M12 16v1.5"/></svg><span class="q">Moedas</span><span class="seta" aria-hidden="true">›</span></button>
       </div>
-      <p class="versao">Controle Diário · versão 1.84.0 · 26/11/2026</p>
+      <p class="versao">Controle Diário · versão 1.86.0 · 26/11/2026</p>
     </div>
     <div class="tela" id="tContas" hidden>
       <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Contas</h2></div>
@@ -1009,6 +1032,17 @@
         <label class="chaveLiga"><span>Lembretes no Google Agenda e Tarefas</span><input type="checkbox" role="switch" class="chave" id="agChave"></label>
         <p id="agStatus" class="fraco"></p>
         <div class="botoesMini"><button type="button" class="mini" id="agAgora">Atualizar agora</button></div>
+      </div>
+    </div>
+    <div class="tela" id="tCotacao" hidden>
+      <div class="topoTela"><button type="button" class="voltarTela" data-voltar aria-label="Voltar">‹</button><h2>Cotação do dólar</h2></div>
+      <p class="infoTela"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg><span>Nas despesas de viagem em dólar, o app busca a cotação do dólar no momento do lançamento e mostra o valor em reais entre parênteses, com o IOF do meio de pagamento (Ajustes Travel &gt; Meios de pagamento). A cotação é a PTAX de venda do Banco Central (dados abertos, grátis e sem chave), a referência oficial que os bancos usam para converter compras no cartão; o dólar da fatura costuma ser um pouco maior. Ela sai uma vez por dia útil, por volta das 13h: antes disso, e em fins de semana e feriados, vale a do último dia útil.</span></p>
+      <div class="card">
+        <p id="cotUltima" style="margin-top:0"></p>
+        <p id="cotUso" class="fraco"></p>
+        <label>Limite: parar de consultar ao chegar em (consultas por dia)<input id="cotLimite" inputmode="numeric" autocomplete="off"></label>
+        <p class="fraco">Só despesas novas em dólar são convertidas, no momento do pagamento: a já paga ao salvar, e a lançada como a pagar quando for marcada como paga (ex.: hotel pago no fim da estadia). Cada conversão usa 1 consulta; as já cadastradas ficam sem conversão (dá para digitar a cotação ao editar); despesas salvas em seguida, em até 30 minutos, usam a mesma cotação. O Banco Central não tem limite de consultas para este uso; o limite aqui é só um freio, contado neste aparelho e zerado todo dia. No limite (ou sem internet), a despesa é salva sem cotação e fica fora do Total Conv. em Reais. O limite vai no backup; o contador, não.</p>
+        <div class="botoesMini"><button type="button" class="mini" id="cotSalvar">Salvar</button><button type="button" class="mini sec" id="cotAgora">Consultar agora</button></div>
       </div>
     </div>
     <div class="tela" id="tAparencia" hidden>
@@ -1149,6 +1183,7 @@
         <p class="fraco" style="font-size:13px">As fotos viram PDF e vão para a pasta "Controle Diário/Documentos/(nome do viajante)" do seu Google Drive, como os recibos.</p>
       </div>
       <label id="uBancoBox">Ícone: banco<input id="uBanco" list="listaIcones" autocomplete="off" placeholder="Toque e escolha, ou deixe vazio"></label>
+      <label id="uIofBox">IOF (%)<input id="uIof" inputmode="decimal" autocomplete="off" placeholder="Ex.: 3,5 (vazio = sem IOF)"></label>
       <div id="uCartaoBox">
         <label>Ícone: bandeira<input id="uBand" list="listaBandeiras" autocomplete="off" placeholder="Toque e escolha, ou deixe vazio"></label>
         <div class="finaisBox" id="uFinaisBox"></div>
@@ -1279,6 +1314,12 @@
   <div class="botoes"><button type="button" class="sec" id="dLimFechar">Cancelar</button><button type="button" id="dLimSalvar">Salvar</button></div>
 </dialog>
 
+<dialog id="dEstimado">
+  <h3 id="dEstTitulo">Total Conv. em Reais</h3>
+  <div id="dEstCorpo"></div>
+  <button type="button" class="sec" id="dEstFechar">Fechar</button>
+</dialog>
+
 <dialog id="dInfoMes">
   <h3 id="dMesTitulo"></h3>
   <div id="dMesCorpo"></div>
@@ -1391,6 +1432,10 @@
   <label>Data da compra<input id="udData" type="date"></label>
   <div class="dois" id="udCheckBox" hidden><label>Check-in<input id="udCheckin" type="date"></label><label>Check-out<input id="udCheckout" type="date"></label></div>
   <div class="dois"><label>Moeda<select id="udMoeda"></select></label><label>Valor<input id="udValor" inputmode="numeric" autocomplete="off" placeholder="0,00"></label></div>
+  <div class="rotuloCampo" id="udCotBox" hidden><span>Conversão para reais</span>
+    <div class="dois"><label>Cotação do dólar (R$)<input id="udCot" inputmode="decimal" autocomplete="off" placeholder="Ex.: 5,76"></label><label>IOF (%)<input id="udIof" inputmode="decimal" autocomplete="off" placeholder="Ex.: 3,5"></label></div>
+    <small class="fraco" id="udCotInfo"></small>
+  </div>
   <div class="rotuloCampo" id="udPagBox"><span>Pago com</span>
     <div class="dois linhaPag" id="udLinha1"><select id="udFinal" aria-label="Número Cartão" hidden></select><details class="multiSel selMeio" id="udMeio1Sel"><summary><span class="txtMeio"></span><span aria-hidden="true">▾</span></summary><div class="multiOpcoes" aria-label="Meio de pagamento"></div></details><input type="hidden" id="udMeio1"><input id="udValor1" class="valorUd" inputmode="numeric" autocomplete="off" placeholder="0,00" aria-label="Valor no primeiro meio" hidden></div>
     <label class="caixaTit"><input type="checkbox" id="udDoisMeios">Usar dois meios de pagamento</label>
@@ -2261,7 +2306,8 @@ function renderFatura(h) {
   const pago = parciais.reduce((a, p) => a + p.valor, paga ? paga.valor : 0), falta = restanteFatura(db, c, ym);
   const fecha = fechamentoFatura(c, ym), venc = dataNoMes(ym, c.vencimento);
   const status = statusFatura(db, c, ym, h);
-  const lista = htmlLancsFatura(itens), livre = limiteDisponivel(db, c);
+  // Gasto no mes: total lancado, sem descontar antecipacoes (que entram em Ja pago).
+  const lista = htmlLancsFatura(itens), livre = limiteDisponivel(db, c), gasto = gastoFatura(db, c, ym);
   $('fatConteudo').innerHTML = `<div class="olhoCart"><button type="button" class="olhoSaldo" id="fOlho" aria-pressed="${valoresOcultos}" aria-label="${valoresOcultos ? 'Mostrar valores' : 'Ocultar valores'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="mesesFat">
       <button type="button" class="mesFatBtn" data-fatmes="-1"><span style="display:inline-block">‹ ${nomeMes(addMes(ym, -1), { month: 'long' })}</span></button>
       <b aria-live="polite">${nomeMes(ym, { month: 'long', year: 'numeric' })}</b>
@@ -2275,8 +2321,8 @@ function renderFatura(h) {
           <small>${venc < h ? 'Venceu em' : 'Vence em'}</small><b>${dataBR(venc)}</b>
         </div>
         <div class="fatValores">
-          <div><small>Gasto no mês</small><b class="gasto">${brl(total)}</b></div>
-          <div><small>Já pago</small><b class="pago">${brl(pago)}</b></div>
+          <div><small>Gasto no mês</small><b class="gasto">${brl(gasto)}</b></div>
+          <div><small>Já pago</small><b class="pago">${brl(pago + gasto - total)}</b></div>
           <div><small>Falta pagar</small><b class="${falta > 0 ? 'falta' : ''}">${brl(Math.max(falta, 0))}</b></div>
         </div>
     </div>
@@ -2463,7 +2509,8 @@ function htmlAtrasadas(lista) {
   </div>`;
 }
 function htmlTopoCartoes(dados, atrasado, nome, h) {
-  const gasto = brl(somaCampo(dados, 'total')), pago = brl(somaCampo(dados, 'pago'));
+  // Gasto no mes = total lancado (sem descontar antecipacoes); Ja pago inclui as antecipacoes.
+  const gasto = brl(somaCampo(dados, 'lancado')), pago = brl(somaCampo(dados, 'pago') + somaCampo(dados, 'antecip'));
   const aPagar = somaCampo(dados, 'aPagar'), pagas = dados.filter((d) => d.status === 'Paga').length;
   const proximo = dados.filter((d) => d.aPagar > 0).map((d) => dataNoMes(mes, d.c.vencimento)).sort()[0];
   // Olhinho acima dos meses: o mesmo do Resumo, oculta ou mostra os valores no app todo.
@@ -2797,6 +2844,7 @@ function mostrarTelas(nova) {
 function abrirTela(id) {
   if (id === 'tBackup' || id === 'tAgenda') carregarGoogle();
   if (id === 'tAgenda') mostrarAgenda();
+  if (id === 'tCotacao') mostrarCotacao();
   const nova = [...pilhaTelas, id];
   history.pushState({ pilha: nova }, '');
   mostrarTelas(nova);
@@ -3184,7 +3232,7 @@ const CAB_LANC = ['Data', 'Descrição', 'Parcela', 'Categoria', 'Conta ou cart�
 // montado com o que cada tela mostra (relatorioDaTela). Valores sempre reais no arquivo, mesmo com o olhinho fechado.
 // As paginas tambem viram imagens, so para o visualizador do app. Abre o popup com Abrir, Salvar e Compartilhar.
 const NOME_PDF = { fluxo: 'Fluxo', parcelas: 'Parcelamentos', categoria: 'Gastos da categoria', resumos: 'Resumo', cartoes: 'Cartões', 'usa-ab': 'Viagens em aberto',
-  'usa-fin': 'Viagens finalizadas', 'usa-cus': 'Custos das viagens', itinerario: 'Itinerário', usadesp: 'Despesas da viagem' };
+  'usa-fin': 'Viagens finalizadas', 'usa-cus': 'Custos das viagens', itinerario: 'Itinerário', usadesp: 'Despesas da viagem', periodo: 'Período' };
 let pdfPronto = null;
 // Despesas da viagem: PDF A4 de verdade, com texto (relatorioViagem e pdfDeDesenho em calc.js), no estilo resumo de pedido.
 // As paginas tambem viram imagens, so para o visualizador do app. Segue o combo Tipos Gastos.
@@ -3253,6 +3301,23 @@ function itemLanc(l, h, extra = []) {
 function relatorioDaTela(tipo) {
   const h = hoje(), base = { geradoEm: h };
   if (tipo === 'usadesp') return relatorioViagem(dadosPdfViagem());
+  if (tipo === 'periodo') {
+    const P = perAtual || { meses: [], vals: [], somaMes: [], total: 0, porCartao: true, todos: true };
+    const per = P.meses.length > 1 ? `${nomeMesAno(P.meses[0])} a ${nomeMesAno(P.meses.at(-1))}` : P.meses.length ? nomeMesAno(P.meses[0]) : '';
+    const cartoesTxt = P.todos ? 'Todos os cartões' : P.vals.map((x) => nomeExib(x.c)).join(', ');
+    const itemCartao = (x, v) => ({ sig: sigDe(nomeExib(x.c)), cor: '#1e3a5f', titulo: nomeExib(x.c), linhas: [{ s: `Fecha dia ${x.c.fechamento}  ·  Vence dia ${x.c.vencimento}`, cinza: true }], valor: [brlReal(v)] });
+    return relatorioA4({
+      ...base, titulo: 'Gastos dos cartões por período', sub: `${per}   |   ${cartoesTxt}`, rodape: `Gastos dos cartões · ${per}`, vazio: 'Nenhum cartão neste período.',
+      quadro: [
+        { titulo: 'Resumo', linhas: [{ e: 'Meses:', d: [String(P.meses.length)] }, { e: 'Cartões:', d: [String(P.vals.length)] }, { e: 'Média por mês:', d: [brlReal(P.meses.length ? Math.round(P.total / P.meses.length) : 0)], cinza: true }, { e: 'Total do período:', d: [brlReal(P.total)], negrito: true }] },
+        { titulo: 'Por cartão', linhas: P.vals.map((x) => ({ e: nomeExib(x.c), d: [brlReal(x.v.reduce((a, v) => a + v, 0))] })) },
+      ],
+      secoes: !P.vals.length ? [] : P.porCartao
+        ? P.meses.map((m, i) => ({ titulo: nomeMesAno(m), total: brlReal(P.somaMes[i]), itens: P.vals.map((x) => itemCartao(x, x.v[i])) }))
+        : [{ titulo: 'Todos os cartões somados por mês', total: brlReal(P.total), itens: P.meses.map((m, i) => ({ sig: nomeMes(m, { month: 'short' }).replace('.', '').slice(0, 3).toUpperCase(), cor: '#1e3a5f', titulo: nomeMesAno(m), linhas: [{ s: `${P.vals.length} ${P.vals.length > 1 ? 'cartões' : 'cartão'}`, cinza: true }], valor: [brlReal(P.somaMes[i])] })) }],
+      totalFinal: { rotulo: 'Total do período', valores: [brlReal(P.total)] },
+    });
+  }
   if (tipo === 'fluxo') {
     const conta = contaDoFluxo(), linhas = linhasFluxo(db, mes, 'fluxo', conta, mes).sort((a, b) => a.data.localeCompare(b.data));
     const ent = linhas.filter((i) => i.sinal > 0).reduce((a, i) => a + i.valor, 0), sai = linhas.filter((i) => i.sinal < 0).reduce((a, i) => a + i.valor, 0);
@@ -3451,6 +3516,13 @@ function exportar(tipo) {
       numCsv(i.sinal * i.valor), i.pago ? 'Pago' : i.data < h ? 'Atrasado' : 'Pendente']);
     return exportarCSV(`fluxo-${nomeMeio(conta)}-${mes}`, ['Data', 'Descrição', 'Categoria', 'Valor (+ entra, − sai)', 'Situação'], linhas);
   }
+  if (tipo === 'periodo') {
+    const P = perAtual;
+    if (!P) return avisar('Nada para exportar', 'Escolha um período com cartões.');
+    const nomeArq = `gastos-cartoes-${P.meses[0]}${P.meses.length > 1 ? '-a-' + P.meses.at(-1) : ''}`;
+    if (!P.porCartao) return exportarCSV(nomeArq, ['Mês', 'Total dos cartões'], P.meses.map((m, i) => [nomeMesAno(m), numCsv(P.somaMes[i])]));
+    return exportarCSV(nomeArq, ['Mês', 'Cartão', 'Gasto da fatura'], P.meses.flatMap((m, i) => P.vals.map((x) => [nomeMesAno(m), nomeExib(x.c), numCsv(x.v[i])])));
+  }
   if (tipo === 'parcelas') {
     return exportarCSV(`parcelamentos-${$('pdIni').value}-a-${$('pdFim').value}`, ['Data', 'Descrição', 'Parcela', 'Categoria', 'Conta ou cartão', 'Valor', 'Situação'],
       parcelasDoFiltro().map((l) => [dataCsv(l.data), l.desc, `${l.parcela}/${l.de}`, nomeCat(l.cat), ondeDoMeio(l.meio), numCsv(l.valor), situacaoParcela(l)]));
@@ -3518,6 +3590,55 @@ function exportar(tipo) {
     return exportarCSV(`faturas-${mes}`, ['Cartão', 'Fatura', 'Situação', 'Data', 'Descrição', 'Parcela', 'Categoria', 'Valor'], linhas);
   }
 }
+// ===== Cotacao do dolar: PTAX de venda do Banco Central (dados abertos, sem chave), escolha do usuario em 26/11/2026 =====
+// (Antes era a AwesomeAPI, como no Carteira BDR; ela chegou a dar 5,65 com o Banco Central em 5,74.)
+// Configuracao em db.cotacao (vai no backup): limite por dia e a ultima cotacao (v, em = hora da consulta, dia = dia da PTAX).
+// O contador de consultas e deste aparelho, por dia, fora do backup. db.cotacao.chave (da AwesomeAPI) nao e mais usada.
+const CHAVE_COTUSO = 'controle-diario-cotuso', LIMITE_COT = 100;
+const cotUsadas = () => { try { const u = JSON.parse(localStorage.getItem(CHAVE_COTUSO)); return u && u.dia === hoje() ? u.n : 0; } catch { return 0; } };
+const limiteCot = () => (db.cotacao && db.cotacao.limite) || LIMITE_COT;
+// PTAX de venda mais recente (a do ultimo dia util, entre os ultimos 10 dias); a consultada ha menos de 30 minutos vale
+// de novo, sem gastar consulta (a PTAX muda uma vez por dia).
+const dataBC = (d) => `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}-${d.getFullYear()}`;
+async function cotacaoDolar(forcar) {
+  const ult = db.cotacao && db.cotacao.ultima;
+  // So reaproveita a que veio do Banco Central (tem o dia da PTAX); a antiga, da AwesomeAPI, nao.
+  if (!forcar && ult && ult.dia && Date.now() - Date.parse(ult.em) < 30 * 60000) return ult;
+  if (cotUsadas() >= limiteCot()) throw new Error(`Limite de ${limiteCot()} consultas de hoje atingido (Ajustes > Cotação do dólar).`);
+  try { localStorage.setItem(CHAVE_COTUSO, JSON.stringify({ dia: hoje(), n: cotUsadas() + 1 })); } catch {}
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 10000), fim = new Date(), ini = new Date(Date.now() - 10 * 864e5);
+  let j;
+  try {
+    const r = await fetch(`https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial='${dataBC(ini)}'&@dataFinalCotacao='${dataBC(fim)}'&$format=json&$select=cotacaoVenda,dataHoraCotacao`, { signal: ctl.signal, cache: 'no-store' });
+    j = await r.json();
+    if (!r.ok) throw new Error(`erro ${r.status}`);
+  } catch (err) {
+    throw new Error(/abort|fetch|network/i.test(err.message) || err.name === 'AbortError' ? 'Sem conexão com a internet ou com o serviço de cotação.' : `Cotação recusada: ${err.message}`);
+  } finally { clearTimeout(t); }
+  const lista = (j && j.value) || [], q = lista[lista.length - 1], v = cot2(Number(q && q.cotacaoVenda));
+  if (!(v > 0 && v < 1000)) throw new Error('O Banco Central não respondeu com o valor do dólar.');
+  const dia = String(q.dataHoraCotacao || '').slice(0, 10);
+  db.cotacao = { ...(db.cotacao || {}), chave: undefined, ultima: { v, em: new Date().toISOString(), ...(/^\d{4}-\d{2}-\d{2}$/.test(dia) ? { dia } : {}) } };
+  return db.cotacao.ultima;
+}
+function mostrarCotacao() {
+  const ult = db.cotacao && db.cotacao.ultima, n = cotUsadas(), parou = n >= limiteCot();
+  $('cotUltima').innerHTML = ult ? `Última cotação: <b>US$ 1 = R$ ${fmtCot(ult.v)}</b>${ult.dia ? ` (PTAX de ${dataBR(ult.dia)})` : ''}, consultada em ${new Date(ult.em).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}` : 'Nenhuma cotação consultada ainda.';
+  $('cotUso').innerHTML = `Consultas hoje (contadas neste aparelho): <b class="${parou ? 'neg' : ''}">${n.toLocaleString('pt-BR')}</b> de ${limiteCot().toLocaleString('pt-BR')}.${parou ? '<br><b class="neg">Limite atingido: hoje as despesas em dólar são salvas sem cotação.</b>' : ''}`;
+  if (document.activeElement !== $('cotLimite')) $('cotLimite').value = limiteCot().toLocaleString('pt-BR');
+}
+$('cotSalvar').onclick = () => {
+  const limite = Number($('cotLimite').value.replace(/\D/g, ''));
+  if (!(limite >= 1 && limite <= 100000)) return avisar('Limite inválido', 'Digite no limite um número de consultas por dia maior que 0. Nada foi alterado.');
+  db.cotacao = { ...(db.cotacao || {}), chave: undefined, limite: limite === LIMITE_COT ? undefined : limite };
+  salvar(); mostrarCotacao();
+  avisar('Dados salvos', `Limite: ${limite.toLocaleString('pt-BR')} consultas por dia.`);
+};
+$('cotAgora').onclick = async () => {
+  $('cotAgora').disabled = true;
+  try { await cotacaoDolar(true); salvar(); mostrarCotacao(); } catch (err) { avisar('Não foi possível consultar', err.message); mostrarCotacao(); }
+  $('cotAgora').disabled = false;
+};
 // Aba Periodo: gasto das faturas dos cartoes por mes (mes do vencimento, gastoFatura em calc.js). Filtros so na memoria.
 $('pIni').value = $('pFim').value = hoje().slice(0, 7);
 // Valor curto para o eixo e para cima da barra: "4,5 mil", "850".
@@ -3528,19 +3649,32 @@ function brlCurto(c) {
 }
 function graficoPeriodo(titulo, ico, valores, meses) {
   const topo = Math.max(...valores, 0), alt = (v) => (topo ? Math.max(v, 0) / topo * 100 : 0), passo = Math.ceil(meses.length / 6), comValor = meses.length <= 6;
+  const linha = $('pLinha').checked, n = meses.length;
   const cols = meses.map((m, i) => {
-    const tip = esc(`${mesAno(m)}: ${brl(valores[i])}`);
-    return `<button type="button" class="colGraf" data-pergraf="${tip}" aria-pressed="false" aria-label="${tip}">${comValor ? `<small>${brlCurto(valores[i])}</small>` : ''}<i style="height:${alt(valores[i])}%;background:var(--cDesp)"></i></button>`;
+    const tip = esc(`${mesAno(m)}: ${brl(valores[i])}`), a = alt(valores[i]);
+    const dentro = linha
+      ? `${comValor ? `<small style="bottom:calc(${a}% + 8px)">${brlCurto(valores[i])}</small>` : ''}<i class="ponto" style="bottom:${a}%;background:var(--cDesp)"></i>`
+      : `${comValor ? `<small>${brlCurto(valores[i])}</small>` : ''}<i style="height:${a}%;background:var(--cDesp)"></i>`;
+    return `<button type="button" class="colGraf" data-pergraf="${tip}" aria-pressed="false" aria-label="${tip}">${dentro}</button>`;
   }).join('');
+  const pontos = valores.map((v, i) => `${((i + 0.5) / n * 100).toFixed(2)},${(100 - alt(v)).toFixed(2)}`).join(' ');
+  const svg = linha ? `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pontos}" fill="none" stroke="var(--cDesp)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>` : '';
   const eixo = meses.map((m, i) => `<span>${i % passo === 0 ? mesCurto(m) : ''}</span>`).join('');
   return `<div class="card"><h2 class="perTit">${ico}<span>${titulo}</span></h2>
     <div class="perMes"><span class="fraco">Total no período</span><b class="valor">${brl(valores.reduce((a, v) => a + v, 0))}</b></div>
-    <div class="perGraf"><div class="eixoY"><b>R$ ${brlCurto(topo)}</b><span>${brlCurto(topo / 2)}</span><span>0</span></div><div class="grafico">${cols}</div><div class="eixoGraf">${eixo}</div></div>
+    <div class="perGraf"><div class="eixoY"><b>R$ ${brlCurto(topo)}</b><span>${brlCurto(topo / 2)}</span><span>0</span></div><div class="grafico${linha ? ' emLinha' : ''}">${svg}${cols}</div><div class="eixoGraf">${eixo}</div></div>
     <p class="fraco perTip" aria-live="polite">Toque em um mês para ver o valor.</p></div>`;
 }
+// O que a aba Periodo mostra agora (Excel e PDF exportam o mesmo); vazio quando nao ha cartao ou periodo.
+let perAtual = null;
 function renderPeriodo() {
-  const unico = $('pUnico').checked, ini = $('pIni').value || hoje().slice(0, 7), fim = unico ? ini : $('pFim').value || ini;
+  perAtual = null;
+  const unico = $('pUnico').checked, ini = $('pIni').value || hoje().slice(0, 7);
   $('pAteBox').hidden = unico;
+  // Ate nunca antes do De: o calendario so mostra dali em diante, e o Ate anterior passa a ser o De.
+  $('pFim').min = ini;
+  if (!unico && $('pFim').value < ini) $('pFim').value = ini;
+  const fim = unico ? ini : $('pFim').value || ini;
   $('pOlho').setAttribute('aria-pressed', valoresOcultos);
   $('pOlho').setAttribute('aria-label', valoresOcultos ? 'Mostrar valores' : 'Ocultar valores');
   const meses = [];
@@ -3564,6 +3698,7 @@ function renderPeriodo() {
     ? meses.map((m, i) => `${meses.length > 1 ? `<h3 class="dia perMes"><span>${nomeLongo(m)}</span><span>${brl(somaMes[i])}</span></h3>` : ''}${vals.map((x) => linha(iconeHtml(x.c), esc(nomeExib(x.c)), x.v[i])).join('')}`).join('')
     : meses.map((m, i) => linha('', nomeLongo(m), somaMes[i])).join('');
   const titulo = meses.length > 1 ? `${mesAno(meses[0])} a ${mesAno(meses.at(-1))}` : nomeLongo(meses[0]);
+  perAtual = { meses, vals, somaMes, total, porCartao, todos: !sel.length };
   $('pTabela').innerHTML = `<div class="card"><h2>${porCartao ? 'Cada cartão' : 'Todos somados'} · ${titulo}</h2>${corpo}`
     + `<div class="linha"><b>Total${cartoes.length > 1 ? ` (${cartoes.length} cartões)` : ''}</b><b class="valor">${brl(total)}</b></div></div>`;
   // Graficos: com mais de um cartao, primeiro a soma deles; depois um por cartao. Sempre com os logos.
@@ -4534,7 +4669,54 @@ const moedaUsa = (id) => usa().moedas.find((m) => m.id === id) || { simbolo: '?'
 // Valor com o simbolo da moeda; com os valores ocultos, pontinhos.
 const fmtTotais = (u, v, nat) => totaisViagem(u, v, nat).map((t) => fmtMoeda(t.valor, t.moeda)).join(' + ');
 // Viagem corporativa: total corporativo e pessoal, cada um por moeda.
-const htmlCorpPes = (u, v) => (!v.corporativa ? '' : `<small class="linhaViag">Corporativo: ${fmtTotais(u, v, 'C')}</small><small class="linhaViag">Pessoal: ${fmtTotais(u, v, 'P')}</small>`);
+const htmlCorpPes = (u, v) => (!v.corporativa ? '' : `<small class="linhaViag">Corporativo: ${fmtTotais(u, v, 'C')}</small><small class="linhaViag">Pessoal: ${fmtTotais(u, v, 'P')}</small>`) + htmlEstimado(u, v);
+// Total Conv. em Reais (antes "Estimado em real"): reais + dolares convertidos pela cotacao de cada despesa, com IOF; so com despesa em dolar.
+// Despesas lancadas antes da cotacao existir (sem cot) nao convertem: ficam fora e sao contadas (pedido do usuario).
+function htmlEstimado(u, v) {
+  const e = estimadoViagem(u, v);
+  if (!e.temUsd) return '';
+  return `<small class="linhaViag"><span class="infoEst${e.fora || e.aPagar ? ' pendente' : ''}" role="button" tabindex="0" data-estviag="${esc(v.id)}" aria-label="Como é feito o total convertido em reais">i</span>Total Conv. em Reais: <b>${brl(e.total)}</b></small>`;
+}
+// Popup do "i": como o estimado e feito e as despesas que ficaram de fora (a pagar e sem conversao), com os detalhes.
+function abrirEstimado(id) {
+  const u = usa(), v = u.viagens.find((x) => x.id === id);
+  if (!v) return;
+  const desp = u.despesas.filter((d) => d.viagem === v.id).sort((a, b) => a.data.localeCompare(b.data));
+  const conv = [], aPagar = [], fora = [];
+  for (const d of desp) { const x = reaisDespesa(u, d); if (x !== null) conv.push(x); else if (d.pago === false) aPagar.push(d); else fora.push(d); }
+  const meio = (d) => (d.pagamentos || []).map((p) => ([...u.contas, ...u.cartoes].find((m) => m.id === p.meio) || { nome: '?' }).nome).join(' + ') || 'sem meio de pagamento';
+  const linha = (d) => `<div class="linha"><span class="q">${esc(d.desc)}<br><small class="fraco">${dataBR(d.data)} · ${esc((u.categorias.find((c) => c.id === d.cat) || { nome: '' }).nome)} · ${esc(meio(d))}</small></span><span class="valor">${fmtMoeda(d.valor, d.moeda)}</span></div>`;
+  const grupo = (titulo, lista, texto) => !lista.length ? '' : `<h4><span>${titulo} (${lista.length})</span></h4><p>${texto}</p>${lista.map(linha).join('')}`;
+  $('dEstTitulo').textContent = `Total Conv. em Reais · ${v.nome}`;
+  $('dEstCorpo').innerHTML = `<p>Soma, em reais, das despesas em real com as despesas em dólar já pagas e convertidas: valor × cotação do dólar do pagamento + IOF do meio de pagamento.</p>
+    <h4><span>Entram no total (${conv.length})</span><span>${brl(conv.reduce((a, x) => a + x, 0))}</span></h4>
+    ${grupo('A pagar', aPagar, 'Em dólar e ainda a pagar: entram quando forem marcadas como pagas, com a cotação e o IOF daquele momento.')}
+    ${grupo('Sem conversão', fora, 'Pagas sem cotação (lançadas antes da conversão, sem internet ou no limite do dia; ou em outra moeda). Para converter, abra a despesa e digite a cotação e o IOF.')}
+    ${!aPagar.length && !fora.length ? '<p style="margin-top:10px">Todas as despesas entram no total.</p>' : ''}`;
+  $('dEstimado').showModal();
+  $('dEstimado').scrollTop = 0;
+}
+$('dEstFechar').onclick = () => $('dEstimado').close();
+// Captura: o "i" fica dentro do card ou da linha da viagem, que tambem abrem com o toque.
+const tocouEst = (e) => { const i = e.target.closest('[data-estviag]'); if (!i || (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ')) return; e.preventDefault(); e.stopPropagation(); abrirEstimado(i.dataset.estviag); };
+document.addEventListener('click', tocouEst, true);
+document.addEventListener('keydown', tocouEst, true);
+// Cotacao com 2 casas depois da virgula (pedido do usuario): arredondada ao buscar e ao digitar, e mostrada assim.
+const cot2 = (v) => Math.round(v * 100) / 100;
+const fmtCot = (v) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtPct = (v) => `${v.toLocaleString('pt-BR', { maximumFractionDigits: 4 })}%`;
+// IOF da despesa: o gravado nela; despesa sem ele (nao deveria acontecer depois do migrar) usa o do meio agora.
+const iofDaDesp = (u, d) => (d.iof !== undefined ? d.iof : iofEfetivo(u, d));
+// Valor em reais da despesa em dolar, entre parenteses, a esquerda do valor (cotacao do lancamento + IOF do meio).
+function emReaisHtml(u, d) {
+  if (d.moeda !== 'USD') return '';
+  const x = reaisDespesa(u, d);
+  if (x === null) return '';
+  // Entre parenteses: o valor em reais, a cotacao e o IOF da despesa (gravados no lancamento, ou digitados: "manual").
+  const iof = iofDaDesp(u, d);
+  const extra = `cot. ${fmtCot(d.cot)}${d.cotManual ? ' (manual)' : ''}${iof ? ` + IOF ${fmtPct(iof)}${d.iofManual && !d.cotManual ? ' (manual)' : ''}` : ''}`;
+  return `<small class="emReais" title="Cotação do lançamento">(${brl(x)} · ${extra})</small> `;
+}
 const fmtMoeda = (c, id) => `${moedaUsa(id).simbolo} ${valoresOcultos ? '••••' : (c / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const icoMoeda = (m) => `<span class="ico ini" style="background:#2f6f73;font-size:${m.simbolo.length > 2 ? 10 : 12}px" aria-hidden="true">${esc(m.simbolo)}</span>`;
 const datasViagem = (v) => (v.inicio ? `${dataBR(v.inicio)}${v.fim ? ' a ' + dataBR(v.fim) : ''}` : 'Sem datas');
@@ -4566,7 +4748,7 @@ function renderUsa() {
   $('uMoedasArq').innerHTML = arq('moedas', icoMoeda);
   const total = (v) => fmtTotais(u, v);
   // Viagem so com itinerario: sem custos no card e fora de Custos das viagens; tocar abre o itinerario.
-  const custo = (v, rot) => (v.semDesp ? '' : `<small${rot ? ' class="linhaViag"' : ''}>${rot}${total(v)}</small>`);
+  const custo = (v, rot) => (v.semDesp ? '' : `<small${rot ? ' class="linhaViag"' : ''}>${rot}${total(v)}</small>${htmlEstimado(u, v)}`);
   // Bandeira do pais de destino logo depois da etiqueta Corporativa/Pessoal (nas listas).
   const pilTipo = (v) => `<span class="tipoViag ${v.corporativa ? 'corp' : 'pes'}">${v.corporativa ? 'Corporativa' : 'Pessoal'}</span>${v.pais ? bandeiraHtml(v.pais) : ''}`;
   const viajantes = (v) => u.viajantes.filter((p) => v.viajantes.includes(p.id)).map(fotoViajante).join('');
@@ -4884,6 +5066,8 @@ function abrirUsa(tipo, id) {
   porFinais($('uFinaisBox'), (x && x.finais) || [], (x && x.finaisInativos) || []);
   $('uBancoBox').hidden = tipo !== 'contas';
   $('uCartaoBox').hidden = tipo !== 'cartoes';
+  $('uIofBox').hidden = tipo !== 'contas' && tipo !== 'cartoes';
+  $('uIof').value = x && x.iof ? String(x.iof).replace('.', ',') : '';
   $('uFotoBox').hidden = $('uInicialBox').hidden = tipo !== 'viajantes';
   $('uInicial').checked = !!(x && x.inicial);
   // Documentos: o que ficou de uma edicao anterior sem salvar sai do aparelho.
@@ -4933,6 +5117,10 @@ $('fUsa').onsubmit = async (e) => {
     botao.disabled = false;
     if (!ic) return avisar('Ícone não encontrado', 'Escolha um nome da lista ou deixe vazio para usar as iniciais.');
     Object.assign(dados, ic.campos);
+    // IOF (%): aplicado sobre a conversao do dolar das despesas pagas com este meio.
+    const iofTxt = $('uIof').value.trim().replace(',', '.'), iof = iofTxt ? Math.round(Number(iofTxt) * 100) / 100 : 0;
+    if (!(iof >= 0 && iof <= 100)) return avisar('IOF inválido', 'Informe o IOF em porcentagem, de 0 a 100 (ex.: 3,5), ou deixe vazio.');
+    dados.iof = iof || undefined;
     if (tipo === 'cartoes') {
       if (erroFinais($('uFinaisBox'))) return avisar('Confira os finais', erroFinais($('uFinaisBox')));
       Object.assign(dados, { finais: lerFinais($('uFinaisBox')), finaisInativos: $('uFinaisBox').inativos.length ? $('uFinaisBox').inativos : undefined });
@@ -5033,6 +5221,11 @@ function detalhesDesp(d, u) {
   linhas.push(`Compra em ${dataBR(d.data)} · ${esc(moedaUsa(d.moeda).codigo)} · ${d.pago === false ? 'A pagar' : 'Pago'}`);
   if (d.checkin || d.checkout) linhas.push(`Check-in ${d.checkin ? dataBR(d.checkin) : '-'} · Check-out ${d.checkout ? dataBR(d.checkout) : '-'}`);
   if (d.local) linhas.push(`Local: ${esc(d.local.nome)}${d.local.endereco ? ' — ' + esc(d.local.endereco) : ''}`);
+  if (d.moeda === 'USD') {
+    const iof = d.cot ? iofDaDesp(u, d) : 0, x = reaisDespesa(u, d);
+    linhas.push(d.cot ? `${d.cotManual ? 'Cotação digitada' : 'Cotação no lançamento'}: R$ ${fmtCot(d.cot)}${d.cotEm ? ` em ${new Date(d.cotEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}` : ''}${iof ? ` · IOF ${fmtPct(iof)}${d.iofManual && !d.cotManual ? ' (digitado)' : ''}` : ''}${x !== null ? ` · ${brl(x)}` : ''}`
+      : 'Sem cotação (lançada antes da conversão)');
+  }
   if (d.obs) linhas.push(`Obs: ${esc(d.obs)}`);
   return `<small class="detUd">${linhas.join('<br>')}</small>`;
 }
@@ -5067,7 +5260,7 @@ function renderUsaDesp() {
     // Dia como no Fluxo ("30 de novembro" ou Hoje), com a quantidade de despesas do dia.
     const cab = d.data !== dia ? `<h3 class="dia">${d.data === h ? 'Hoje' : new Date(d.data + 'T12:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })} (${porDia.get(d.data)})</h3>` : '';
     dia = d.data;
-    return cab + `${d.local ? '<div class="linhaMapa">' : ''}<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}${d.final ? ` <span class="finalLanc">${esc(d.final)}</span>` : ''}${(d.recibos || []).length ? ` <b class="clipe" title="${d.recibos.length} ${d.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${d.recibos.length > 1 ? d.recibos.length : ''}</b>` : ''}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${d.local ? '<span class="pinoLugar" aria-hidden="true"></span>' : ''}${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>${d.local ? `<button type="button" class="btnMapa" data-usamapa="${esc(d.id)}" aria-label="Ver ${esc(d.local.nome)} no mapa">${PINO}</button></div>` : ''}`;
+    return cab + `${d.local ? '<div class="linhaMapa">' : ''}<button type="button" class="linha" data-usadesp="${esc(d.id)}">${iconeCat(c)}<span class="q">${esc(d.desc)}${d.final ? ` <span class="finalLanc">${esc(d.final)}</span>` : ''}${(d.recibos || []).length ? ` <b class="clipe" title="${d.recibos.length} ${d.recibos.length > 1 ? 'recibos' : 'recibo'}">${CLIPE}${d.recibos.length > 1 ? d.recibos.length : ''}</b>` : ''}<br><small>${esc(c.nome)}${det ? '' : (quem ? ' · ' + quem : '') + (d.checkin || d.checkout ? ` · ${d.checkin ? dataBR(d.checkin) : '?'} a ${d.checkout ? dataBR(d.checkout) : '?'}` : '')}</small>${det ? detalhesDesp(d, u) : ''}</span><span class="lado"><span class="valor neg">${emReaisHtml(u, d)}− ${fmtMoeda(d.valor, d.moeda)}</span><span class="pilulas">${d.local ? '<span class="pinoLugar" aria-hidden="true"></span>' : ''}${v.corporativa ? `<small class="pilula corp">${naturezaDesp(d) === 'P' ? 'Pessoal' : 'Corp.'}</small>` : ''}<small class="pilula ${d.pago === false ? 'pend' : 'ok'}">${d.pago === false ? 'A pagar' : 'Pago'}</small></span></span></button>${d.local ? `<button type="button" class="btnMapa" data-usamapa="${esc(d.id)}" aria-label="Ver ${esc(d.local.nome)} no mapa">${PINO}</button></div>` : ''}`;
   }).join('') || `<p class="fraco" style="margin:0">${desp.length ? `Nenhuma despesa ${tipoG === 'P' ? 'pessoal' : 'corporativa'} nesta viagem.` : 'Nenhuma despesa ainda. Toque em + para lançar.'}</p>`;
   requestAnimationFrame(posicionarMapas);
   // Por categoria, uma parte por moeda (base primeiro); o total de cada moeda e o mesmo do alto da tela.
@@ -5752,6 +5945,7 @@ function abrirDespesa(id) {
   $('udMoeda').innerHTML = moedas.map((m) => `<option value="${esc(m)}">${esc(moedaUsa(m).codigo)} ${esc(moedaUsa(m).simbolo)}</option>`).join('');
   $('udMoeda').value = d ? d.moeda : moedas.includes(v.base) ? v.base : moedas[0];
   $('udValor').value = d ? fmtValorUd(d.valor) : '';
+  formaCotUd();
   $('udObs').value = (d && d.obs) || '';
   $('udCheckin').value = (d && d.checkin) || '';
   $('udCheckout').value = (d && d.checkout) || '';
@@ -5832,7 +6026,38 @@ $('udOlho').onclick = $('uOlho').onclick = () => $('hOlho').click();
 $('hCartoes').addEventListener('click', (e) => { if (e.target.closest('#cOlho')) $('hOlho').click(); });
 $('fatConteudo').addEventListener('click', (e) => { if (e.target.closest('#fOlho')) { $('hOlho').click(); renderFatura(hoje()); } });
 $('udFechar').onclick = () => $('dUsaDesp').close();
-$('fUsaDesp').onsubmit = (e) => {
+// Conversao na edicao de despesa em dolar. Automatica (cotacao buscada no lancamento): cotacao travada; o IOF capturado
+// tambem, a nao ser que o do meio de pagamento agora seja outro (ai pode ser alterado) ou ja tenha sido digitado.
+// Sem conversao (lancada antes dela existir, ou sem internet) ou digitada: os dois campos livres, para converter a mao.
+// Despesa nova nao mostra: a cotacao e buscada ao salvar.
+const lerDecimal = (t) => { t = t.trim(); if (!t) return null; return Number(t.includes(',') ? t.replace(/\./g, '').replace(',', '.') : t); };
+function formaCotUd() {
+  const u = usa(), d = u.despesas.find((x) => x.id === despEd);
+  $('udCotBox').hidden = !d || $('udMoeda').value !== 'USD';
+  if ($('udCotBox').hidden) return;
+  // A pagar: sem conversao. Era a pagar e sem cotacao, marcada agora como paga: a cotacao e o IOF de agora sao buscados ao salvar.
+  const busca = d.pago === false && !d.cot, campos = $('udPago').checked && !busca;
+  $('udCotBox').querySelector('.dois').hidden = !campos;
+  if (!campos) {
+    $('udCotInfo').textContent = !$('udPago').checked
+      ? 'Despesa a pagar: a conversão para reais (cotação do dólar e IOF do meio de pagamento) é feita quando ela for marcada como paga.'
+      : 'Ao salvar como paga, o app busca a cotação do dólar de agora e captura o IOF do meio de pagamento.';
+    return;
+  }
+  const auto = d.moeda === 'USD' && d.cot && !d.cotManual, iofAgora = iofEfetivo(u, d), iofGravado = iofDaDesp(u, d);
+  $('udCot').value = d.cot && d.moeda === 'USD' ? fmtCot(d.cot) : '';
+  $('udIof').value = d.cot && d.moeda === 'USD' ? (iofGravado ? String(iofGravado).replace('.', ',') : '') : iofAgora ? String(iofAgora).replace('.', ',') : '';
+  $('udCot').readOnly = !!auto;
+  const iofLivre = !auto || !!d.iofManual || iofAgora !== iofGravado;
+  $('udIof').readOnly = !iofLivre;
+  $('udCotInfo').textContent = !auto
+    ? (d.cotManual ? 'Cotação e IOF digitados. Pode alterar, ou apagar a cotação para tirar a conversão.' : 'Despesa sem conversão automática. Para converter, digite a cotação do dólar e o IOF (se houver); vazio, fica sem conversão.')
+    : `Cotação buscada automaticamente${d.cotEm ? ` em ${new Date(d.cotEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}` : ''}: não pode ser alterada. `
+      + (d.iofManual ? 'IOF digitado: pode alterar.' : iofLivre ? `O IOF do meio de pagamento agora é ${fmtPct(iofAgora)}; o desta despesa (${fmtPct(iofGravado)}) foi capturado no lançamento. Pode alterar.` : 'IOF capturado do meio de pagamento no lançamento: não pode ser alterado.');
+}
+$('udMoeda').addEventListener('change', formaCotUd);
+$('udPago').addEventListener('change', formaCotUd);
+$('fUsaDesp').onsubmit = async (e) => {
   e.preventDefault();
   const v = viagemAberta(), desc = $('udDesc').value.trim(), valor = centavos($('udValor')), data = $('udData').value;
   if (!desc) return avisar('Falta informação', 'Informe o nome da despesa.');
@@ -5855,12 +6080,40 @@ $('fUsaDesp').onsubmit = (e) => {
   const dados = { viagem: v.id, desc, cat: $('udCat').value, data, moeda: $('udMoeda').value, valor, quem, pago: $('udPago').checked, natureza: v.corporativa ? $('udNat').value : undefined, obs: $('udObs').value.trim() || undefined, checkin, checkout, pagamentos, local: locUd.valor || undefined,
     final: $('udFinal').value && $('udFinal').value.split('|')[0] === m1 ? $('udFinal').value.split('|')[1] : undefined };
   const atual = usa().despesas.find((x) => x.id === despEd);
+  // Dolar: a cotacao do momento do lancamento fica gravada; a despesa que ja tem continua com a dela.
+  let semCot = '';
+  // Em dolar a pagar nao converte; a conversao e a do momento do pagamento (despesa nova ja paga, ou que passou a paga).
+  if (dados.moeda === 'USD' && dados.pago) {
+    // Na ja cadastrada (e ja paga, ou com cotacao) valem os campos de conversao (formaCotUd).
+    if (atual && !(atual.pago === false && !atual.cot)) {
+      const auto = atual.moeda === 'USD' && atual.cot && !atual.cotManual, cot = lerDecimal($('udCot').value), iof = lerDecimal($('udIof').value);
+      if (!$('udIof').readOnly && iof !== null && !(iof >= 0 && iof <= 100)) return avisar('IOF inválido', 'Informe o IOF em porcentagem, de 0 a 100 (ex.: 3,5), ou deixe vazio.');
+      if (auto) {
+        Object.assign(dados, { cot: atual.cot, cotEm: atual.cotEm, iof: iofDaDesp(usa(), atual), iofManual: atual.iofManual });
+        if (!$('udIof').readOnly && (iof || 0) !== dados.iof) Object.assign(dados, { iof: iof || 0, iofManual: true });
+      } else if (cot !== null) {
+        if (!(cot > 0 && cot < 1000)) return avisar('Cotação inválida', 'Informe a cotação do dólar em reais (ex.: 5,76), ou deixe vazio para ficar sem conversão.');
+        Object.assign(dados, { cot: cot2(cot), cotManual: true, iof: iof || 0, iofManual: true });
+      } else if (iof) return avisar('Falta a cotação', 'Para converter, informe também a cotação do dólar. Sem ela, deixe o IOF vazio.');
+    }
+    else {
+      const botao = e.target.querySelector('[type=submit]');
+      botao.disabled = true;
+      // IOF capturado do meio de pagamento agora; mudar o IOF do meio depois nao muda esta despesa.
+      try { const q = await cotacaoDolar(); Object.assign(dados, { cot: q.v, cotEm: q.em, iof: iofEfetivo(usa(), dados) }); } catch (err) { semCot = err.message; }
+      botao.disabled = false;
+      if (!$('dUsaDesp').open) return;
+    }
+  }
+  // Campos de conversao que nao valem mais saem da despesa.
+  if (atual) for (const k of ['cot', 'cotEm', 'cotManual', 'iof', 'iofManual']) if (dados[k] === undefined) { delete atual[k]; delete dados[k]; }
   dados.recibos = mesclarRecibos(recUd.lista, atual && atual.recibos);
   if (atual) Object.assign(atual, dados); else usa().despesas.push({ id: novoId(), ...dados });
   descartarRecibos(recUd.tirados);
   udSalvou = true;
   $('dUsaDesp').close();
   salvar();
+  if (semCot) avisar('Despesa salva sem cotação', `${semCot}\nEla fica sem a conversão para reais; dá para digitar a cotação e o IOF ao editar.`);
 };
 $('udExcluir').onclick = async () => {
   const id = despEd, d = usa().despesas.find((x) => x.id === id), n = ((d && d.recibos) || []).length;

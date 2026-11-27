@@ -870,11 +870,66 @@ for (const l of invalidos) assert.ok(!c.backupValido({ ...base(), lancs: [l] }),
     assert.ok(!ok({ final: '12' }), 'final com 4 numeros');
     assert.ok(!ok({ pagamentos: [{ meio: 'u1', valor: 5000 }] }), 'final so em cartao');
     assert.ok(!ok({ pagamentos: undefined }), 'final sem pagamento'); }
+  // Cotacao do dolar e IOF: a despesa em dolar guarda a cotacao do lancamento; o meio de pagamento tem IOF (%)
+  { comUsa.usa.cartoes[0].iof = 3.5;
+    const d3 = { id: 'd3', viagem: 'v1', desc: 'Loja', cat: 'u4', data: '2027-04-07', moeda: 'USD', valor: 100000, quem: [], pagamentos: [{ meio: 'u2', valor: 100000 }], cot: 6, cotEm: '2027-04-07T15:00:00.000Z', natureza: 'C' };
+    comUsa.usa.despesas.push(d3);
+    comUsa.cotacao = { chave: 'abc-123', limite: 50, ultima: { v: 5.74, em: '2026-11-26T22:00:00.000Z', dia: '2026-11-26' } };
+    // Dados de antes da 1.85.8 com cotacao de 4 casas: migrar deixa com 2
+    { const m4 = c.migrar({ ...JSON.parse(JSON.stringify(comUsa)), cotacao: { ultima: { v: 5.6518, em: '2026-11-26T22:00:00.000Z' } }, usa: { ...JSON.parse(JSON.stringify(comUsa.usa)), despesas: [{ ...d3, cot: 5.6518 }] } }, '2026-11-26');
+      assert.strictEqual(m4.usa.despesas[0].cot, 5.65); assert.strictEqual(m4.cotacao.ultima.v, 5.65); }
+    assert.ok(c.backupValido(comUsa));
+    // 1000 dolares x 6,00 + 3,5% de IOF = R$ 6.210,00 (exemplo do usuario)
+    assert.strictEqual(c.reaisDespesa(comUsa.usa, d3), 621000);
+    assert.strictEqual(c.reaisDespesa(comUsa.usa, { ...d3, pagamentos: undefined }), 600000, 'sem meio, sem IOF');
+    assert.strictEqual(c.reaisDespesa(comUsa.usa, { ...d3, pagamentos: [{ meio: 'u2', valor: 50000 }, { meio: 'u1', valor: 50000 }] }), 310500 + 300000, 'cada parte com o IOF do seu meio');
+    assert.strictEqual(c.reaisDespesa(comUsa.usa, { ...d3, cot: undefined }), null, 'sem cotacao');
+    assert.strictEqual(c.reaisDespesa(comUsa.usa, { ...d3, cot: undefined }, 5), 517500, 'usa a ultima cotacao');
+    assert.strictEqual(c.reaisDespesa(comUsa.usa, { ...d3, moeda: 'EUR' }), null, 'outra moeda nao converte');
+    const est = c.estimadoViagem(comUsa.usa, comUsa.usa.viagens[0]);
+    assert.deepStrictEqual(est, { total: 12345 + 5000 + 621000, fora: 0, aPagar: 0, temUsd: true });
+    // Em dolar a pagar: so converte quando for paga
+    assert.strictEqual(c.reaisDespesa(comUsa.usa, { ...d3, pago: false }), null);
+    assert.strictEqual(c.reaisDespesa(comUsa.usa, { ...d3, moeda: 'BRL', pago: false }), 100000, 'real a pagar entra como esta');
+    assert.deepStrictEqual(c.estimadoViagem({ ...comUsa.usa, despesas: [{ ...d3, pago: false }, { ...d3, id: 'd4', cot: undefined }] }, comUsa.usa.viagens[0]), { total: 0, fora: 1, aPagar: 1, temUsd: true });
+    assert.strictEqual(c.estimadoViagem(comUsa.usa, comUsa.usa.viagens[0], undefined, 'P').total, 12345);
+    assert.strictEqual(c.estimadoViagem(comUsa.usa, comUsa.usa.viagens[1]).temUsd, false);
+    const okD = (p) => c.backupValido({ ...comUsa, usa: { ...comUsa.usa, despesas: [{ ...d3, ...p }] } });
+    assert.ok(!okD({ cot: 0 }) && !okD({ cot: 'seis' }) && !okD({ moeda: 'BRL' }) && !okD({ cotEm: 'ontem' }), 'cotacao invalida');
+    const okM = (iof) => c.backupValido({ ...comUsa, usa: { ...comUsa.usa, cartoes: [{ ...comUsa.usa.cartoes[0], iof }] } });
+    assert.ok(okM(0) && !okM(-1) && !okM(101) && !okM('3,5'), 'IOF de 0 a 100');
+    // IOF gravado na despesa: vale o dela, mesmo que o cartao mude depois; migrar grava o de quem ainda nao tinha
+    assert.strictEqual(c.iofEfetivo(comUsa.usa, d3), 3.5);
+    assert.strictEqual(c.iofEfetivo(comUsa.usa, { ...d3, pagamentos: [{ meio: 'u2', valor: 50000 }, { meio: 'u1', valor: 50000 }] }), 1.75);
+    assert.strictEqual(c.reaisDespesa(comUsa.usa, { ...d3, iof: 2 }), 612000, 'IOF da despesa, nao o do cartao');
+    { const m = c.migrar(JSON.parse(JSON.stringify(comUsa)), '2026-11-26'), dm = m.usa.despesas.find((x) => x.id === 'd3');
+      assert.strictEqual(dm.iof, 3.5); assert.strictEqual(m.usa.despesas.find((x) => x.id === 'd1').iof, undefined, 'sem cotacao, sem IOF'); }
+    assert.ok(okD({ iof: 3.5 }) && okD({ cotManual: true, iof: 2, iofManual: true }), 'manual');
+    assert.ok(!okD({ cot: undefined, iof: 3 }) && !okD({ iof: 101 }) && !okD({ cotManual: false }) && !okD({ iofManual: true }) && !okD({ cot: undefined, cotManual: true }), 'IOF e marcas so com cotacao');
+    d3.iof = 3.5;
+    const okC = (cotacao) => c.backupValido({ ...comUsa, cotacao });
+    assert.ok(okC(undefined) && okC({}) && !okC({ chave: 'com espaco' }) && !okC({ limite: 0 }) && !okC({ ultima: { v: 5 } }) && !okC({ ultima: { v: 5, em: '2026-11-26T22:00:00.000Z', dia: 'ontem' } }) && !okC('x'), 'configuracao da cotacao'); }
   for (const arq of [await c.cifrarBackup(comUsa, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comUsa, gApp)]) {
     const senhaArq = c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1';
     const volta = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), senhaArq), '2026-11-03');
     assert.ok(c.backupValido(volta));
     assert.deepStrictEqual(volta.usa, comUsa.usa);
+    assert.deepStrictEqual(volta.cotacao, comUsa.cotacao);
+  }
+  // Sincronizacao do Google Drive (cifrarComChave): a area Travel com cotacao, IOF e conversao digitada volta igual
+  { const comManual = JSON.parse(JSON.stringify(comUsa));
+    comManual.usa.despesas.push({ id: 'd5', viagem: 'v1', desc: 'Hotel', cat: 'u4', data: '2027-04-08', moeda: 'USD', valor: 7800, quem: [], cot: 5.5, cotManual: true, iof: 3.5, iofManual: true });
+    comManual.usa.despesas.push({ id: 'd6', viagem: 'v1', desc: 'Resort', cat: 'u4', data: '2027-04-09', moeda: 'USD', valor: 9900, quem: [], pago: false });
+    assert.ok(c.backupValido(comManual));
+    const sal = c.novoSal(), chave = await c.chaveSync('senha-do-app-1', sal);
+    const voltaSync = c.migrar(await c.decifrarComChave(JSON.parse(JSON.stringify(await c.cifrarComChave(comManual, chave, sal))), chave), '2026-11-26');
+    assert.ok(c.backupValido(voltaSync));
+    assert.deepStrictEqual(voltaSync.usa, comManual.usa);
+    assert.deepStrictEqual(voltaSync.cotacao, comManual.cotacao);
+    for (const arq of [await c.cifrarBackup(comManual, 'senha-certa-1'), await c.cifrarBackupSenhaApp(comManual, gApp)]) {
+      const v2 = c.migrar(await c.decifrarBackup(JSON.parse(JSON.stringify(arq)), c.usaSenhaDoApp(arq) ? 'senha-do-app-1' : 'senha-certa-1'), '2026-11-26');
+      assert.deepStrictEqual(v2.usa.despesas.slice(-2), comManual.usa.despesas.slice(-2));
+    }
   }
   // ID do cliente do Google (Ajustes > Backup) passa pelos dois tipos de backup; formato errado nao restaura
   const comGoogle = { ...JSON.parse(JSON.stringify(dp)), google: { cliente: '729588885596-abc123.apps.googleusercontent.com', mapsKey: 'AIzaSyA1b2C3d4E5f6G7h8I9j0K_lmnoPQRst-u', aeroKey: 'a1b2c3d4e5f6a7b8c9d0a1b2c3d4e5f6a7b8c9d0a1b2c3d4e5', ultimoAutoEm: '2026-11-07T18:30:05.000Z', agenda: { ativo: true, id: 'abc123def@group.calendar.google.com', tarefas: 'MDQ0NjE3ODM4NjU1NjIxNzk0NDk6MDow' } } };

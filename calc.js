@@ -653,6 +653,11 @@ function migrar(d, hoje) {
     novo.usa = { ...novo.usa, moedas, despesas: novo.usa.despesas || [], itinerario: novo.usa.itinerario || [],
       viagens: novo.usa.viagens.map((v) => (!v || v.moedas ? v : { ...v, moedas: ['USD'], base: 'USD', viajantes: v.viajantes || [], cot: v.cot || {} })) };
   }
+  // 1.85.0 a 1.85.2: a despesa em dolar com cotacao usava o IOF atual do meio; passa a guardar o daquela hora.
+  if (novo.usa && Array.isArray(novo.usa.despesas)) for (const d of novo.usa.despesas) if (d && d.cot && d.iof === undefined) d.iof = iofEfetivo(novo.usa, d);
+  // 1.85.8: cotacao com 2 casas depois da virgula (antes vinha com 4).
+  if (novo.usa && Array.isArray(novo.usa.despesas)) for (const d of novo.usa.despesas) if (d && typeof d.cot === 'number') d.cot = Math.round(d.cot * 100) / 100;
+  if (novo.cotacao && novo.cotacao.ultima && typeof novo.cotacao.ultima.v === 'number') novo.cotacao = { ...novo.cotacao, ultima: { ...novo.cotacao.ultima, v: Math.round(novo.cotacao.ultima.v * 100) / 100 } };
   // Ate a 1.82: o recibo de compra parcelada ficava so na primeira parcela; passa a estar em todas.
   for (const l of novo.lancs) if (l && l.de > 1 && l.serie && (l.recibos || []).length) recibosNasParcelas(novo, l, true);
   return novo;
@@ -789,6 +794,53 @@ function categoriasViagem(u, v, natureza) {
     return { moeda: t.moeda, total: t.valor, lista };
   });
 }
+
+// Cotacao do dolar (area Travel): a despesa em dolar guarda a cotacao de venda do momento do lancamento (cot, R$ por US$ 1).
+// Em reais = valor x cotacao, mais o IOF (%) do meio de pagamento; com dois meios, cada parte com o IOF do seu meio.
+// Sem cotacao na despesa usa cotPadrao (a ultima consultada); sem nenhuma, ou em outra moeda, devolve null.
+function iofDoMeio(u, id) {
+  const m = [...(u.contas || []), ...(u.cartoes || [])].find((x) => x.id === id);
+  return (m && m.iof) || 0;
+}
+// IOF de quando a despesa foi lancada: fica gravado nela (iof), e mudar o IOF do cartao depois nao muda as antigas.
+// Com dois meios, o IOF efetivo e a media pelo valor de cada parte (da o mesmo total que cada parte com o seu IOF).
+function iofEfetivo(u, d) {
+  if (!d.pagamentos || !d.pagamentos.length) return 0;
+  return Math.round(d.pagamentos.reduce((a, p) => a + p.valor * iofDoMeio(u, p.meio), 0) / d.valor * 1e6) / 1e6;
+}
+// Despesa em dolar a pagar nao converte: a cotacao e o IOF sao os do pagamento (ex.: hotel pago no fim da estadia).
+function reaisDespesa(u, d, cotPadrao) {
+  if (d.moeda === 'BRL') return d.valor;
+  if (d.pago === false) return null;
+  const cot = d.moeda === 'USD' && (d.cot || cotPadrao);
+  if (!cot) return null;
+  if (d.iof !== undefined) return Math.round(d.valor * cot * (1 + d.iof / 100));
+  const partes = d.pagamentos && d.pagamentos.length ? d.pagamentos : [{ meio: null, valor: d.valor }];
+  return Math.round(partes.reduce((a, p) => a + p.valor * cot * (1 + iofDoMeio(u, p.meio) / 100), 0));
+}
+// Estimado em real da viagem: reais + dolares convertidos (com IOF). fora: despesas que nao entram (dolar sem cotacao
+// ou outra moeda); temUsd: ha despesa em dolar (so entao a linha aparece). natureza: 'C' ou 'P', como totaisViagem.
+function estimadoViagem(u, v, cotPadrao, natureza) {
+  let total = 0, fora = 0, aPagar = 0, temUsd = false;
+  for (const d of u.despesas) {
+    if (d.viagem !== v.id || (natureza && naturezaDesp(d) !== natureza)) continue;
+    if (d.moeda === 'USD') temUsd = true;
+    const x = reaisDespesa(u, d, cotPadrao);
+    if (x !== null) total += x;
+    else if (d.pago === false) aPagar++;
+    else fora++;
+  }
+  return { total, fora, aPagar, temUsd };
+}
+// Configuracao da cotacao (vai no backup): chave opcional da AwesomeAPI, limite de consultas por dia e a ultima cotacao.
+const cotValida = (v) => Number.isFinite(v) && v > 0 && v < 1000;
+const cotacaoValida = (c) => c === undefined || (!!c && typeof c === 'object' && !Array.isArray(c)
+  && (c.chave === undefined || (typeof c.chave === 'string' && c.chave.length >= 1 && c.chave.length <= 100 && /^[\w-]+$/.test(c.chave)))
+  && (c.limite === undefined || (Number.isInteger(c.limite) && c.limite >= 1 && c.limite <= 100000))
+  && (c.ultima === undefined || (!!c.ultima && cotValida(c.ultima.v) && typeof c.ultima.em === 'string' && !Number.isNaN(Date.parse(c.ultima.em))
+    && (c.ultima.dia === undefined || /^\d{4}-\d{2}-\d{2}$/.test(c.ultima.dia)))));
+// IOF do meio de pagamento: porcentagem de 0 a 100.
+const iofValido = (x) => x.iof === undefined || (Number.isFinite(x.iof) && x.iof >= 0 && x.iof <= 100);
 
 // Soma de varias viagens, ainda separada por moeda.
 function totaisViagens(u, viagens) {
@@ -1167,10 +1219,15 @@ function usaValido(u) {
       && (d.pagamentos === undefined || (Array.isArray(d.pagamentos) && d.pagamentos.length >= 1 && d.pagamentos.length <= 2
         && d.pagamentos.every((p) => p && (tem(u.contas, p.meio) || tem(u.cartoes, p.meio)) && Number.isInteger(p.valor) && p.valor > 0)
         && new Set(d.pagamentos.map((p) => p.meio)).size === d.pagamentos.length && d.pagamentos.reduce((a, p) => a + p.valor, 0) === d.valor))
-      && (d.final === undefined || (/^\d{4}$/.test(d.final) && !!d.pagamentos && tem(u.cartoes, d.pagamentos[0].meio))))
+      && (d.final === undefined || (/^\d{4}$/.test(d.final) && !!d.pagamentos && tem(u.cartoes, d.pagamentos[0].meio)))
+      // Cotacao do dolar no lancamento: so em despesa em dolar.
+      && (d.cot === undefined || (cotValida(d.cot) && d.moeda === 'USD')) && (d.cotEm === undefined || (typeof d.cotEm === 'string' && !Number.isNaN(Date.parse(d.cotEm))))
+      // IOF gravado na despesa (capturado do meio ou digitado) e marcas de valor digitado a mao; so com cotacao.
+      && (d.iof === undefined || (iofValido(d) && d.cot !== undefined)) && (d.cotManual === undefined || (d.cotManual === true && d.cot !== undefined))
+      && (d.iofManual === undefined || (d.iofManual === true && d.iof !== undefined)))
     && (u.itinerario === undefined || (Array.isArray(u.itinerario) && u.itinerario.every((x) => itemItinValido(x, u))))
-    && itens(u.contas, (x) => iconeValido(x.icone))
-    && itens(u.cartoes, (x) => iconeValido(x.icone) && (x.tipo === undefined || x.tipo === 'F' || x.tipo === 'V') && finaisValidos(x))
+    && itens(u.contas, (x) => iconeValido(x.icone) && iofValido(x))
+    && itens(u.cartoes, (x) => iconeValido(x.icone) && iofValido(x) && (x.tipo === undefined || x.tipo === 'F' || x.tipo === 'V') && finaisValidos(x))
     && itens(u.viajantes, (x) => jpeg(x.foto, 200000) && (x.inicial === undefined || typeof x.inicial === 'boolean')
       // Passaporte e vistos: numero, emissao, validade e fotos (PDF no Drive, como os recibos); visto com pais e id.
       && (x.passaporte === undefined || doc(x.passaporte))
@@ -1239,7 +1296,7 @@ const idEvento = (chave) => 'cd' + [...new TextEncoder().encode(chave)].map((b) 
 function backupValido(d) {
   const inteiro = (v) => Number.isInteger(v);
   const data = (v) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
-  if (!d || typeof d !== 'object' || !perfilValido(d.perfil) || !usaValido(d.usa) || !googleValido(d.google) || !Array.isArray(d.categorias) || !Array.isArray(d.cartoes) || !Array.isArray(d.parciais)
+  if (!d || typeof d !== 'object' || !perfilValido(d.perfil) || !usaValido(d.usa) || !googleValido(d.google) || !cotacaoValida(d.cotacao) || !Array.isArray(d.categorias) || !Array.isArray(d.cartoes) || !Array.isArray(d.parciais)
     || !Array.isArray(d.lancs) || !Array.isArray(d.contasBanco) || !d.contasBanco.length || !Array.isArray(d.series)
     || !d.faturasPagas || typeof d.faturasPagas !== 'object' || Array.isArray(d.faturasPagas)) return false;
   const conta = (id) => d.contasBanco.some((c) => c.id === id);
@@ -1481,7 +1538,7 @@ if (typeof module !== 'undefined') {
   module.exports = {
     recibosNasParcelas, A4, largTexto, quebrarTexto, relatorioA4, PILULA, COR_PDF, relatorioViagem, pdfDeDesenho,
     anosEDias, contadorViagem, PAISES, ehPais, nomePais, formaDaCategoria, TIPOS_ITIN, itemItinValido, tipoDaCategoriaViagem, categoriaDeItinerario, despesaComCheckin, despesasParaItin, sincronizarItinDespesas, diasItinerario, localValido, ehChaveMaps, ehChaveAero, fusoDeOffset, horaLocalVoo, dadosDoVoo, offsetFuso, modelosDoVoo, vooNaData, lembretesAgenda, situacaoLembretes, idEvento, googleValido, ehClienteGoogle, compararDados, realceDocumento, recibosValidos, nomeRecibo, homografia, aplicarH, montarPdf,
-    comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, gastoFatura, chaveFatura,
+    comCache, ultimoDia, addMes, dataNoMes, mesFatura, fechamentoFatura, faturaPagavel, itensFatura, totalFatura, gastoFatura, chaveFatura, reaisDespesa, estimadoViagem, iofDoMeio, iofEfetivo,
     protegerSenha, confereSenha, cifrarBackup, chaveSync, cifrarComChave, decifrarComChave, novoSal, cifrarBackupSenhaApp, decifrarBackup, decifrarComHash, ehBackupCifrado, usaSenhaDoApp, gerarCodigo, limpaCodigo, perfilValido, usaValido, MOEDAS_PADRAO, totaisViagem, categoriasViagem, totaisViagens, viagemFinalizada, filtrarViagens, ativoEm, ultimaFaturaAte, svgParaIcone, iconeValido, gastosPorMeio, resgatesDoMes, fluxoPeriodo, resumoParcelamentos, parcelasNoPeriodo, resumoConta, resumoCartoes, resumoCategorias, resumoAPagar, restanteFatura, faturaPagaDoLanc, statusFatura, faturasAtrasadas, pagarFatura, desfazerPagamentos, criarParcelada, ehCartao, saldosPorConta, saldo, gastosPorCategoria, itensRelatorio, relatorioCategorias, relatorioBalanco, limitesDoMes, lancsDoLimite, entradasDoMes, aPagar, aReceber, limiteDisponivel, faturaAtual, saudacao, totalFaturasDoMes, linhasFluxo, atrasados, fluxoMes, dataSerie, completarSeries, criarSerie, aplicarEdicao, excluirLanc, migrar, backupValido,
   };
 }
